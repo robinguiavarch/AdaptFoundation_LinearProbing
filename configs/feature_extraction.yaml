@@ -1,0 +1,104 @@
+# Feature Extraction Configuration for AdaptFoundation Project
+# =============================================================
+
+# Dataset Configuration
+dataset:
+  name: "HCP_OFC"
+  data_path: "crops/2mm/S.Or."
+  resolution: "2mm"
+  target_task: "Left_OFC_classification"
+  n_classes: 4
+
+# Foundation Model Configuration
+model:
+  name: "dinov2_vits14"
+  feature_dimension: 384
+  input_size: 224
+  batch_size: 32
+  device: "auto"  # auto-detect GPU/CPU
+
+# Output Configuration
+output:
+  base_path: "feature_extracted"
+  structure: "model_name/configuration_name/"
+  file_format:
+    features: "npy"
+    metadata: "csv"
+    config_info: "json"
+
+# PCA Configuration
+pca:
+  enabled: true
+  variance_threshold: 0.95  # Keep components explaining 95% of variance
+  apply_to_configs: ["multi_axes_average"]  # Configurations to apply PCA to
+  output_subfolder: "PCA_95"  # Will be dynamically generated based on threshold
+
+# Standard Configurations
+configurations:
+  - name: "multi_axes_average"
+    description: "Multi-axis with average pooling"
+    pooling_strategy: "average"
+    required_axes: null  # All axes: [axial, coronal, sagittal]
+    expected_output_dim: 1152
+
+  - name: "multi_axes_max"
+    description: "Multi-axis with max pooling"
+    pooling_strategy: "max"
+    required_axes: null
+    expected_output_dim: 1152
+
+  - name: "multi_axes_add"
+    description: "Multi-axis with add pooling"
+    pooling_strategy: "add"
+    required_axes: null
+    expected_output_dim: 1152
+
+  - name: "single_axis_axial"
+    description: "Single axis (axial) with average pooling"
+    pooling_strategy: "average"
+    required_axes: ["axial"]
+    expected_output_dim: 384
+
+  - name: "single_axis_coronal"
+    description: "Single axis (coronal) with average pooling"
+    pooling_strategy: "average"
+    required_axes: ["coronal"]
+    expected_output_dim: 384
+
+  - name: "single_axis_sagittal"
+    description: "Single axis (sagittal) with average pooling"
+    pooling_strategy: "average"
+    required_axes: ["sagittal"]
+    expected_output_dim: 384
+
+# Processing Configuration
+processing:
+  multiprocessing: false
+  progress_tracking: true
+  validation_enabled: true
+  
+# Slicing Configuration
+slicing:
+  target_size: 224
+  normalization: "imagenet"
+  interpolation: "nearest"
+
+# Validation Configuration
+validation:
+  check_file_integrity: true
+  verify_dimensions: true
+  validate_label_correspondence: true
+  required_files:
+    - "metadata.json"
+    - "test_split_features.npy"
+    - "test_split_metadata.csv"
+    - "train_val_split_0_features.npy"
+    - "train_val_split_0_metadata.csv"
+    - "train_val_split_1_features.npy"
+    - "train_val_split_1_metadata.csv"
+    - "train_val_split_2_features.npy"
+    - "train_val_split_2_metadata.csv"
+    - "train_val_split_3_features.npy"
+    - "train_val_split_3_metadata.csv"
+    - "train_val_split_4_features.npy"
+    - "train_val_split_4_metadata.csv"

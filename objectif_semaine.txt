@@ -1,0 +1,434 @@
+CONTEXTE ET OBJECTIF DU PROJET
+==============================
+
+CONTEXTE:
+---------
+Le projet AdaptFoundation vise à évaluer l'efficacité des modèles de fondation 2D (comme DINOv2) 
+pour l'analyse de données neuroanatomiques 3D, spécifiquement les squelettes sulcaux corticaux.
+L'objectif est de développer et valider des stratégies d'adaptation 3D→2D permettant d'exploiter
+la puissance des modèles pré-entraînés sur ImageNet pour des tâches de neuroimagerie.
+
+OBJECTIF PRINCIPAL:
+------------------
+Créer un pipeline modulaire et extensible permettant de:
+1. Adapter des volumes 3D (squelettes corticaux) aux modèles de fondation 2D
+2. Évaluer différentes stratégies d'adaptation et d'agrégation
+3. Comparer les performances sur des tâches downstream de classification neuroanatomique
+4. Faciliter l'expérimentation rapide de nouvelles approches
+
+OBJECTIF IMMÉDIAT DE LA SEMAINE:
+-------------------------------
+Développer simultanément un notebook de prototypage ET une architecture modulaire avec DEUX pipelines distincts:
+
+PIPELINE 1: FEATURE EXTRACTION
+Dataset HCP OFC → Slicing 3-axes → DINOv2-384D → Agrégation → Sauvegarde Features + Labels + Sujets
+
+PIPELINE 2: CLASSIFICATION
+Features Sauvées → PCA(optionnel) → Linear Probing → Évaluation
+
+SPÉCIFICATIONS TECHNIQUES:
+-------------------------
+- Dataset: HCP OFC (squelettes sulcaux corticaux)
+- Stratégie d'adaptation: Slicing selon 3 axes anatomiques (axial, coronal, sagittal)
+- Modèle de fondation: DINOv2 avec dimension de sortie 384
+- Agrégation: Average/Max/Add pooling par axe + 3 variantes single-axis
+- Représentation finale: Concaténation → vecteur N_axes×384D
+- Sauvegarde: Features + Labels + Sujets dans feature_extracted/dinov2_vits14/
+- Réduction dimensionnelle: PCA optionnelle
+- Classification: Linear Probing avec choix Régression Logistique/SVM Linéaire/KNN
+- Architecture: Code modulaire développé en parallèle du notebook
+
+
+PLAN D'ACTION DÉTAILLÉ
+======================
+
+PHASE 1: INFRASTRUCTURE ET CHARGEMENT DES DONNÉES ✅ TERMINÉE
+-------------------------------------------------------------
+Objectif: Mettre en place l'environnement et le chargement des données HCP OFC
+
+Tasks:
+✅ 1.1. Setup environnement (imports, configurations, chemins)
+✅ 1.2. Création simultanée de la classe DataLoader (notebook + module data/loaders.py)
+✅ 1.3. Visualisation exploratoire des données (quelques échantillons)
+✅ 1.4. Validation du chargement (vérification dimensions, intégrité)
+
+Livrables RÉALISÉS:
+✅ Fonction load_hcp_ofc_dataset() dans notebook + module
+✅ Visualisations de contrôle
+✅ Module data/loaders.py avec support tensor
+✅ Binarisation des données (0,1)
+✅ Correction des labels (1,2,3,4 → 0,1,2,3)
+✅ Validation complète des splits et dimensions
+✅ Méthodes *_as_tensor() pour chargement direct en tensors
+
+DONNÉES VALIDÉES:
+- Shape finale: (1114, 30, 38, 22) - dimension singleton supprimée
+- Valeurs binaires: [0, 1]
+- Labels: 4 classes (0,1,2,3) correctement mappées
+- Splits: 577 échantillons total, distribution équilibrée
+- Test: 116 échantillons, Train/val: 5 splits de 92-93 échantillons
+
+
+PHASE 2: ADAPTATION 3D→2D (SLICING MULTI-AXES) ✅ TERMINÉE
+----------------------------------------------------------
+Objectif: Implémenter la stratégie de slicing selon les 3 axes anatomiques
+
+Tasks:
+✅ 2.1. Création simultanée de la classe SkeletonSlicer (notebook + module models/slicing.py)
+✅ 2.2. Fonctions de slicing par axe (axial, coronal, sagittal)
+✅ 2.3. Conversion des coupes 2D au format DINOv2 (3×224×224)
+✅ 2.4. Gestion de la normalisation et du redimensionnement
+✅ 2.5. Validation sur volumes d'exemple
+
+Livrables RÉALISÉS:
+✅ Classe SkeletonSlicer dans notebook + module
+✅ Méthode slice_volume(volume_3d, axes=['axial', 'coronal', 'sagittal'])
+✅ Visualisation des coupes générées
+✅ Module models/slicing.py avec sortie tensors NCHW
+✅ Normalisation ImageNet correctement implémentée
+✅ Validation du format DINOv2 (tensors NCHW, valeurs standardisées)
+✅ Conversion automatique HWC → CHW (permutation pour compatibilité DINOv2)
+
+RÉSULTATS VALIDÉS:
+- Slicing multi-axes: axial (22), coronal (38), sagittal (30) coupes
+- Format de sortie: (n_slices, 3, 224, 224) tensors NCHW avec normalisation ImageNet
+- Valeurs standardisées: [-2.118, 2.640] (binaire 0/1 → normalisé ImageNet)
+- Total: 90 coupes 2D par volume 3D (30+38+22)
+- Optimisation: Sortie directe en tensors PyTorch format NCHW
+
+
+PHASE 3: EXTRACTION DES FEATURES AVEC DINOv2 ✅ TERMINÉE
+--------------------------------------------------------
+Objectif: Intégrer DINOv2 pour l'extraction de features des coupes 2D
+
+Tasks:
+✅ 3.1. Création simultanée de la classe DINOv2FeatureExtractor (notebook + module models/feature_extraction.py)
+✅ 3.2. Chargement du modèle DINOv2 pré-entraîné (dimension 384)
+✅ 3.3. Extraction des CLS tokens pour chaque coupe
+✅ 3.4. Gestion du batch processing pour efficacité
+✅ 3.5. Optimisation mémoire (gradient disabled, device management)
+
+Livrables RÉALISÉS:
+✅ Classe DINOv2FeatureExtractor dans notebook + module
+✅ Méthode extract_features(slices_2d) → features (N_slices, 384)
+✅ Méthode extract_features_by_axis() pour traitement par axe anatomique
+✅ Module models/feature_extraction.py avec gestion GPU/CPU
+✅ Support input tensors NCHW (N, 3, 224, 224)
+✅ Batch processing optimisé avec nettoyage mémoire GPU
+✅ Auto-détection dimension features via _get_feature_dimension()
+✅ Validation format d'entrée tensors PyTorch
+
+OPTIMISATIONS RÉALISÉES:
+- Pipeline tensor end-to-end: DataLoader → SkeletonSlicer → DINOv2FeatureExtractor
+- Conversion HWC→CHW dans SkeletonSlicer pour compatibilité DINOv2 NCHW
+- Suppression conversions numpy↔tensor redondantes
+- Format d'entrée: tensors (N, 3, 224, 224) directement compatibles DINOv2
+- Format de sortie: numpy arrays (N_slices, 384) pour compatibilité downstream
+- Gestion mémoire GPU optimisée avec torch.cuda.empty_cache()
+
+
+PHASE 4: AGRÉGATION ET REPRÉSENTATION UNIFIÉE ✅ TERMINÉE
+---------------------------------------------------------
+Objectif: Implémenter l'agrégation par pooling et concaténation avec interface flexible
+
+Tasks:
+✅ 4.1. Création simultanée de la classe FeatureAggregator (notebook + module models/aggregation.py)
+✅ 4.2. Implémentation des 3 stratégies de pooling: average, max, add
+✅ 4.3. Support single-axis ET multi-axes pour tous les axes anatomiques
+✅ 4.4. Validation des dimensions et cohérence avec phases précédentes
+
+Livrables RÉALISÉS:
+✅ Classe FeatureAggregator dans module models/aggregation.py
+✅ Méthode aggregate_multi_axes(features_dict) → unified_representation
+✅ Interface flexible: required_axes configurable (1, 2 ou 3 axes)
+✅ Support des 3 stratégies de pooling par paramètre
+✅ Compatibilité complète avec l'architecture des phases 1-3
+✅ Calcul dynamique des dimensions de sortie selon configuration
+
+RÉSULTATS VALIDÉS:
+- Configuration single-axis: Output (384,) pour chaque axe individuel
+- Configuration multi-axes: Output (1152,) pour 3 axes × 384 features
+- 3 stratégies de pooling opérationnelles: average, max, add
+- Pipeline intégré complet: Volume 3D → Représentation unifiée
+- Interface flexible permettant toutes combinaisons d'axes
+
+
+=============================================================================
+PIPELINE 1: FEATURE EXTRACTION PIPELINE ✅ TERMINÉ
+=============================================================================
+
+PHASE 4.5: SAUVEGARDE DATASET FEATURES EXTRAITES ✅ TERMINÉE
+-----------------------------------------------------------
+Objectif: Créer et sauvegarder le "nouveau dataset" pour linear probing
+
+Tasks:
+✅ 4.5.1. Création de la classe FeatureDatasetSaver (module data/feature_saver.py)
+✅ 4.5.2. Création de la classe FeatureExtractionPipeline (module pipelines/feature_extraction_pipeline.py)
+✅ 4.5.3. Configuration centralisée YAML (configs/feature_extraction.yaml)
+✅ 4.5.4. Script d'orchestration complet (scripts/run_feature_extraction.py)
+✅ 4.5.5. Validation automatique de l'intégrité des données sauvées
+✅ 4.5.6. Métadonnées complètes: configuration, dimensions, statistiques
+
+Livrables RÉALISÉS:
+✅ Classe FeatureDatasetSaver dans module data/feature_saver.py
+✅ Classe FeatureExtractionPipeline dans module pipelines/feature_extraction_pipeline.py
+✅ Configuration YAML externalisée avec 6 configurations standard
+✅ Script d'orchestration scripts/run_feature_extraction.py avec CLI
+✅ Validation automatique intégrité (fichiers, dimensions, correspondances)
+✅ Sauvegarde organisée par configuration avec métadonnées JSON
+✅ Support traitement de tous les splits (train/val/test) automatiquement
+
+STRUCTURE DE SAUVEGARDE RÉALISÉE:
+```
+feature_extracted/
+├── dinov2_vits14/
+│   ├── multi_axes_average/
+│   │   ├── train_val_split_0_features.npy
+│   │   ├── train_val_split_0_metadata.csv
+│   │   ├── ... (splits 1-4)
+│   │   ├── test_split_features.npy
+│   │   ├── test_split_metadata.csv
+│   │   └── metadata.json
+│   ├── multi_axes_max/
+│   ├── multi_axes_add/
+│   ├── single_axis_axial/
+│   ├── single_axis_coronal/
+│   └── single_axis_sagittal/
+```
+
+UTILISATION:
+```bash
+# Lancement complet avec configuration par défaut
+python scripts/run_feature_extraction.py
+
+# Avec configuration personnalisée
+python scripts/run_feature_extraction.py --config configs/custom_config.yaml
+```
+
+RÉSULTATS VALIDÉS:
+- 6 configurations standard automatiquement traitées
+- Association correcte features ↔ labels ↔ sujets par split
+- Métadonnées JSON complètes avec informations pipeline
+- Validation automatique intégrité (fichiers requis, dimensions)
+- Format CSV pour métadonnées (Subject, Label) facilement inspectable
+- Architecture modulaire prête for extension nouveaux modèles
+
+
+=============================================================================
+PIPELINE 2: CLASSIFICATION PIPELINE
+=============================================================================
+
+PHASE 5: RÉDUCTION DIMENSIONNELLE OPTIONNELLE ✅ TERMINÉE
+---------------------------------------------------------
+Objectif: Implémenter PCA optionnelle avec interface flexible
+
+Tasks:
+✅ 5.1. Création de la classe DimensionalityReducer (module data/pca_processing.py)
+✅ 5.2. Chargement des features depuis feature_extracted/
+✅ 5.3. Fit PCA sur datasets d'entraînement
+✅ 5.4. Transform sur datasets test/validation
+✅ 5.5. Analyse des composantes principales (variance expliquée)
+✅ 5.6. Interface pour activer/désactiver PCA
+
+Livrables RÉALISÉS:
+✅ Classe DimensionalityReducer dans module data/pca_processing.py
+✅ Méthodes fit_pca() et transform() sans sauvegarde modèle PCA
+✅ Analyse de la variance expliquée par composante
+✅ Support chargement depuis feature_extracted/
+✅ Sauvegarde des données PCA-transformées
+✅ Script d'orchestration scripts/run_pca_reduction.py
+✅ Configuration PCA dans configs/feature_extraction.yaml
+✅ Validation automatique de l'intégrité des transformations
+
+RÉSULTATS VALIDÉS:
+- PCA non-supervisée: Fit uniquement sur données d'entraînement (461 échantillons)
+- Réduction dimensionnelle: 1152 → 104 composantes (9% des dimensions originales)
+- Variance expliquée: 95.02% (conforme au seuil configuré 95%)
+- Sauvegarde dans feature_extracted/dinov2_vits14/multi_axes_average/PCA_95/
+- Métadonnées complètes: pca_metadata.json avec analyse variance pour visualisations
+- Support seuil configurable (90%, 95%, 99%) via YAML et CLI
+
+STRUCTURE PCA RÉALISÉE:
+```
+feature_extracted/dinov2_vits14/multi_axes_average/
+├── PCA_95/                          ✅ CRÉÉ
+│   ├── train_val_split_0_features.npy  # Features réduites (92, 104)
+│   ├── train_val_split_0_metadata.csv  # Mêmes métadonnées
+│   ├── ... (splits 1-4)
+│   ├── test_split_features.npy         # Features test réduites (116, 104)
+│   ├── test_split_metadata.csv
+│   └── pca_metadata.json               # Variance expliquée + infos traçabilité
+```
+
+
+PHASE 6: LINEAR PROBING ET CLASSIFICATION ✅ TERMINÉE
+-----------------------------------------------------
+Objectif: Implémenter les classifieurs avec interface unifiée
+
+Tasks:
+✅ 6.1. Création de la classe LinearProber (module classification/linear_probing.py)
+✅ 6.2. Implémentation Régression Logistique, SVM Linéaire, KNN
+✅ 6.3. Pipeline d'entraînement avec validation croisée 5-fold stratifiée
+✅ 6.4. Métrique d'évaluation (ROC-AUC One vs All pour 4-classes)
+✅ 6.5. Gestion des hyperparamètres et grid search
+✅ 6.6. Chargement depuis feature_extracted/ avec/sans PCA
+
+Livrables RÉALISÉS:
+✅ Classe LinearProber dans module classification/linear_probing.py
+✅ Méthodes train_classifier() et evaluate_all_classifiers() pour chaque classifieur
+✅ Support features pré-extraites depuis feature_extracted/
+✅ Pipeline d'évaluation complet avec métriques ROC-AUC
+✅ Module classification/metrics.py pour calculs métriques détaillés
+✅ Script d'orchestration scripts/run_classification.py
+✅ Hyperparamètres optimisés selon CEA NeuroSpin (GridSearchCV)
+✅ Support PCA optionnel (comparaison avec/sans réduction dimensionnelle)
+
+HYPERPARAMÈTRES IMPLÉMENTÉS:
+- Logistic Regression (ElasticNet): l1_ratio=[0.0→1.0], C=[0.001→1000]
+- KNN: n_neighbors=[1→15], weights=[uniform,distance], metric=[minkowski,manhattan,cosine]
+- Linear SVM: C=[0.001→1000], class_weight=[None,balanced], loss=[hinge,squared_hinge]
+
+RÉSULTATS ATTENDUS:
+- Sauvegarde feature_extracted/classification_results.json (sans PCA)
+- Sauvegarde feature_extracted/classification_results_pca.json (avec PCA)
+- Comparaison performances: 3 classifieurs × 6 configurations × 2 modes (PCA/non-PCA)
+- Métriques ROC-AUC One-vs-Rest weighted pour classification 4-classes
+- Validation croisée 5-fold stratifiée avec optimisation hyperparamètres
+
+UTILISATION:
+```bash
+# Évaluation complète sans PCA
+python scripts/run_classification.py
+
+# Évaluation avec PCA
+python scripts/run_classification.py --use-pca
+
+# Configuration spécifique
+python scripts/run_classification.py --config multi_axes_average --classifier logistic
+```
+
+
+PHASE 7: ÉVALUATION COMPARATIVE ET ANALYSE
+------------------------------------------
+Objectif: Comparer toutes les configurations et analyser les résultats
+
+Tasks:
+7.1. Création de la classe ComparisonAnalyzer (module analysis/comparison.py)
+7.2. Évaluation systematique de toutes les configurations sauvées
+7.3. Comparaison: multi-axes vs single-axes, pooling strategies, avec/sans PCA
+7.4. Analyse statistical significance des performances
+7.5. Génération de rapports détaillés et visualisations
+
+Livrables:
+- Classe ComparisonAnalyzer dans module analysis/comparison.py
+- Évaluation complète sur toutes les configurations feature_extracted/
+- Tableau comparatif des performances ROC-AUC
+- Analyse statistique des différences de performance
+- Rapport détaillé avec recommandations
+- Visualisations des résultats
+
+
+PHASE 8: FINALISATION DE L'ARCHITECTURE MODULAIRE
+--------------------------------------------------
+Objectif: Compléter l'architecture modulaire avec extensibilité
+
+Tasks:
+8.1. Interfaces abstraites pour chaque composant
+8.2. Factory patterns pour instanciation de variantes
+8.3. Configuration centralisée (configs/classification.yaml)
+8.4. Documentation des points d'extension
+8.5. Exemples d'ajout de nouvelles stratégies
+8.6. Modules utilitaires (utils/visualization.py, utils/validation.py)
+8.7. Scripts de lancement automatisé des pipelines
+
+Livrables:
+- Architecture modulaire complète avec interfaces claires
+- Configuration externalisée pour le pipeline classification
+- Script d'orchestration: run_classification.py
+- Guide d'extension pour nouvelles stratégies
+- Modules utilitaires complets
+- Package Python installable et réutilisable
+
+
+ORGANISATION SIMULTANÉE
+=======================
+
+STRUCTURE DU NOTEBOOK:
+----------------------
+1. Setup et Imports (+ import des modules développés) ✅
+2. Configuration et Hyperparamètres ✅
+3. [PHASE 1] Chargement et Preprocessing des Données ✅
+4. [PHASE 2] Adaptation 3D→2D (Slicing) ✅
+5. [PHASE 3] Extraction Features DINOv2 ✅
+6. [PHASE 4] Agrégation Multi-Axes ✅
+7. [EXPLORATION] Features extraites et analysis ✅
+8. [PHASE 5] Pipeline 2: Réduction Dimensionnelle (PCA) ✅
+9. [PHASE 6] Pipeline 2: Linear Probing et Classification ✅
+10. [PHASE 7] Évaluation Comparative et Analyse
+11. [PHASE 8] Tests d'Extensibilité avec Architecture Modulaire
+12. Analyse des Résultats et Visualisations
+13. Conclusions et Prochaines Étapes
+
+ARCHITECTURE MODULAIRE DÉVELOPPÉE:
+----------------------------------
+- adaptfoundation/
+ ├── data/
+ │   ├── loaders.py           ✅ [PHASE 1] TERMINÉ
+ │   ├── binarization.py      ✅ [PHASE 1] TERMINÉ
+ │   ├── feature_saver.py     ✅ [PHASE 4.5] TERMINÉ
+ │   └── pca_processing.py    ✅ [PHASE 5] TERMINÉ
+ ├── models/
+ │   ├── slicing.py          ✅ [PHASE 2] TERMINÉ
+ │   ├── feature_extraction.py ✅ [PHASE 3] TERMINÉ
+ │   └── aggregation.py      ✅ [PHASE 4] TERMINÉ
+ ├── classification/
+ │   ├── linear_probing.py   ✅ [PHASE 6] TERMINÉ
+ │   └── metrics.py          ✅ [PHASE 6] TERMINÉ
+ ├── analysis/
+ │   └── comparison.py       [PHASE 7] - Analyse comparative
+ ├── pipelines/
+ │   ├── feature_extraction_pipeline.py ✅ [PHASE 4.5] TERMINÉ
+ │   └── classification_pipeline.py     [PHASE 6] - Pipeline 2
+ ├── configs/
+ │   ├── feature_extraction.yaml ✅ [PHASE 4.5] TERMINÉ (+ PCA config)
+ │   └── classification.yaml     [PHASE 8] - Config Pipeline 2
+ ├── utils/
+ │   ├── visualization.py    [PHASE 8] - Visualisations
+ │   ├── data_exploratory.py ✅ [PHASE 1] TERMINÉ
+ │   └── validation.py       [PHASE 8] - Validation
+ ├── scripts/
+ │   ├── run_feature_extraction.py ✅ [PHASE 4.5] TERMINÉ
+ │   ├── run_pca_reduction.py       ✅ [PHASE 5] TERMINÉ
+ │   └── run_classification.py      ✅ [PHASE 6] TERMINÉ
+ ├── __init__.py
+ └── setup.py
+
+MÉTHODOLOGIE DE DÉVELOPPEMENT:
+------------------------------
+1. ✅ PIPELINE 1: Feature extraction complet avec sauvegarde structurée
+2. ✅ PHASE 5: Réduction dimensionnelle optionnelle avec PCA non-supervisée
+3. ✅ PHASE 6: Linear Probing avec 3 classifieurs et hyperparamètres optimisés
+4. Modularité permettant expérimentation rapide de configurations
+5. Sauvegarde systématique pour éviter re-calculs coûteux
+6. Architecture extensible pour nouveaux modèles/stratégies
+
+CRITÈRES DE SUCCÈS:
+------------------
+1. ✅ Pipeline 1 fonctionnel: 3D volumes → features sauvées + métadonnées
+2. ✅ Phase 5 fonctionnelle: PCA optionnelle avec réduction 1152→104 dimensions
+3. ✅ Phase 6 fonctionnelle: Linear Probing avec 3 classifieurs optimisés
+4. ✅ Architecture modulaire séparant extraction et classification
+5. ✅ Sauvegarde structurée permettant expérimentation flexible
+6. ✅ 6 configurations standard automatiquement générées + PCA
+7. Performances baseline établies pour comparaisons futures (Phase 7)
+8. Code prêt pour ajout de nouveaux modèles de fondation
+9. Package Python installable et réutilisable (Phase 8)
+
+PROCHAINE ÉTAPE:
+===============
+🎯 TEST DU PIPELINE 2 COMPLET
+- Lancement scripts/run_classification.py pour validation fonctionnelle
+- Évaluation sur multi_axes_average (avec/sans PCA) comme test initial
+- Vérification génération classification_results.json
+- Analyse premiers résultats ROC-AUC avant Phase 7
+- Validation architecture modulaire complète Phases 1-6
