@@ -4,22 +4,14 @@ PCA dimensionality reduction script for AdaptFoundation project.
 This script applies PCA reduction to extracted features with configurable
 variance threshold and processes specified configurations.
 
-# PCA 256 dim (Champollion V0)
+# PCA_256 (Champollion V0)
 python3 scripts/run_pca_reduction.py --n-components 256
 
-# PCA 32 dim (Champollion V1)  
+# PCA_32 (Champollion V1)  
 python3 scripts/run_pca_reduction.py --n-components 32
 
-# Mode variance threshold 0.95
+# PCA variance (mode original)
 python3 scripts/run_pca_reduction.py --variance-threshold 0.95
-
-"""
-
-"""
-PCA dimensionality reduction script for AdaptFoundation project.
-
-This script applies PCA reduction to extracted features with configurable
-variance threshold and processes specified configurations.
 """
 
 import argparse
@@ -107,13 +99,13 @@ def run_pca_reduction(config_path, variance_threshold=None, n_components=None):
         try:
             result = reducer.process_configuration(config_name)
             
-            print(f" Successfully processed {config_name}")
+            print(f"✅ Successfully processed {config_name}")
             print(f"   Original dimension: {result['pca_info']['original_dim']}")
             print(f"   Reduced dimension: {result['pca_info']['reduced_dim']}")
             print(f"   Variance explained: {result['pca_info']['actual_variance']:.4f}")
             
         except Exception as e:
-            print(f" Error processing {config_name}: {str(e)}")
+            print(f"❌ Error processing {config_name}: {str(e)}")
             continue
     
     print("\n=== PCA Processing Completed ===")

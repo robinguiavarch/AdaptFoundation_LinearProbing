@@ -11,8 +11,8 @@ dataset:
 
 # Foundation Model Configuration
 model:
-  name: "dinov2_vits14"
-  feature_dimension: 384
+  name: "dinov2_vitg14"
+  feature_dimension: 1536
   input_size: 224
   batch_size: 32
   device: "auto"  # auto-detect GPU/CPU
@@ -39,37 +39,37 @@ configurations:
     description: "Multi-axis with average pooling"
     pooling_strategy: "average"
     required_axes: null  # All axes: [axial, coronal, sagittal]
-    expected_output_dim: 1152
+    expected_output_dim: 4608
 
   - name: "multi_axes_max"
     description: "Multi-axis with max pooling"
     pooling_strategy: "max"
     required_axes: null
-    expected_output_dim: 1152
+    expected_output_dim: 4608
 
   - name: "multi_axes_add"
     description: "Multi-axis with add pooling"
     pooling_strategy: "add"
     required_axes: null
-    expected_output_dim: 1152
+    expected_output_dim: 4608
 
   - name: "single_axis_axial"
     description: "Single axis (axial) with average pooling"
     pooling_strategy: "average"
     required_axes: ["axial"]
-    expected_output_dim: 384
+    expected_output_dim: 1536
 
   - name: "single_axis_coronal"
     description: "Single axis (coronal) with average pooling"
     pooling_strategy: "average"
     required_axes: ["coronal"]
-    expected_output_dim: 384
+    expected_output_dim: 1536
 
   - name: "single_axis_sagittal"
     description: "Single axis (sagittal) with average pooling"
     pooling_strategy: "average"
     required_axes: ["sagittal"]
-    expected_output_dim: 384
+    expected_output_dim: 1536
 
 # Processing Configuration
 processing:

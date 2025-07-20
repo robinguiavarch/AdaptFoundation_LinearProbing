@@ -1,0 +1,9 @@
+===========================================
+Starting DINOv2 Giant Feature Extraction
+Job started on node: node05.enst.fr
+Job started at: dim. 20 juil. 2025 20:33:42 CEST
+Job ID: 371197
+===========================================
+Activating virtual environment...
+Starting feature extraction with DINOv2 Giant...
+Command: python3 scripts/run_feature_extraction.py

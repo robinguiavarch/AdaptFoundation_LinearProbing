@@ -2,29 +2,18 @@
 Linear probing classification module for foundation model evaluation.
 
 This module implements linear classification methods for evaluating 
-pre-extracted features using cross-validation and grid search optimization.
-
-# Without PCA (1152D)
-python scripts/run_classification.py --config multi_axes_average
-
-# PCA 95% variance 
-python scripts/run_classification.py --config multi_axes_average --use-pca --pca-mode 95
-
-# PCA 256D (Champollion V0)
-python scripts/run_classification.py --config multi_axes_average --use-pca --pca-mode 256
-
-# PCA 32D (Champollion V1)
-python scripts/run_classification.py --config multi_axes_average --use-pca --pca-mode 32
+pre-extracted features using proper cross-validation with pre-stratified splits.
 """
 
 import numpy as np
 import pandas as pd
+import time
 from pathlib import Path
-from typing import Dict, List, Tuple, Optional, Union
+from typing import Dict, List, Tuple, Optional
 from sklearn.linear_model import LogisticRegression
 from sklearn.svm import LinearSVC
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.model_selection import GridSearchCV, StratifiedKFold
+from sklearn.model_selection import GridSearchCV, LeaveOneGroupOut, cross_val_predict
 from sklearn.metrics import roc_auc_score
 from sklearn.preprocessing import LabelBinarizer
 
@@ -33,32 +22,22 @@ class LinearProber:
     """
     Linear probing classifier for foundation model feature evaluation.
     
-    Implements logistic regression, linear SVM, and KNN classification with 
-    hyperparameter optimization and cross-validation for multi-class problems.
-    
-    Attributes:
-        features_base_path (Path): Base path to extracted features directory
-        model_name (str): Name of the foundation model
-        cv_folds (int): Number of cross-validation folds
-        random_state (int): Random state for reproducibility
-        n_jobs (int): Number of parallel jobs for grid search
+    Uses LeaveOneGroupOut CV with pre-stratified splits to respect data structure.
     """
     
     def __init__(self, features_base_path: str, model_name: str = 'dinov2_vits14',
-                 cv_folds: int = 5, random_state: int = 0, n_jobs: int = -1):
+                 random_state: int = 0, n_jobs: int = -1):
         """
         Initialize the linear probing classifier.
         
         Args:
             features_base_path (str): Base path to feature_extracted directory
             model_name (str): Foundation model name. Defaults to 'dinov2_vits14'.
-            cv_folds (int): Number of CV folds. Defaults to 5.
             random_state (int): Random state for reproducibility. Defaults to 0.
             n_jobs (int): Number of parallel jobs. Defaults to -1.
         """
         self.features_base_path = Path(features_base_path)
         self.model_name = model_name
-        self.cv_folds = cv_folds
         self.random_state = random_state
         self.n_jobs = n_jobs
         
@@ -67,18 +46,18 @@ class LinearProber:
         if not self.model_path.exists():
             raise FileNotFoundError(f"Model directory not found: {self.model_path}")
     
-    def _load_features_and_labels(self, config_name: str, 
-                                 use_pca: bool = False, pca_mode: int = 95) -> Tuple[np.ndarray, np.ndarray]:
+    def _load_all_cv_data(self, config_name: str, use_pca: bool = False, 
+                         pca_mode: int = 95) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         """
-        Load features and labels for all training splits.
+        Load all CV splits with group labels for LeaveOneGroupOut.
         
         Args:
-            config_name (str): Configuration name (e.g., 'multi_axes_average')
-            use_pca (bool): Whether to use PCA-reduced features. Defaults to False.
-            pca_mode (int): PCA mode (95, 256, 32). Defaults to 95.
+            config_name (str): Configuration name
+            use_pca (bool): Whether to use PCA-reduced features
+            pca_mode (int): PCA mode (95, 256, 32)
         
         Returns:
-            Tuple[np.ndarray, np.ndarray]: Features and labels arrays
+            Tuple[np.ndarray, np.ndarray, np.ndarray]: Features (X), labels (y), groups
         """
         config_path = self.model_path / config_name
         
@@ -90,10 +69,11 @@ class LinearProber:
         
         all_features = []
         all_labels = []
+        all_groups = []
         
-        # Load all training splits
-        for i in range(5):
-            split_name = f"train_val_split_{i}"
+        # Load all 5 CV splits
+        for fold_id in range(5):
+            split_name = f"train_val_split_{fold_id}"
             
             features_file = config_path / f"{split_name}_features.npy"
             metadata_file = config_path / f"{split_name}_metadata.csv"
@@ -105,26 +85,26 @@ class LinearProber:
             metadata = pd.read_csv(metadata_file)
             labels = metadata['Label'].values
             
+            # Group ID = fold ID (for LeaveOneGroupOut)
+            groups = np.full(len(features), fold_id)
+            
             all_features.append(features)
             all_labels.append(labels)
+            all_groups.append(groups)
         
         # Concatenate all data
         X = np.concatenate(all_features, axis=0)
         y = np.concatenate(all_labels, axis=0)
+        groups = np.concatenate(all_groups, axis=0)
         
-        return X, y
+        return X, y, groups
     
     def _get_logistic_regression_config(self) -> Tuple[LogisticRegression, Dict]:
-        """
-        Get logistic regression model and parameter grid.
-        
-        Returns:
-            Tuple[LogisticRegression, Dict]: Model and parameter grid
-        """
+        """Get logistic regression model and parameter grid."""
         model = LogisticRegression(
             solver='saga',
             penalty='elasticnet',
-            max_iter=20000,
+            max_iter=5000,  
             random_state=self.random_state
         )
         
@@ -136,12 +116,7 @@ class LinearProber:
         return model, parameters
     
     def _get_knn_config(self) -> Tuple[KNeighborsClassifier, Dict]:
-        """
-        Get KNN model and parameter grid.
-        
-        Returns:
-            Tuple[KNeighborsClassifier, Dict]: Model and parameter grid
-        """
+        """Get KNN model and parameter grid."""
         model = KNeighborsClassifier(n_jobs=self.n_jobs)
         
         parameters = {
@@ -154,13 +129,8 @@ class LinearProber:
         return model, parameters
     
     def _get_linear_svm_config(self) -> Tuple[LinearSVC, Dict]:
-        """
-        Get Linear SVM model and parameter grid.
-        
-        Returns:
-            Tuple[LinearSVC, Dict]: Model and parameter grid
-        """
-        model = LinearSVC(random_state=self.random_state, max_iter=20000)
+        """Get Linear SVM model and parameter grid."""
+        model = LinearSVC(random_state=self.random_state, max_iter=2000)
         
         parameters = {
             'C': [0.001, 0.01, 0.1, 1.0, 10.0, 100.0, 1000.0],
@@ -171,28 +141,19 @@ class LinearProber:
         return model, parameters
     
     def _calculate_roc_auc_ovr(self, y_true: np.ndarray, y_pred_proba: np.ndarray) -> float:
-        """
-        Calculate ROC-AUC One-vs-Rest for multi-class classification.
-        
-        Args:
-            y_true (np.ndarray): True labels
-            y_pred_proba (np.ndarray): Predicted probabilities
-        
-        Returns:
-            float: ROC-AUC One-vs-Rest weighted score
-        """
+        """Calculate ROC-AUC One-vs-Rest for multi-class classification."""
         return roc_auc_score(y_true, y_pred_proba, multi_class='ovr', average='weighted')
     
     def train_classifier(self, config_name: str, classifier_type: str,
                         use_pca: bool = False, pca_mode: int = 95) -> Dict:
         """
-        Train classifier with hyperparameter optimization.
+        Train classifier with LeaveOneGroupOut cross-validation.
         
         Args:
             config_name (str): Configuration name to train on
             classifier_type (str): Type of classifier ('logistic', 'knn', 'svm_linear')
-            use_pca (bool): Whether to use PCA-reduced features. Defaults to False.
-            pca_mode (int): PCA mode (95, 256, 32). Defaults to 95.
+            use_pca (bool): Whether to use PCA-reduced features
+            pca_mode (int): PCA mode (95, 256, 32)
         
         Returns:
             Dict: Training results including best parameters and CV scores
@@ -200,9 +161,14 @@ class LinearProber:
         pca_info = f"PCA_{pca_mode}" if use_pca else "No PCA"
         print(f"Training {classifier_type} on {config_name} ({pca_info})")
         
-        # Load data
-        X, y = self._load_features_and_labels(config_name, use_pca, pca_mode)
+        # Load data with group information
+        print("Loading data...")
+        start_load = time.time()
+        X, y, groups = self._load_all_cv_data(config_name, use_pca, pca_mode)
+        load_time = time.time() - start_load
+        print(f"Data loaded in {load_time:.2f}s")
         print(f"Data shape: {X.shape}, Labels: {len(np.unique(y))} classes")
+        print(f"Groups (folds): {np.unique(groups)}")
         
         # Get model configuration
         if classifier_type == 'logistic':
@@ -217,27 +183,61 @@ class LinearProber:
         else:
             raise ValueError(f"Unknown classifier type: {classifier_type}")
         
-        # Setup cross-validation
-        cv = StratifiedKFold(n_splits=self.cv_folds, shuffle=True, 
-                           random_state=self.random_state)
+        # Calculate total combinations for progress tracking
+        total_combinations = 1
+        for param_values in parameters.values():
+            total_combinations *= len(param_values)
         
-        # Grid search
-        clf = GridSearchCV(model, parameters, cv=cv, scoring=scoring, 
-                         refit=True, n_jobs=self.n_jobs)
+        print(f"GridSearch: {total_combinations} hyperparameter combinations × 5 folds = {total_combinations * 5} total fits")
+        
+        # Setup LeaveOneGroupOut cross-validation
+        logo = LeaveOneGroupOut()
+        cv_splits = list(logo.split(X, y, groups=groups))
+        
+        print(f"Using LeaveOneGroupOut CV: {len(cv_splits)} splits")
+        print("Starting GridSearchCV...")
+        
+        # Grid search with LeaveOneGroupOut
+        start_gridsearch = time.time()
+        clf = GridSearchCV(
+            model, parameters, 
+            cv=cv_splits,  # Use pre-computed splits
+            scoring=scoring, 
+            refit=True, 
+            n_jobs=self.n_jobs,
+            verbose=1  # Add sklearn verbose output
+        )
         
         clf.fit(X, y)
+        gridsearch_time = time.time() - start_gridsearch
         
-        # Calculate ROC-AUC for all models (unified metric)
-        if hasattr(clf.best_estimator_, 'predict_proba'):
-            y_pred_proba = clf.best_estimator_.predict_proba(X)
+        print(f"GridSearchCV completed in {gridsearch_time:.2f}s")
+        print(f"Best parameters found: {clf.best_params_}")
+        print(f"Best cross-validation score: {clf.best_score_:.4f}")
+        
+        # Get best model and calculate ROC-AUC with cross_val_predict
+        print("Computing final ROC-AUC with cross_val_predict...")
+        start_final = time.time()
+        best_model = clf.best_estimator_
+        
+        if hasattr(best_model, 'predict_proba'):
+            y_pred_proba = cross_val_predict(
+                best_model, X, y, cv=cv_splits, method='predict_proba'
+            )
             roc_auc = self._calculate_roc_auc_ovr(y, y_pred_proba)
         else:
             # For LinearSVC without probability
-            y_pred = clf.best_estimator_.predict(X)
+            y_pred = cross_val_predict(best_model, X, y, cv=cv_splits)
             lb = LabelBinarizer()
             y_bin = lb.fit_transform(y)
             y_pred_bin = lb.transform(y_pred)
             roc_auc = roc_auc_score(y_bin, y_pred_bin, average='weighted')
+        
+        final_time = time.time() - start_final
+        total_time = load_time + gridsearch_time + final_time
+        
+        print(f"Final evaluation completed in {final_time:.2f}s")
+        print(f"Total training time: {total_time:.2f}s")
         
         results = {
             'classifier_type': classifier_type,
@@ -249,48 +249,24 @@ class LinearProber:
             'roc_auc_score': roc_auc,
             'data_shape': X.shape,
             'n_classes': len(np.unique(y)),
+            'n_cv_splits': len(cv_splits),
+            'total_combinations': total_combinations,
+            'timing': {
+                'load_time': load_time,
+                'gridsearch_time': gridsearch_time,
+                'final_eval_time': final_time,
+                'total_time': total_time
+            },
             'cv_results': clf.cv_results_
         }
         
         print(f"Best CV score: {clf.best_score_:.4f}")
-        print(f"ROC-AUC score: {roc_auc:.4f}")
-        
-        return results
-    
-    def evaluate_all_classifiers(self, config_name: str, 
-                                use_pca: bool = False, pca_mode: int = 95) -> Dict[str, Dict]:
-        """
-        Evaluate all classifier types on a configuration.
-        
-        Args:
-            config_name (str): Configuration name to evaluate
-            use_pca (bool): Whether to use PCA-reduced features. Defaults to False.
-            pca_mode (int): PCA mode (95, 256, 32). Defaults to 95.
-        
-        Returns:
-            Dict[str, Dict]: Results for each classifier type
-        """
-        classifiers = ['logistic', 'knn', 'svm_linear']
-        results = {}
-        
-        for classifier_type in classifiers:
-            try:
-                results[classifier_type] = self.train_classifier(
-                    config_name, classifier_type, use_pca, pca_mode
-                )
-            except Exception as e:
-                print(f"Error training {classifier_type}: {str(e)}")
-                results[classifier_type] = {'error': str(e)}
+        print(f"Cross-val ROC-AUC: {roc_auc:.4f}")
         
         return results
     
     def get_available_configurations(self) -> List[str]:
-        """
-        Get list of available configurations for classification.
-        
-        Returns:
-            List[str]: List of available configuration names
-        """
+        """Get list of available configurations for classification."""
         configs = []
         for path in self.model_path.iterdir():
             if path.is_dir() and (path / "metadata.json").exists():
@@ -298,16 +274,7 @@ class LinearProber:
         return configs
     
     def check_pca_availability(self, config_name: str, pca_mode: int = 95) -> bool:
-        """
-        Check if PCA-reduced features are available for a configuration.
-        
-        Args:
-            config_name (str): Configuration name to check
-            pca_mode (int): PCA mode (95, 256, 32). Defaults to 95.
-        
-        Returns:
-            bool: True if PCA features are available
-        """
+        """Check if PCA-reduced features are available for a configuration."""
         pca_dir = f"PCA_{pca_mode}"
         pca_path = self.model_path / config_name / pca_dir
         return pca_path.exists() and (pca_path / "pca_metadata.json").exists()

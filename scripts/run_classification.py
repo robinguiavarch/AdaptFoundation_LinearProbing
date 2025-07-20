@@ -3,6 +3,30 @@ Classification pipeline script for AdaptFoundation project.
 
 This script runs linear probing classification on extracted features
 with comprehensive evaluation and hyperparameter optimization.
+
+# Sans PCA (1152D)
+python3 scripts/run_classification.py --config multi_axes_average
+
+# PCA 95% variance
+python3 scripts/run_classification.py --config multi_axes_average --use-pca --pca-mode 95
+
+# PCA 256D (Champollion V0)
+python3 scripts/run_classification.py --config multi_axes_average --use-pca --pca-mode 256
+
+# PCA 32D (Champollion V1)
+python3 scripts/run_classification.py --config multi_axes_average --use-pca --pca-mode 32
+
+# Sans PCA (4608D) - Giant
+python3 scripts/run_classification.py --config multi_axes_average --model-name dinov2_vitg14
+
+# PCA 32D - Giant
+python3 scripts/run_classification.py --config multi_axes_average --use-pca --pca-mode 32 --model-name dinov2_vitg14
+
+# PCA 95% variance - Giant  
+python3 scripts/run_classification.py --config multi_axes_average --use-pca --pca-mode 95 --model-name dinov2_vitg14
+
+# PCA 256D - Giant
+python3 scripts/run_classification.py --config multi_axes_average --use-pca --pca-mode 256 --model-name dinov2_vitg14
 """
 
 import argparse
@@ -18,7 +42,7 @@ from classification.linear_probing import LinearProber
 
 
 def run_classification_pipeline(features_path, config_name=None, 
-                               classifier_type=None, use_pca=False, pca_mode=95):
+                               classifier_type=None, use_pca=False, pca_mode=95, model_name='dinov2_vits14'):
     """
     Run classification pipeline on extracted features.
     
@@ -36,7 +60,7 @@ def run_classification_pipeline(features_path, config_name=None,
         print(f"PCA mode: {pca_mode}")
     
     # Initialize linear prober
-    prober = LinearProber(features_path)
+    prober = LinearProber(features_path, model_name=model_name)
     
     # Get available configurations
     available_configs = prober.get_available_configurations()
@@ -84,28 +108,47 @@ def run_classification_pipeline(features_path, config_name=None,
                 
                 config_results[clf_type] = result
                 
-                print(f" {clf_type} completed in {elapsed_time:.2f}s")
-                print(f"   Best CV score: {result['best_cv_score']:.4f}")
-                print(f"   ROC-AUC: {result['roc_auc_score']:.4f}")
+                print(f"{clf_type} completed in {elapsed_time:.2f}s")
+                print(f"Best CV score: {result['best_cv_score']:.4f}")
+                print(f"ROC-AUC: {result['roc_auc_score']:.4f}")
                 
             except Exception as e:
-                print(f" Error training {clf_type}: {str(e)}")
+                print(f"Error training {clf_type}: {str(e)}")
                 config_results[clf_type] = {'error': str(e)}
         
         all_results[config] = config_results
     
-    # Save results with PCA mode info
+    # Save results in the appropriate configuration directory
+    for config in configs_to_evaluate:
+        if config in all_results:
+            # Determine output directory based on PCA usage
+            config_dir = Path(features_path) / model_name / config
+            if use_pca:
+                output_dir = config_dir / f"PCA_{pca_mode}"
+            else:
+                output_dir = config_dir
+            
+            # Save results in the configuration-specific directory
+            results_file = output_dir / "classification_results.json"
+            
+            with open(results_file, 'w') as f:
+                json.dump({config: all_results[config]}, f, indent=2, default=str)
+            
+            print(f"Results for {config} saved to: {results_file}")
+    
+    # Also save consolidated results in features_path for convenience
     if use_pca:
         suffix = f"_pca_{pca_mode}"
     else:
         suffix = ""
-    results_file = Path(features_path) / f"classification_results{suffix}.json"
+    consolidated_file = Path(features_path) / f"classification_results{suffix}.json"
     
-    with open(results_file, 'w') as f:
+    
+    with open(consolidated_file, 'w') as f:
         json.dump(all_results, f, indent=2, default=str)
     
     print(f"\n=== Classification Pipeline Completed ===")
-    print(f"Results saved to: {results_file}")
+    print(f"Consolidated results saved to: {consolidated_file}")
     
     # Print summary
     print(f"\n=== Summary ===")
@@ -153,6 +196,13 @@ def main():
     )
     
     parser.add_argument(
+        "--model-name",
+        type=str,
+        default="dinov2_vits14",
+        help="Foundation model name (e.g., 'dinov2_vits14', 'dinov2_vitg14')"
+    )
+    
+    parser.add_argument(
         "--pca-mode",
         type=int,
         choices=[32, 95, 256],
@@ -174,7 +224,8 @@ def main():
         config_name=args.config,
         classifier_type=args.classifier,
         use_pca=args.use_pca,
-        pca_mode=args.pca_mode
+        pca_mode=args.pca_mode,
+        model_name=args.model_name
     )
 
 
