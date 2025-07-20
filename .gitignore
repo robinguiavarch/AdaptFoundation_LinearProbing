@@ -33,7 +33,14 @@ ENV/
 # VS Code
 .vscode/
 
+# Data
+feature_extracted/
 
+# Jobs
+*.out
+*.err
+*_job.sh
+feature_extraction_job.sh
 
 # model files
 *.pth
