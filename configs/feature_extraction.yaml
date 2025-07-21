@@ -26,13 +26,6 @@ output:
     metadata: "csv"
     config_info: "json"
 
-# PCA Configuration
-pca:
-  enabled: true
-  variance_threshold: 0.95  # Keep components explaining 95% of variance
-  apply_to_configs: ["multi_axes_average"]  # Configurations to apply PCA to
-  output_subfolder: "PCA_95"  # Will be dynamically generated based on threshold
-
 # Standard Configurations
 configurations:
   - name: "multi_axes_average"

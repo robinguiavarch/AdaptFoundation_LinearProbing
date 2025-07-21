@@ -13,9 +13,10 @@ from typing import Dict, List, Tuple, Optional
 from sklearn.linear_model import LogisticRegression
 from sklearn.svm import LinearSVC
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.model_selection import GridSearchCV, LeaveOneGroupOut, cross_val_predict
+from sklearn.model_selection import GridSearchCV, LeaveOneGroupOut, cross_val_predict, cross_val_score
 from sklearn.metrics import roc_auc_score
 from sklearn.preprocessing import LabelBinarizer
+import sklearn.metrics
 
 
 class LinearProber:
@@ -99,6 +100,37 @@ class LinearProber:
         
         return X, y, groups
     
+    def _load_test_data(self, config_name: str, use_pca: bool = False, 
+                       pca_mode: int = 95) -> Tuple[np.ndarray, np.ndarray]:
+        """
+        Load test split data separately from training data.
+        
+        Args:
+            config_name (str): Configuration name
+            use_pca (bool): Whether to use PCA-reduced features
+            pca_mode (int): PCA mode (95, 256, 32)
+        
+        Returns:
+            Tuple[np.ndarray, np.ndarray]: Test features and test labels
+        """
+        config_path = self.model_path / config_name
+        
+        if use_pca:
+            pca_dir = f"PCA_{pca_mode}"
+            config_path = config_path / pca_dir
+        
+        test_features_file = config_path / "test_split_features.npy"
+        test_metadata_file = config_path / "test_split_metadata.csv"
+        
+        if not test_features_file.exists() or not test_metadata_file.exists():
+            raise FileNotFoundError(f"Missing test files for {config_name}")
+        
+        X_test = np.load(test_features_file)
+        test_metadata = pd.read_csv(test_metadata_file)
+        y_test = test_metadata['Label'].values
+        
+        return X_test, y_test
+    
     def _get_logistic_regression_config(self) -> Tuple[LogisticRegression, Dict]:
         """Get logistic regression model and parameter grid."""
         model = LogisticRegression(
@@ -140,14 +172,12 @@ class LinearProber:
         
         return model, parameters
     
-    def _calculate_roc_auc_ovr(self, y_true: np.ndarray, y_pred_proba: np.ndarray) -> float:
-        """Calculate ROC-AUC One-vs-Rest for multi-class classification."""
-        return roc_auc_score(y_true, y_pred_proba, multi_class='ovr', average='weighted')
+
     
     def train_classifier(self, config_name: str, classifier_type: str,
                         use_pca: bool = False, pca_mode: int = 95) -> Dict:
         """
-        Train classifier with LeaveOneGroupOut cross-validation.
+        Train classifier with test set evaluation and comprehensive diagnostics.
         
         Args:
             config_name (str): Configuration name to train on
@@ -156,19 +186,23 @@ class LinearProber:
             pca_mode (int): PCA mode (95, 256, 32)
         
         Returns:
-            Dict: Training results including best parameters and CV scores
+            Dict: Complete training results including test metrics and diagnostics
         """
         pca_info = f"PCA_{pca_mode}" if use_pca else "No PCA"
         print(f"Training {classifier_type} on {config_name} ({pca_info})")
         
-        # Load data with group information
-        print("Loading data...")
+        # Load training and validation data
+        print("Loading train/val data...")
         start_load = time.time()
-        X, y, groups = self._load_all_cv_data(config_name, use_pca, pca_mode)
+        X_train_val, y_train_val, groups = self._load_all_cv_data(config_name, use_pca, pca_mode)
+        
+        # Load test data separately
+        print("Loading test data...")
+        X_test, y_test = self._load_test_data(config_name, use_pca, pca_mode)
         load_time = time.time() - start_load
+        
         print(f"Data loaded in {load_time:.2f}s")
-        print(f"Data shape: {X.shape}, Labels: {len(np.unique(y))} classes")
-        print(f"Groups (folds): {np.unique(groups)}")
+        print(f"Train/val shape: {X_train_val.shape}, Test shape: {X_test.shape}")
         
         # Get model configuration
         if classifier_type == 'logistic':
@@ -179,66 +213,76 @@ class LinearProber:
             scoring = 'roc_auc_ovr_weighted'
         elif classifier_type == 'svm_linear':
             model, parameters = self._get_linear_svm_config()
-            scoring = 'accuracy'  # LinearSVC compatibility
+            scoring = 'roc_auc_ovr_weighted'
         else:
             raise ValueError(f"Unknown classifier type: {classifier_type}")
         
-        # Calculate total combinations for progress tracking
-        total_combinations = 1
-        for param_values in parameters.values():
-            total_combinations *= len(param_values)
-        
-        print(f"GridSearch: {total_combinations} hyperparameter combinations × 5 folds = {total_combinations * 5} total fits")
-        
-        # Setup LeaveOneGroupOut cross-validation
+        # Setup cross-validation
         logo = LeaveOneGroupOut()
-        cv_splits = list(logo.split(X, y, groups=groups))
+        cv_splits = list(logo.split(X_train_val, y_train_val, groups=groups))
         
-        print(f"Using LeaveOneGroupOut CV: {len(cv_splits)} splits")
-        print("Starting GridSearchCV...")
-        
-        # Grid search with LeaveOneGroupOut
+        print("Starting GridSearchCV with detailed diagnostics...")
         start_gridsearch = time.time()
+        
+        # Grid search with comprehensive diagnostics
         clf = GridSearchCV(
-            model, parameters, 
-            cv=cv_splits,  # Use pre-computed splits
-            scoring=scoring, 
-            refit=True, 
+            model, parameters,
+            cv=cv_splits,
+            scoring=scoring,
+            refit=True,
             n_jobs=self.n_jobs,
-            verbose=1  # Add sklearn verbose output
+            return_train_score=True,
+            verbose=1
         )
         
-        clf.fit(X, y)
+        clf.fit(X_train_val, y_train_val)
         gridsearch_time = time.time() - start_gridsearch
         
         print(f"GridSearchCV completed in {gridsearch_time:.2f}s")
-        print(f"Best parameters found: {clf.best_params_}")
-        print(f"Best cross-validation score: {clf.best_score_:.4f}")
         
-        # Get best model and calculate ROC-AUC with cross_val_predict
-        print("Computing final ROC-AUC with cross_val_predict...")
-        start_final = time.time()
+        # Final evaluation on test set
+        print("Final evaluation on test set...")
+        start_test = time.time()
+        
         best_model = clf.best_estimator_
+        best_model.fit(X_train_val, y_train_val)
+        y_test_pred = best_model.predict(X_test)
         
+        # Calculate test metrics
         if hasattr(best_model, 'predict_proba'):
-            y_pred_proba = cross_val_predict(
-                best_model, X, y, cv=cv_splits, method='predict_proba'
-            )
-            roc_auc = self._calculate_roc_auc_ovr(y, y_pred_proba)
+            y_test_proba = best_model.predict_proba(X_test)
+            scorer = sklearn.metrics.get_scorer('roc_auc_ovr_weighted')
+            test_roc_auc_weighted = scorer(best_model, X_test, y_test)
         else:
-            # For LinearSVC without probability
-            y_pred = cross_val_predict(best_model, X, y, cv=cv_splits)
             lb = LabelBinarizer()
-            y_bin = lb.fit_transform(y)
-            y_pred_bin = lb.transform(y_pred)
-            roc_auc = roc_auc_score(y_bin, y_pred_bin, average='weighted')
+            y_test_bin = lb.fit_transform(y_test)
+            y_test_pred_bin = lb.transform(y_test_pred)
+            test_roc_auc_weighted = roc_auc_score(y_test_bin, y_test_pred_bin, average='weighted')
         
-        final_time = time.time() - start_final
-        total_time = load_time + gridsearch_time + final_time
+        test_accuracy = np.mean(y_test == y_test_pred)
+        test_time = time.time() - start_test
         
-        print(f"Final evaluation completed in {final_time:.2f}s")
-        print(f"Total training time: {total_time:.2f}s")
+        # Extract CV diagnostics from GridSearchCV results
+        print("Computing CV diagnostics from GridSearchCV...")
+        cv_results_df = pd.DataFrame(clf.cv_results_)
+        best_idx = clf.best_index_
         
+        # CV metrics and overfitting analysis
+        best_train_score = cv_results_df.iloc[best_idx]['mean_train_score']
+        best_val_score = cv_results_df.iloc[best_idx]['mean_test_score']
+        overfitting_gap = best_train_score - best_val_score
+        cv_stability = cv_results_df.iloc[best_idx]['std_test_score']
+        
+        # Convergence check for logistic regression
+        convergence_warning = False
+        if classifier_type == 'logistic' and hasattr(best_model, 'n_iter_'):
+            max_iter = best_model.max_iter
+            actual_iter = best_model.n_iter_[0] if len(best_model.n_iter_) > 0 else 0
+            convergence_warning = actual_iter >= max_iter
+        
+        total_time = load_time + gridsearch_time + test_time
+        
+        # Compile complete results
         results = {
             'classifier_type': classifier_type,
             'config_name': config_name,
@@ -246,22 +290,49 @@ class LinearProber:
             'pca_mode': pca_mode if use_pca else None,
             'best_params': clf.best_params_,
             'best_cv_score': clf.best_score_,
-            'roc_auc_score': roc_auc,
-            'data_shape': X.shape,
-            'n_classes': len(np.unique(y)),
-            'n_cv_splits': len(cv_splits),
-            'total_combinations': total_combinations,
+            'test_metrics': {
+                'roc_auc_weighted': test_roc_auc_weighted,
+                'accuracy': test_accuracy,
+                'n_test_samples': len(y_test)
+            },
+            'cv_metrics': {
+                'roc_auc_weighted': clf.best_score_,
+                'mean_train_score': best_train_score,
+                'mean_val_score': best_val_score,
+                'overfitting_gap': overfitting_gap,
+                'cv_stability': cv_stability
+            },
+            'diagnostics': {
+                'convergence_warning': convergence_warning,
+                'overfitting_gap': overfitting_gap,
+                'overfitting_severity': 'high' if overfitting_gap > 0.1 else 'medium' if overfitting_gap > 0.05 else 'low',
+                'cv_stability': cv_stability
+            },
+            'data_info': {
+                'train_val_shape': X_train_val.shape,
+                'test_shape': X_test.shape,
+                'n_classes': len(np.unique(y_train_val)),
+                'n_cv_splits': len(cv_splits)
+            },
             'timing': {
                 'load_time': load_time,
                 'gridsearch_time': gridsearch_time,
-                'final_eval_time': final_time,
+                'test_eval_time': test_time,
                 'total_time': total_time
             },
-            'cv_results': clf.cv_results_
+            'cv_results_summary': {
+                'best_index': best_idx,
+                'n_combinations_tested': len(cv_results_df),
+                'param_grid_size': len(parameters)
+            }
         }
         
         print(f"Best CV score: {clf.best_score_:.4f}")
-        print(f"Cross-val ROC-AUC: {roc_auc:.4f}")
+        print(f"Test ROC-AUC (weighted): {test_roc_auc_weighted:.4f}")
+        print(f"Test Accuracy: {test_accuracy:.4f}")
+        print(f"Overfitting gap: {overfitting_gap:.4f} ({results['diagnostics']['overfitting_severity']})")
+        if convergence_warning:
+            print("Convergence warning: max_iter reached")
         
         return results
     

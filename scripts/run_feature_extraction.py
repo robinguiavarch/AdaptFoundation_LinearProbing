@@ -73,7 +73,7 @@ def validate_extracted_features(output_path, configurations):
     Returns:
         bool: True if all validations pass
     """
-    model_path = output_path / "dinov2_vitg14"
+    model_path = output_path / "dinov2_vitl14"
     
     if not model_path.exists():
         print(f"ERROR: Output directory not found: {model_path}")

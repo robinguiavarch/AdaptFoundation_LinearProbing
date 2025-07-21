@@ -1,0 +1,86 @@
+# Classification Configuration for AdaptFoundation Project
+# ========================================================
+
+# Foundation Models to Evaluate
+models:
+  - dinov2_vits14    # Small: 384D → 1152D (multi-axes)
+  - dinov2_vitb14    # Base: 768D → 2304D (multi-axes)  
+  - dinov2_vitl14    # Large: 1024D → 3072D (multi-axes)
+  - dinov2_vitg14    # Giant: 1536D → 4608D (multi-axes)
+
+# Feature Configurations to Test
+configurations:
+  # Primary focus: multi-axes strategies
+  - multi_axes_average    # Main configuration for comparison
+  - multi_axes_max        # Alternative pooling
+  - multi_axes_add        # Alternative pooling
+  
+  # Comparison: single-axis strategies  
+  - single_axis_axial     # Individual axis analysis
+  - single_axis_coronal   # Individual axis analysis
+  - single_axis_sagittal  # Individual axis analysis
+
+# Classifiers to Evaluate
+classifiers:
+  - logistic             # Primary focus (best for neuroimaging)
+  - knn                  # Comparison baseline
+  - svm_linear           # Comparison baseline
+
+# PCA Dimensionality Reduction Modes
+pca_modes:
+  - none                 # Original features (no PCA)
+  - 95                   # PCA 95% variance (adaptive)
+  - 256                  # PCA 256D (Champollion V0 comparison)
+  - 32                   # PCA 32D (Champollion V1 comparison)
+
+# Execution Configuration
+execution:
+  parallel_models: false          # Sequential to avoid GPU memory conflicts
+  parallel_configs: false         # Sequential for stability
+  focus_mode: false               # If true, only run focus combinations
+  
+  # Priority combinations for quick testing
+  focus_combinations:
+    model: "dinov2_vits14"        # Start with smallest model
+    config: "multi_axes_average"   # Main configuration
+    classifier: "logistic"        # Primary classifier
+    pca_mode: "none"              # Start without PCA
+
+# Output Configuration
+output:
+  base_path: "feature_extracted"
+  save_consolidated: true         # Save consolidated results
+  save_individual: true          # Save per-config results
+  
+# Validation and Quality Control
+validation:
+  check_pca_availability: true    # Verify PCA files exist before running
+  check_feature_files: true      # Verify feature files exist
+  skip_existing: false           # Re-run even if results exist
+  
+# Reporting
+reporting:
+  verbose: true                   # Detailed progress output
+  save_timing: true              # Track execution times
+  save_diagnostics: true        # Include overfitting/convergence diagnostics
+
+# Experimental Configurations (for advanced usage)
+experimental:
+  enabled: false
+  
+  # Additional models (if available)
+  additional_models: []
+  
+  # Custom PCA modes
+  custom_pca_modes: []
+  
+  # Advanced classifier configs
+  classifier_params:
+    logistic:
+      max_iter: 50000
+      random_state: 42
+    knn:
+      n_jobs: -1
+    svm_linear:
+      max_iter: 2000
+      random_state: 42
