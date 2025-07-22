@@ -1,0 +1,505 @@
+model,config,pca_mode,classifier,best_params,test_roc_auc,cv_roc_auc,overfitting_gap,feature_dim,convergence_ok,cv_stability
+dinov2_vitb14,multi_axes_average,none,logistic,"{'C': 0.1, 'l1_ratio': 0.30000000000000004}",0.48496221520056815,0.6069103340437136,0.1186556217976763,32,True,0.042571891434486434
+dinov2_vitb14,multi_axes_average,none,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 9, 'weights': 'uniform'}",0.5069540817493321,0.5847187452315147,0.17152901108516494,32,True,0.02038992097142812
+dinov2_vitb14,multi_axes_average,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.4747238955823293,,,32,True,
+dinov2_vitb14,multi_axes_max,none,logistic,"{'C': 0.01, 'l1_ratio': 0.0}",0.5263574008943079,0.5302846422122666,0.17131750783871924,32,True,0.018178724695335904
+dinov2_vitb14,multi_axes_max,none,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 1, 'weights': 'uniform'}",0.48033993773258166,0.5299365074795619,0.4700634925204381,32,True,0.0309776693771991
+dinov2_vitb14,multi_axes_max,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.46175320548248033,,,32,True,
+dinov2_vitb14,multi_axes_add,none,logistic,"{'C': 0.001, 'l1_ratio': 0.0}",0.5218840801357915,0.5834958974642819,0.16019903220037257,32,True,0.028172130407645282
+dinov2_vitb14,multi_axes_add,none,knn,"{'leaf_size': 1, 'metric': 'minkowski', 'n_neighbors': 11, 'weights': 'distance'}",0.5276711559937949,0.5834530230420146,0.41654697695798537,32,True,0.04164411339112615
+dinov2_vitb14,multi_axes_add,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5308543808260565,,,32,True,
+dinov2_vitb14,single_axis_axial,none,logistic,"{'C': 1, 'l1_ratio': 1.0}",0.5635102832240064,0.6215448647613907,0.12124986461290066,32,True,0.039754911445925536
+dinov2_vitb14,single_axis_axial,none,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 3, 'weights': 'distance'}",0.5251090450063461,0.5427908179287406,0.4572091820712594,32,True,0.047590613288414296
+dinov2_vitb14,single_axis_axial,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.4933860441767069,,,32,True,
+dinov2_vitb14,single_axis_coronal,none,logistic,"{'C': 0.1, 'l1_ratio': 0.1}",0.5562920040649787,0.5851528387296696,0.10196541958083749,32,True,0.027670805701375506
+dinov2_vitb14,single_axis_coronal,none,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 11, 'weights': 'uniform'}",0.5001217877679653,0.5277678443612965,0.1834099058260048,32,True,0.05363322060026563
+dinov2_vitb14,single_axis_coronal,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5,,,32,True,
+dinov2_vitb14,single_axis_sagittal,none,logistic,"{'C': 1, 'l1_ratio': 1.0}",0.4354525524591247,0.5680737853850998,0.15504823111827692,32,True,0.04338784753077692
+dinov2_vitb14,single_axis_sagittal,none,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 11, 'weights': 'distance'}",0.4927262633260025,0.5637053188430915,0.4362946811569085,32,True,0.038120760576979565
+dinov2_vitb14,single_axis_sagittal,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.4927083333333333,,,32,True,
+dinov2_vits14,multi_axes_average,none,logistic,"{'C': 0.1, 'l1_ratio': 0.0}",0.551746709234915,0.594498267801151,0.2232668519792559,104,True,0.020979290346808302
+dinov2_vits14,multi_axes_average,none,knn,"{'leaf_size': 1, 'metric': 'minkowski', 'n_neighbors': 9, 'weights': 'distance'}",0.549200648290727,0.577598798440248,0.422401201559752,104,True,0.030215274107342347
+dinov2_vits14,multi_axes_average,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.4811119477911646,,,104,True,
+dinov2_vits14,multi_axes_max,none,logistic,"{'C': 0.01, 'l1_ratio': 0.2}",0.5523514355587489,0.5121193288582819,0.07098911136435437,313,True,0.03783034831043023
+dinov2_vits14,multi_axes_max,none,knn,"{'leaf_size': 1, 'metric': 'cosine', 'n_neighbors': 5, 'weights': 'uniform'}",0.507896454530555,0.5494894571568125,0.24666773259533592,313,True,0.0272023944081331
+dinov2_vits14,multi_axes_max,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5201932730923695,,,313,True,
+dinov2_vits14,multi_axes_add,none,logistic,"{'C': 0.01, 'l1_ratio': 0.6000000000000001}",0.5897868721008679,0.6011640562182684,0.1902500891487504,101,True,0.015046259876018292
+dinov2_vits14,multi_axes_add,none,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 13, 'weights': 'distance'}",0.5251762060500782,0.5897144883966496,0.41028551160335036,101,True,0.03518657200560192
+dinov2_vits14,multi_axes_add,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5452431284772116,,,101,True,
+dinov2_vits14,single_axis_axial,none,logistic,"{'C': 1, 'l1_ratio': 0.0}",0.5363554721098884,0.5620949640747359,0.20886619691437758,50,True,0.0368282803856854
+dinov2_vits14,single_axis_axial,none,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 7, 'weights': 'uniform'}",0.5087609007288247,0.5368621245161104,0.21874943873118846,50,True,0.023757340525457055
+dinov2_vits14,single_axis_axial,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5,,,50,True,
+dinov2_vits14,single_axis_coronal,none,logistic,"{'C': 0.1, 'l1_ratio': 0.0}",0.6002362125661775,0.5755050210281268,0.12625286042117434,43,True,0.0508879624386157
+dinov2_vits14,single_axis_coronal,none,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 9, 'weights': 'uniform'}",0.5826945495522107,0.5126346521218197,0.19494346427914766,43,True,0.07418307885832523
+dinov2_vits14,single_axis_coronal,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5,,,43,True,
+dinov2_vits14,single_axis_sagittal,none,logistic,"{'C': 0.1, 'l1_ratio': 1.0}",0.48413675661202227,0.571571005578904,0.019815854316752146,45,True,0.015225070402125009
+dinov2_vits14,single_axis_sagittal,none,knn,"{'leaf_size': 1, 'metric': 'minkowski', 'n_neighbors': 3, 'weights': 'distance'}",0.5409040126815392,0.5598639114402777,0.4401360885597223,45,True,0.020548174522611613
+dinov2_vits14,single_axis_sagittal,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.4958333333333334,,,45,True,
+dinov2_vitg14,multi_axes_average,none,logistic,"{'C': 0.1, 'l1_ratio': 0.0}",0.5921003533272603,0.5988041148173491,0.3208417754867303,4608,True,0.048938695484120304
+dinov2_vitg14,multi_axes_average,none,knn,"{'leaf_size': 1, 'metric': 'cosine', 'n_neighbors': 15, 'weights': 'uniform'}",0.6101768520221347,0.5587324146183569,0.14580228260787664,4608,True,0.029334533022687227
+dinov2_vitg14,multi_axes_average,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.4985943775100402,,,4608,True,
+dinov2_vitg14,multi_axes_max,none,logistic,"{'C': 0.1, 'l1_ratio': 0.4}",0.5913517145932671,0.5745928756217002,0.3006920059858097,4608,True,0.04390495769151851
+dinov2_vitg14,multi_axes_max,none,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 15, 'weights': 'uniform'}",0.5320807758477758,0.5417781191590786,0.14328467050100857,4608,True,0.035580969557816616
+dinov2_vitg14,multi_axes_max,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5046184738955822,,,4608,True,
+dinov2_vitg14,multi_axes_add,none,logistic,"{'C': 0.01, 'l1_ratio': 0.30000000000000004}",0.5638543179360911,0.5857797118388568,0.22347622882807738,4608,False,0.03523505390654102
+dinov2_vitg14,multi_axes_add,none,knn,"{'leaf_size': 1, 'metric': 'minkowski', 'n_neighbors': 13, 'weights': 'distance'}",0.579030976801861,0.5505924433499371,0.44940755665006293,4608,True,0.04187794930932326
+dinov2_vitg14,multi_axes_add,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5224397590361446,,,4608,True,
+dinov2_vitg14,single_axis_axial,none,logistic,"{'C': 0.1, 'l1_ratio': 0.0}",0.607293896004772,0.5910986713454378,0.21452093493755997,1536,True,0.04025082846720803
+dinov2_vitg14,single_axis_axial,none,knn,"{'leaf_size': 1, 'metric': 'minkowski', 'n_neighbors': 7, 'weights': 'uniform'}",0.5695899681452796,0.5225916718480448,0.2129111330773258,1536,True,0.03917458100141422
+dinov2_vitg14,single_axis_axial,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.49026104417670685,,,1536,True,
+dinov2_vitg14,single_axis_coronal,none,logistic,"{'C': 0.1, 'l1_ratio': 0.0}",0.5727068845613393,0.5571718968373579,0.20849368530968693,1536,True,0.03261094520889221
+dinov2_vitg14,single_axis_coronal,none,knn,"{'leaf_size': 1, 'metric': 'cosine', 'n_neighbors': 3, 'weights': 'uniform'}",0.518168847487387,0.4911494640235611,0.34111832594391744,1536,True,0.047518251471605516
+dinov2_vitg14,single_axis_coronal,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5117155548800707,,,1536,True,
+dinov2_vitg14,single_axis_sagittal,none,logistic,"{'C': 10, 'l1_ratio': 1.0}",0.4905829105730101,0.577387055089939,0.3930187541548671,1536,False,0.029629628719579183
+dinov2_vitg14,single_axis_sagittal,none,knn,"{'leaf_size': 1, 'metric': 'cosine', 'n_neighbors': 13, 'weights': 'uniform'}",0.5002934289356096,0.556330441465015,0.15073888863132778,1536,True,0.02039710941995645
+dinov2_vitg14,single_axis_sagittal,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5160768072289156,,,1536,True,
+dinov2_vitl14,multi_axes_average,none,logistic,"{'C': 0.1, 'l1_ratio': 0.2}",0.5341125793112342,0.5908539289798012,0.203007530213564,256,True,0.02395416510426915
+dinov2_vitl14,multi_axes_average,none,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 7, 'weights': 'uniform'}",0.5518799424604461,0.5910006813045457,0.20521440452984885,256,True,0.029314260005875357
+dinov2_vitl14,multi_axes_average,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.4938755020080321,,,256,True,
+dinov2_vitl14,multi_axes_max,none,logistic,"{'C': 0.1, 'l1_ratio': 0.30000000000000004}",0.6164299002399984,0.5882205520316093,0.39205279802390525,256,True,0.037141515805850824
+dinov2_vitl14,multi_axes_max,none,knn,"{'leaf_size': 1, 'metric': 'minkowski', 'n_neighbors': 5, 'weights': 'uniform'}",0.522224131618216,0.5448179304865256,0.24663433655422584,256,True,0.03891232886895067
+dinov2_vitl14,multi_axes_max,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.4919424256659666,,,256,True,
+dinov2_vitl14,multi_axes_add,none,logistic,"{'C': 0.001, 'l1_ratio': 0.2}",0.5344521712284126,0.5665922983976819,0.1170488352448853,256,True,0.03186360603320693
+dinov2_vitl14,multi_axes_add,none,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 13, 'weights': 'distance'}",0.5451521980836983,0.57442145068167,0.42557854931832995,256,True,0.027402009788520323
+dinov2_vitl14,multi_axes_add,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5429591070704839,,,256,True,
+dinov2_vitl14,single_axis_axial,none,logistic,"{'C': 1, 'l1_ratio': 0.9}",0.5897471092849729,0.5840634454306756,0.27441516641051567,256,True,0.01937893508109507
+dinov2_vitl14,single_axis_axial,none,knn,"{'leaf_size': 1, 'metric': 'minkowski', 'n_neighbors': 13, 'weights': 'uniform'}",0.5554092923814842,0.5220610663927994,0.17439996864200646,256,True,0.01394837302667182
+dinov2_vitl14,single_axis_axial,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5032128514056226,,,256,True,
+dinov2_vitl14,single_axis_coronal,none,logistic,"{'C': 0.1, 'l1_ratio': 0.30000000000000004}",0.5507837165650898,0.575573774381289,0.07273157426025234,256,True,0.042188652546497
+dinov2_vitl14,single_axis_coronal,none,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 9, 'weights': 'distance'}",0.5610049935585429,0.5469890810930906,0.45301091890690937,256,True,0.041770563192172296
+dinov2_vitl14,single_axis_coronal,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.4985943775100401,,,256,True,
+dinov2_vitl14,single_axis_sagittal,none,logistic,"{'C': 10, 'l1_ratio': 1.0}",0.5085688252853235,0.5628195268192245,0.43718047318077546,256,True,0.04230356451554316
+dinov2_vitl14,single_axis_sagittal,none,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 11, 'weights': 'distance'}",0.45754539035610964,0.5874201553583763,0.41257984464162367,256,True,0.017138735786377906
+dinov2_vitl14,single_axis_sagittal,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.47658132530120484,,,256,True,
+dinov2_vitg14,multi_axes_average,none,logistic,"{'C': 1, 'l1_ratio': 1.0}",0.5778411772683902,0.6113743792160975,0.34042975631135053,256,True,0.047150904740479116
+dinov2_vitg14,multi_axes_average,none,knn,"{'leaf_size': 1, 'metric': 'minkowski', 'n_neighbors': 15, 'weights': 'distance'}",0.6113473527930132,0.5496576037616636,0.4503423962383364,256,True,0.0302196860831663
+dinov2_vitg14,multi_axes_average,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5267883460447295,,,256,True,
+dinov2_vitg14,multi_axes_max,none,logistic,"{'C': 0.01, 'l1_ratio': 0.5}",0.5857757945734218,0.5899592331444494,0.014025314220480256,256,True,0.05220526396327932
+dinov2_vitg14,multi_axes_max,none,knn,"{'leaf_size': 1, 'metric': 'cosine', 'n_neighbors': 11, 'weights': 'uniform'}",0.5338625371066678,0.5559869399559257,0.16055078802949707,256,True,0.024078714987686146
+dinov2_vitg14,multi_axes_max,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5602721666482443,,,256,True,
+dinov2_vitg14,multi_axes_add,none,logistic,"{'C': 0.01, 'l1_ratio': 0.5}",0.6292969290956932,0.5973939556280919,0.28839357603457605,256,True,0.06447987666668305
+dinov2_vitg14,multi_axes_add,none,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 13, 'weights': 'distance'}",0.6230911366916575,0.5612049335020564,0.43879506649794364,256,True,0.04948406692705226
+dinov2_vitg14,multi_axes_add,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5746858995615489,,,256,True,
+dinov2_vitg14,single_axis_axial,none,logistic,"{'C': 0.1, 'l1_ratio': 0.0}",0.6074227588938481,0.5918877053339631,0.21054598097216837,256,True,0.03950432233321187
+dinov2_vitg14,single_axis_axial,none,knn,"{'leaf_size': 1, 'metric': 'cosine', 'n_neighbors': 15, 'weights': 'uniform'}",0.5894259247921773,0.5248510602712992,0.13083580285490026,256,True,0.04662134545763339
+dinov2_vitg14,single_axis_axial,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5096385542168675,,,256,True,
+dinov2_vitg14,single_axis_coronal,none,logistic,"{'C': 0.1, 'l1_ratio': 0.2}",0.5420053593049834,0.5613620377483952,0.10796578721449013,256,True,0.02547679256649789
+dinov2_vitg14,single_axis_coronal,none,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 3, 'weights': 'distance'}",0.5405842048993189,0.5216384746439203,0.4783615253560797,256,True,0.0362818726466066
+dinov2_vitg14,single_axis_coronal,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.4985943775100402,,,256,True,
+dinov2_vitg14,single_axis_sagittal,none,logistic,"{'C': 1, 'l1_ratio': 1.0}",0.4931070354654937,0.5914494229311178,0.23070180923801953,256,True,0.033030095062523815
+dinov2_vitg14,single_axis_sagittal,none,knn,"{'leaf_size': 1, 'metric': 'cosine', 'n_neighbors': 11, 'weights': 'uniform'}",0.49687654048652696,0.5656172994750468,0.16240650032927195,256,True,0.032045669433513814
+dinov2_vitg14,single_axis_sagittal,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5218247991967871,,,256,True,
+dinov2_vitb14,multi_axes_average,none,logistic,"{'C': 0.1, 'l1_ratio': 0.1}",0.5222365597314916,0.6186661446737839,0.22302858632289002,150,True,0.04503312453956821
+dinov2_vitb14,multi_axes_average,none,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 11, 'weights': 'distance'}",0.5391886203863222,0.5901367163183211,0.4098632836816789,150,True,0.0484477025932777
+dinov2_vitb14,multi_axes_average,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.491390562248996,,,150,True,
+dinov2_vitb14,multi_axes_max,none,logistic,"{'C': 0.01, 'l1_ratio': 0.0}",0.5963331418048022,0.5492735044521627,0.4365099217493148,359,True,0.0136584263961656
+dinov2_vitb14,multi_axes_max,none,knn,"{'leaf_size': 1, 'metric': 'cosine', 'n_neighbors': 1, 'weights': 'uniform'}",0.5015746472127041,0.5314371963588915,0.46856280364110847,359,True,0.020644725846058948
+dinov2_vitb14,multi_axes_max,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5426894504624,,,359,True,
+dinov2_vitb14,multi_axes_add,none,logistic,"{'C': 0.01, 'l1_ratio': 0.7000000000000001}",0.5315192099463975,0.5906813456204101,0.23686750251091615,145,True,0.02808776910114082
+dinov2_vitb14,multi_axes_add,none,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 15, 'weights': 'uniform'}",0.5462670021274596,0.5887618068481913,0.13402304697348344,145,True,0.03852580954763312
+dinov2_vitb14,multi_axes_add,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5309481043439814,,,145,True,
+dinov2_vitb14,single_axis_axial,none,logistic,"{'C': 1, 'l1_ratio': 1.0}",0.5704974755078523,0.610102379314348,0.19580545029680485,81,True,0.03793240100966916
+dinov2_vitb14,single_axis_axial,none,knn,"{'leaf_size': 1, 'metric': 'cosine', 'n_neighbors': 13, 'weights': 'distance'}",0.6138213384223385,0.5459725403174741,0.4540274596825259,81,True,0.021080635683519568
+dinov2_vitb14,single_axis_axial,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.4933860441767069,,,81,True,
+dinov2_vitb14,single_axis_coronal,none,logistic,"{'C': 0.1, 'l1_ratio': 0.1}",0.5598780085543058,0.5823232436096383,0.12098304712517594,69,True,0.03109269456614963
+dinov2_vitb14,single_axis_coronal,none,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 13, 'weights': 'uniform'}",0.556278192293057,0.529775888214956,0.16336278730859988,69,True,0.04880723874110546
+dinov2_vitb14,single_axis_coronal,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5,,,69,True,
+dinov2_vitb14,single_axis_sagittal,none,logistic,"{'C': 1, 'l1_ratio': 0.0}",0.4983438777253906,0.5631608010525518,0.2538609608197706,73,True,0.02558131433181682
+dinov2_vitb14,single_axis_sagittal,none,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 9, 'weights': 'uniform'}",0.561180620933592,0.5595650455698363,0.16937047921978565,73,True,0.036919306417822255
+dinov2_vitb14,single_axis_sagittal,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.4927083333333333,,,73,True,
+dinov2_vits14,multi_axes_average,none,logistic,"{'C': 0.1, 'l1_ratio': 0.1}",0.550432394319448,0.5950656999364465,0.1289465287740843,32,True,0.028097416298112618
+dinov2_vits14,multi_axes_average,none,knn,"{'leaf_size': 1, 'metric': 'minkowski', 'n_neighbors': 7, 'weights': 'distance'}",0.5422234155699038,0.5853043974235271,0.41469560257647287,32,True,0.024951328474665704
+dinov2_vits14,multi_axes_average,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.4811119477911646,,,32,True,
+dinov2_vits14,multi_axes_max,none,logistic,"{'C': 0.1, 'l1_ratio': 1.0}",0.5678026404891949,0.5232190367143577,0.13222554717698176,32,True,0.029097967862803012
+dinov2_vits14,multi_axes_max,none,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 13, 'weights': 'uniform'}",0.5387414137727755,0.5249425190596556,0.16150030348860567,32,True,0.03373225725284742
+dinov2_vits14,multi_axes_max,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5278488955823293,,,32,True,
+dinov2_vits14,multi_axes_add,none,logistic,"{'C': 0.01, 'l1_ratio': 0.2}",0.5566891696809383,0.6008707799977875,0.13438271423984194,32,True,0.0281620662272187
+dinov2_vits14,multi_axes_add,none,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 5, 'weights': 'distance'}",0.5241389891263885,0.6107563294671248,0.38924367053287523,32,True,0.01609376539680697
+dinov2_vits14,multi_axes_add,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5183795963671198,,,32,True,
+dinov2_vits14,single_axis_axial,none,logistic,"{'C': 1, 'l1_ratio': 0.4}",0.5259609955957967,0.5734877124551103,0.15645972717433343,32,True,0.032085958907232856
+dinov2_vits14,single_axis_axial,none,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 11, 'weights': 'uniform'}",0.47128725277573436,0.5358101935115627,0.18643988046709348,32,True,0.035153370911130626
+dinov2_vits14,single_axis_axial,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5,,,32,True,
+dinov2_vits14,single_axis_coronal,none,logistic,"{'C': 0.1, 'l1_ratio': 0.0}",0.5929648799246338,0.5748146396423895,0.11463506642127796,32,True,0.05192051551901416
+dinov2_vits14,single_axis_coronal,none,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 13, 'weights': 'uniform'}",0.6029053843895036,0.5228634941259314,0.16429552658578028,32,True,0.05915746327050751
+dinov2_vits14,single_axis_coronal,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5,,,32,True,
+dinov2_vits14,single_axis_sagittal,none,logistic,"{'C': 0.1, 'l1_ratio': 1.0}",0.48413675661202227,0.571571005578904,0.019813818817647766,32,True,0.015225070402125009
+dinov2_vits14,single_axis_sagittal,none,knn,"{'leaf_size': 1, 'metric': 'minkowski', 'n_neighbors': 3, 'weights': 'distance'}",0.5291987369757423,0.5554954751591505,0.44450452484084946,32,True,0.025476650791118938
+dinov2_vits14,single_axis_sagittal,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5041666666666667,,,32,True,
+dinov2_vitl14,multi_axes_average,none,logistic,"{'C': 1, 'l1_ratio': 1.0}",0.5556360506086352,0.5870891531552721,0.26282012898079943,3072,False,0.02586807432262451
+dinov2_vitl14,multi_axes_average,none,knn,"{'leaf_size': 1, 'metric': 'cosine', 'n_neighbors': 11, 'weights': 'uniform'}",0.5730587249345372,0.5653031803891743,0.15913391301997637,3072,True,0.028960678046757945
+dinov2_vitl14,multi_axes_average,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5017193775100401,,,3072,True,
+dinov2_vitl14,multi_axes_max,none,logistic,"{'C': 0.1, 'l1_ratio': 0.30000000000000004}",0.5669948438963065,0.5708458384537728,0.3927884695600048,3072,True,0.02522861125225251
+dinov2_vitl14,multi_axes_max,none,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 11, 'weights': 'uniform'}",0.5006257849334701,0.5414966307660427,0.15856790552844968,3072,True,0.024894955825495033
+dinov2_vitl14,multi_axes_max,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.4819277108433735,,,3072,True,
+dinov2_vitl14,multi_axes_add,none,logistic,"{'C': 0.01, 'l1_ratio': 0.4}",0.5488402399538045,0.5828107171949184,0.20839765465212523,3072,False,0.03525814511247038
+dinov2_vitl14,multi_axes_add,none,knn,"{'leaf_size': 1, 'metric': 'minkowski', 'n_neighbors': 15, 'weights': 'distance'}",0.5968448294919635,0.5592248007892491,0.4407751992107509,3072,True,0.031233186727549107
+dinov2_vitl14,multi_axes_add,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.4944653614457831,,,3072,True,
+dinov2_vitl14,single_axis_axial,none,logistic,"{'C': 1, 'l1_ratio': 0.5}",0.6121852523983946,0.5787839655107611,0.2813135569862979,1024,True,0.019906982344915888
+dinov2_vitl14,single_axis_axial,none,knn,"{'leaf_size': 1, 'metric': 'cosine', 'n_neighbors': 13, 'weights': 'uniform'}",0.5692939297128407,0.5247192413736599,0.16761694860511112,1024,True,0.01484147288255962
+dinov2_vitl14,single_axis_axial,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.4939759036144578,,,1024,True,
+dinov2_vitl14,single_axis_coronal,none,logistic,"{'C': 0.01, 'l1_ratio': 0.0}",0.5451909861845355,0.5672060303493115,0.11340981378462778,1024,True,0.03285204804369712
+dinov2_vitl14,single_axis_coronal,none,knn,"{'leaf_size': 1, 'metric': 'minkowski', 'n_neighbors': 13, 'weights': 'distance'}",0.5889985042987514,0.541178490246963,0.45882150975303704,1024,True,0.027882238405828576
+dinov2_vitl14,single_axis_coronal,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5072916666666667,,,1024,True,
+dinov2_vitl14,single_axis_sagittal,none,logistic,"{'C': 1, 'l1_ratio': 0.8}",0.4784823968445754,0.5623352047159141,0.21772798457779097,1024,True,0.028573795839096267
+dinov2_vitl14,single_axis_sagittal,none,knn,"{'leaf_size': 1, 'metric': 'cosine', 'n_neighbors': 13, 'weights': 'distance'}",0.49569445132634304,0.5763595274969501,0.4236404725030499,1024,True,0.01812926022280723
+dinov2_vitl14,single_axis_sagittal,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5100527108433734,,,1024,True,
+dinov2_vitb14,multi_axes_average,none,logistic,"{'C': 0.1, 'l1_ratio': 0.0}",0.5321434524081774,0.6150074850455252,0.3152659653918932,2304,True,0.03976343988948281
+dinov2_vitb14,multi_axes_average,none,knn,"{'leaf_size': 1, 'metric': 'cosine', 'n_neighbors': 15, 'weights': 'distance'}",0.5578904474271651,0.5742039991195952,0.4257960008804048,2304,True,0.043683861136147265
+dinov2_vitb14,multi_axes_average,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5083333333333333,,,2304,True,
+dinov2_vitb14,multi_axes_max,none,logistic,"{'C': 1, 'l1_ratio': 1.0}",0.5151632332080616,0.5564510456626233,0.44354895433737673,2304,True,0.030610902430455333
+dinov2_vitb14,multi_axes_max,none,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 15, 'weights': 'distance'}",0.5409852376129001,0.5621577729931753,0.43784222700682474,2304,True,0.04048668386360134
+dinov2_vitb14,multi_axes_max,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5106425702811245,,,2304,True,
+dinov2_vitb14,multi_axes_add,none,logistic,"{'C': 0.01, 'l1_ratio': 0.2}",0.5386518928450277,0.60048698778043,0.3228923308017476,2304,False,0.025885636533945912
+dinov2_vitb14,multi_axes_add,none,knn,"{'leaf_size': 1, 'metric': 'minkowski', 'n_neighbors': 15, 'weights': 'distance'}",0.552151329138128,0.584074971845265,0.415925028154735,2304,True,0.0457516736355555
+dinov2_vitb14,multi_axes_add,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5214043099001511,,,2304,True,
+dinov2_vitb14,single_axis_axial,none,logistic,"{'C': 1, 'l1_ratio': 0.4}",0.5688440173220564,0.5958114776940969,0.28412881873152407,768,True,0.03529801423511283
+dinov2_vitb14,single_axis_axial,none,knn,"{'leaf_size': 1, 'metric': 'cosine', 'n_neighbors': 11, 'weights': 'distance'}",0.5694277743685912,0.5367402510875727,0.46325974891242727,768,True,0.03804546772142146
+dinov2_vitb14,single_axis_axial,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.4939759036144578,,,768,True,
+dinov2_vitb14,single_axis_coronal,none,logistic,"{'C': 0.1, 'l1_ratio': 0.0}",0.5821748973908922,0.5844262511968414,0.18978500738773973,768,True,0.026416410813403804
+dinov2_vitb14,single_axis_coronal,none,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 11, 'weights': 'uniform'}",0.5102086751784106,0.525989014600826,0.17660378050248737,768,True,0.04389985841217662
+dinov2_vitb14,single_axis_coronal,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.4942018072289156,,,768,True,
+dinov2_vitb14,single_axis_sagittal,none,logistic,"{'C': 10, 'l1_ratio': 0.0}",0.5026380037708569,0.5804578155151899,0.4110158476023752,768,True,0.02276583851570552
+dinov2_vitb14,single_axis_sagittal,none,knn,"{'leaf_size': 1, 'metric': 'minkowski', 'n_neighbors': 11, 'weights': 'distance'}",0.4919251597103377,0.5542826696366663,0.4457173303633337,768,True,0.039886893661130816
+dinov2_vitb14,single_axis_sagittal,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.49420180722891566,,,768,True,
+dinov2_vitg14,multi_axes_average,none,logistic,"{'C': 0.1, 'l1_ratio': 0.4}",0.5547534888049509,0.6117416584107634,0.1160016974129986,32,True,0.039788551973873154
+dinov2_vitg14,multi_axes_average,none,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 15, 'weights': 'uniform'}",0.5789383143535864,0.5722522605594759,0.12363627274887257,32,True,0.03204240316541812
+dinov2_vitg14,multi_axes_average,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5290975829925205,,,32,True,
+dinov2_vitg14,multi_axes_max,none,logistic,"{'C': 0.01, 'l1_ratio': 0.5}",0.5857757945734218,0.5898843755564461,0.014090872474991634,32,True,0.05220020691002454
+dinov2_vitg14,multi_axes_max,none,knn,"{'leaf_size': 1, 'metric': 'cosine', 'n_neighbors': 11, 'weights': 'uniform'}",0.5938453880771424,0.5450267689939643,0.16412596508487187,32,True,0.023698887694835226
+dinov2_vitg14,multi_axes_max,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5648027891382041,,,32,True,
+dinov2_vitg14,multi_axes_add,none,logistic,"{'C': 1, 'l1_ratio': 0.0}",0.5716456660237914,0.5951702192584504,0.16016148818806464,32,True,0.045343297014729854
+dinov2_vitg14,multi_axes_add,none,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 15, 'weights': 'distance'}",0.6169663230587648,0.5498807600581711,0.4501192399418289,32,True,0.04993773603924147
+dinov2_vitg14,multi_axes_add,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5262611224715376,,,32,True,
+dinov2_vitg14,single_axis_axial,none,logistic,"{'C': 0.1, 'l1_ratio': 0.1}",0.6186768169641552,0.5809660650263654,0.12354020406710975,32,True,0.043467231202828346
+dinov2_vitg14,single_axis_axial,none,knn,"{'leaf_size': 1, 'metric': 'cosine', 'n_neighbors': 15, 'weights': 'uniform'}",0.5773862235560401,0.5258840168393534,0.1347705651639478,32,True,0.0429750029574329
+dinov2_vitg14,single_axis_axial,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5013052208835341,,,32,True,
+dinov2_vitg14,single_axis_coronal,none,logistic,"{'C': 0.1, 'l1_ratio': 0.30000000000000004}",0.5218143354023496,0.5615794408583952,0.084792974118853,32,True,0.023193244366241456
+dinov2_vitg14,single_axis_coronal,none,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 3, 'weights': 'uniform'}",0.5061678698342881,0.521425150457542,0.3250154193985435,32,True,0.030774315829590494
+dinov2_vitg14,single_axis_coronal,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.4985943775100402,,,32,True,
+dinov2_vitg14,single_axis_sagittal,none,logistic,"{'C': 1, 'l1_ratio': 1.0}",0.4916996858836803,0.5494834886907098,0.16748637024469826,32,True,0.036018330546267796
+dinov2_vitg14,single_axis_sagittal,none,knn,"{'leaf_size': 1, 'metric': 'cosine', 'n_neighbors': 11, 'weights': 'uniform'}",0.4893263142732271,0.5629671531826069,0.16165392728423977,32,True,0.0274777251654327
+dinov2_vitg14,single_axis_sagittal,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5301581325301206,,,32,True,
+dinov2_vitl14,multi_axes_average,none,logistic,"{'C': 0.1, 'l1_ratio': 0.2}",0.5357382630807952,0.5908367159667718,0.20160225890556738,158,True,0.0237053683095615
+dinov2_vitl14,multi_axes_average,none,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 15, 'weights': 'distance'}",0.5124669867384756,0.5862832728998231,0.41371672710017693,158,True,0.01719724620120478
+dinov2_vitl14,multi_axes_average,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.48635793172690767,,,158,True,
+dinov2_vitl14,multi_axes_max,none,logistic,"{'C': 1, 'l1_ratio': 0.7000000000000001}",0.6079786442511583,0.584037362690539,0.41596263730946104,351,True,0.013779863948575694
+dinov2_vitl14,multi_axes_max,none,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 15, 'weights': 'uniform'}",0.5093986968913299,0.531093799291759,0.166051234408241,351,True,0.031912460152575185
+dinov2_vitl14,multi_axes_max,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.502584995947091,,,351,True,
+dinov2_vitl14,multi_axes_add,none,logistic,"{'C': 0.01, 'l1_ratio': 0.4}",0.552151094888888,0.5736985943409839,0.3164501516961643,155,True,0.024798723128848694
+dinov2_vitl14,multi_axes_add,none,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 15, 'weights': 'distance'}",0.5053531489926806,0.5793423739959008,0.42065762600409917,155,True,0.027936934394433195
+dinov2_vitl14,multi_axes_add,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5529552844405144,,,155,True,
+dinov2_vitl14,single_axis_axial,none,logistic,"{'C': 1, 'l1_ratio': 0.0}",0.5840324462195509,0.5988847549551934,0.25331598478631645,83,True,0.026626659754227375
+dinov2_vitl14,single_axis_axial,none,knn,"{'leaf_size': 1, 'metric': 'minkowski', 'n_neighbors': 13, 'weights': 'uniform'}",0.5513772952058155,0.5228548116672072,0.17151054081250328,83,True,0.016432027385757834
+dinov2_vitl14,single_axis_axial,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.4971887550200803,,,83,True,
+dinov2_vitl14,single_axis_coronal,none,logistic,"{'C': 0.1, 'l1_ratio': 0.30000000000000004}",0.5507837165650898,0.5756200278502991,0.07268581418083453,78,True,0.04221922441439399
+dinov2_vitl14,single_axis_coronal,none,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 3, 'weights': 'uniform'}",0.5518783771593809,0.5548808811679851,0.2879134093800505,78,True,0.06003640933507377
+dinov2_vitl14,single_axis_coronal,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.4985943775100401,,,78,True,
+dinov2_vitl14,single_axis_sagittal,none,logistic,"{'C': 1, 'l1_ratio': 0.7000000000000001}",0.529322045378604,0.5628891604812234,0.2472283422422028,84,True,0.04498109230633365
+dinov2_vitl14,single_axis_sagittal,none,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 13, 'weights': 'uniform'}",0.43600579060150757,0.5835353184218492,0.138198278477781,84,True,0.03685405004268953
+dinov2_vitl14,single_axis_sagittal,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.47658132530120484,,,84,True,
+dinov2_vits14,multi_axes_average,none,logistic,"{'C': 0.1, 'l1_ratio': 0.0}",0.554155365133422,0.5974485243676184,0.26165313361778475,256,True,0.0194954961102672
+dinov2_vits14,multi_axes_average,none,knn,"{'leaf_size': 1, 'metric': 'minkowski', 'n_neighbors': 9, 'weights': 'distance'}",0.5514035261577789,0.5759207323147743,0.42407926768522575,256,True,0.025022701618597033
+dinov2_vits14,multi_axes_average,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.4811119477911646,,,256,True,
+dinov2_vits14,multi_axes_max,none,logistic,"{'C': 0.01, 'l1_ratio': 0.2}",0.5523514355587489,0.5121517753216174,0.0709519334316625,256,True,0.03779138110840143
+dinov2_vits14,multi_axes_max,none,knn,"{'leaf_size': 1, 'metric': 'cosine', 'n_neighbors': 7, 'weights': 'uniform'}",0.5035716577159636,0.5379271313880126,0.2063811939081498,256,True,0.01904514754632355
+dinov2_vits14,multi_axes_max,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5293423694779117,,,256,True,
+dinov2_vits14,multi_axes_add,none,logistic,"{'C': 0.01, 'l1_ratio': 0.6000000000000001}",0.5979036102492855,0.5963532353020048,0.20250601840461224,256,True,0.019537754622205653
+dinov2_vits14,multi_axes_add,none,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 9, 'weights': 'distance'}",0.5170652437335549,0.5881165428191906,0.41188345718080943,256,True,0.029481475760556798
+dinov2_vits14,multi_axes_add,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5706949357061274,,,256,True,
+dinov2_vits14,single_axis_axial,none,logistic,"{'C': 1, 'l1_ratio': 0.2}",0.5423205118798509,0.5748711254068714,0.2907126238545188,256,True,0.030415451425306095
+dinov2_vits14,single_axis_axial,none,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 5, 'weights': 'uniform'}",0.5184661971200207,0.5332266971629653,0.25560329470119314,256,True,0.03453823953086512
+dinov2_vits14,single_axis_axial,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5,,,256,True,
+dinov2_vits14,single_axis_coronal,none,logistic,"{'C': 0.1, 'l1_ratio': 0.0}",0.6094890654837001,0.576156756987217,0.15679776355409025,256,True,0.05183926145671309
+dinov2_vits14,single_axis_coronal,none,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 15, 'weights': 'uniform'}",0.6444760326897592,0.5361150981111409,0.14358744084462016,256,True,0.04992730986841634
+dinov2_vits14,single_axis_coronal,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5,,,256,True,
+dinov2_vits14,single_axis_sagittal,none,logistic,"{'C': 1, 'l1_ratio': 1.0}",0.5072560310047529,0.575277438642393,0.181373488956304,256,True,0.032573229735497845
+dinov2_vits14,single_axis_sagittal,none,knn,"{'leaf_size': 1, 'metric': 'minkowski', 'n_neighbors': 3, 'weights': 'distance'}",0.5295269737602737,0.5628563018167962,0.43714369818320375,256,True,0.021768320917958515
+dinov2_vits14,single_axis_sagittal,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.4958333333333334,,,256,True,
+dinov2_vitb14,multi_axes_average,none,logistic,"{'C': 0.1, 'l1_ratio': 0.2}",0.5147661489837871,0.6168518539528342,0.1820741100235812,256,True,0.04503503754032171
+dinov2_vitb14,multi_axes_average,none,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 13, 'weights': 'distance'}",0.5485697972211528,0.5873984263601836,0.4126015736398164,256,True,0.053293549561633596
+dinov2_vitb14,multi_axes_average,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.4853664658634538,,,256,True,
+dinov2_vitb14,multi_axes_max,none,logistic,"{'C': 0.1, 'l1_ratio': 0.2}",0.5710266683627899,0.5564098606234877,0.4275983663630374,256,True,0.02638553875388753
+dinov2_vitb14,multi_axes_max,none,knn,"{'leaf_size': 1, 'metric': 'minkowski', 'n_neighbors': 15, 'weights': 'distance'}",0.475939270963957,0.533275094159461,0.46672490584053905,256,True,0.030774077829277727
+dinov2_vitb14,multi_axes_max,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.48669667200913735,,,256,True,
+dinov2_vitb14,multi_axes_add,none,logistic,"{'C': 0.001, 'l1_ratio': 0.0}",0.5578551154951982,0.5943559873080237,0.3992266899521779,256,True,0.018866772729151358
+dinov2_vitb14,multi_axes_add,none,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 15, 'weights': 'uniform'}",0.5616655962667501,0.5919247230843883,0.11268841482750647,256,True,0.024290905310917505
+dinov2_vitb14,multi_axes_add,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5555780461294721,,,256,True,
+dinov2_vitb14,single_axis_axial,none,logistic,"{'C': 1, 'l1_ratio': 0.6000000000000001}",0.5691932352948649,0.6008474328405924,0.27021644235335407,256,True,0.03222913711036815
+dinov2_vitb14,single_axis_axial,none,knn,"{'leaf_size': 1, 'metric': 'cosine', 'n_neighbors': 13, 'weights': 'distance'}",0.6209616145696357,0.5506740834519176,0.4493259165480824,256,True,0.014334631421292786
+dinov2_vitb14,single_axis_axial,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.4933860441767069,,,256,True,
+dinov2_vitb14,single_axis_coronal,none,logistic,"{'C': 0.1, 'l1_ratio': 0.0}",0.5832853777495303,0.5837063005738494,0.18847406385302867,256,True,0.02675486817933376
+dinov2_vitb14,single_axis_coronal,none,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 11, 'weights': 'uniform'}",0.5426092062015858,0.5467227877089523,0.16050915980576186,256,True,0.045321973789131546
+dinov2_vitb14,single_axis_coronal,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5,,,256,True,
+dinov2_vitb14,single_axis_sagittal,none,logistic,"{'C': 1, 'l1_ratio': 1.0}",0.4736142767844551,0.5968421603602441,0.23074108051962072,256,True,0.020005315153559612
+dinov2_vitb14,single_axis_sagittal,none,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 15, 'weights': 'distance'}",0.5356951135767365,0.5596886423903575,0.44031135760964246,256,True,0.03629075569220424
+dinov2_vitb14,single_axis_sagittal,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.4927083333333333,,,256,True,
+dinov2_vitl14,multi_axes_average,none,logistic,"{'C': 0.1, 'l1_ratio': 1.0}",0.5034366904505081,0.5851462485249728,0.07639792934212197,32,True,0.035262723810114215
+dinov2_vitl14,multi_axes_average,none,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 15, 'weights': 'uniform'}",0.5426408765003068,0.5849839503708928,0.1290117860050326,32,True,0.025071891629064546
+dinov2_vitl14,multi_axes_average,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.4832329317269076,,,32,True,
+dinov2_vitl14,multi_axes_max,none,logistic,"{'C': 0.1, 'l1_ratio': 0.8}",0.5850674347977167,0.5697170648716885,0.142058176804577,32,True,0.03388489158892444
+dinov2_vitl14,multi_axes_max,none,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 15, 'weights': 'uniform'}",0.5241027857078424,0.5272563160798747,0.13234318161519254,32,True,0.020014789637585743
+dinov2_vitl14,multi_axes_max,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.4847072924726429,,,32,True,
+dinov2_vitl14,multi_axes_add,none,logistic,"{'C': 0.001, 'l1_ratio': 0.0}",0.5273850979685906,0.5675338861744221,0.16962765773651,32,True,0.02275916922727308
+dinov2_vitl14,multi_axes_add,none,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 15, 'weights': 'distance'}",0.5253496169905817,0.5620530828165764,0.4379469171834236,32,True,0.021166709813939276
+dinov2_vitl14,multi_axes_add,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.4944273654250027,,,32,True,
+dinov2_vitl14,single_axis_axial,none,logistic,"{'C': 1, 'l1_ratio': 0.0}",0.6073306413728308,0.5892909524336268,0.14638846773299952,32,True,0.025879006307678584
+dinov2_vitl14,single_axis_axial,none,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 13, 'weights': 'uniform'}",0.5516060991434895,0.5264201641624839,0.170350510438386,32,True,0.04566326782786769
+dinov2_vitl14,single_axis_axial,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.4971887550200803,,,32,True,
+dinov2_vitl14,single_axis_coronal,none,logistic,"{'C': 0.1, 'l1_ratio': 0.2}",0.5569531308562311,0.5768307944918787,0.08657450570175573,32,True,0.039840182712301137
+dinov2_vitl14,single_axis_coronal,none,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 11, 'weights': 'distance'}",0.6394931255391703,0.5464409138589392,0.4535590861410608,32,True,0.0212714313256334
+dinov2_vitl14,single_axis_coronal,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.4985943775100401,,,32,True,
+dinov2_vitl14,single_axis_sagittal,none,logistic,"{'C': 0.1, 'l1_ratio': 0.5}",0.44392068431905407,0.5598771388883594,0.07074411613423082,32,True,0.031202324636491485
+dinov2_vitl14,single_axis_sagittal,none,knn,"{'leaf_size': 1, 'metric': 'minkowski', 'n_neighbors': 3, 'weights': 'uniform'}",0.5113382984643414,0.5793471409688646,0.2786648343093784,32,True,0.02152241891894338
+dinov2_vitl14,single_axis_sagittal,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.47658132530120484,,,32,True,
+dinov2_vitg14,multi_axes_average,none,logistic,"{'C': 1, 'l1_ratio': 1.0}",0.5852460240360365,0.6173563597190951,0.292042096760472,120,True,0.04981268830690005
+dinov2_vitg14,multi_axes_average,none,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 15, 'weights': 'distance'}",0.576844079497363,0.557082078757146,0.442917921242854,120,True,0.03967002179938724
+dinov2_vitg14,multi_axes_average,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5267883460447295,,,120,True,
+dinov2_vitg14,multi_axes_max,none,logistic,"{'C': 0.01, 'l1_ratio': 0.5}",0.5857757945734218,0.5899592331444494,0.014025314220480256,359,True,0.05220526396327932
+dinov2_vitg14,multi_axes_max,none,knn,"{'leaf_size': 1, 'metric': 'cosine', 'n_neighbors': 3, 'weights': 'uniform'}",0.5452540180891233,0.5474686410016917,0.29488749495308586,359,True,0.02383689888277351
+dinov2_vitg14,multi_axes_max,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5542480702627022,,,359,True,
+dinov2_vitg14,multi_axes_add,none,logistic,"{'C': 0.01, 'l1_ratio': 0.30000000000000004}",0.6026514472950326,0.5854370175809132,0.30513418812723525,117,True,0.06299769204389737
+dinov2_vitg14,multi_axes_add,none,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 5, 'weights': 'distance'}",0.5416359363426501,0.5632926896763675,0.4367073103236325,117,True,0.022120162645930086
+dinov2_vitg14,multi_axes_add,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5699041579160679,,,117,True,
+dinov2_vitg14,single_axis_axial,none,logistic,"{'C': 0.1, 'l1_ratio': 0.0}",0.6098770775128354,0.5920166043642697,0.16541442635952996,61,True,0.042923850121539105
+dinov2_vitg14,single_axis_axial,none,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 15, 'weights': 'uniform'}",0.5669724175093287,0.5311246822201314,0.15694529425963777,61,True,0.036063645816728676
+dinov2_vitg14,single_axis_axial,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5013052208835341,,,61,True,
+dinov2_vitg14,single_axis_coronal,none,logistic,"{'C': 1, 'l1_ratio': 0.9}",0.5686725726855542,0.5626955785995901,0.1937307868770829,54,True,0.035279475942928996
+dinov2_vitg14,single_axis_coronal,none,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 1, 'weights': 'uniform'}",0.5151728473527136,0.5056352738430092,0.4943647261569908,54,True,0.029882238404731597
+dinov2_vitg14,single_axis_coronal,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.4985943775100402,,,54,True,
+dinov2_vitg14,single_axis_sagittal,none,logistic,"{'C': 1, 'l1_ratio': 1.0}",0.507326893384992,0.557422669872384,0.2085081027680118,58,True,0.0382422001640053
+dinov2_vitg14,single_axis_sagittal,none,knn,"{'leaf_size': 1, 'metric': 'cosine', 'n_neighbors': 15, 'weights': 'distance'}",0.47865971160821713,0.5672306326781607,0.43276936732183935,58,True,0.020786436362683312
+dinov2_vitg14,single_axis_sagittal,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5218247991967871,,,58,True,
+dinov2_vits14,multi_axes_average,none,logistic,"{'C': 0.1, 'l1_ratio': 0.0}",0.5576679106492406,0.5978479721757152,0.2665051097519493,1152,True,0.019353369975582225
+dinov2_vits14,multi_axes_average,none,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 5, 'weights': 'distance'}",0.5473571206686918,0.5821925233683997,0.41780747663160034,1152,True,0.036161880219524004
+dinov2_vits14,multi_axes_average,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5023092369477912,,,1152,True,
+dinov2_vits14,multi_axes_max,none,logistic,"{'C': 1, 'l1_ratio': 1.0}",0.5590623963744887,0.5192682173415758,0.4807289149048788,1152,True,0.010665270002694977
+dinov2_vits14,multi_axes_max,none,knn,"{'leaf_size': 1, 'metric': 'cosine', 'n_neighbors': 7, 'weights': 'uniform'}",0.649387360816248,0.5318345167134998,0.2232101753655451,1152,True,0.027115854913178406
+dinov2_vits14,multi_axes_max,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5129518072289156,,,1152,True,
+dinov2_vits14,multi_axes_add,none,logistic,"{'C': 0.001, 'l1_ratio': 0.0}",0.5809902354593954,0.5902624698188381,0.38353780919209246,1152,True,0.020610421971560548
+dinov2_vits14,multi_axes_add,none,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 5, 'weights': 'distance'}",0.5423832549432148,0.5934904947214431,0.4065095052785569,1152,True,0.03528288484405056
+dinov2_vits14,multi_axes_add,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5227786144578314,,,1152,True,
+dinov2_vits14,single_axis_axial,none,logistic,"{'C': 1, 'l1_ratio': 0.1}",0.5413160471687446,0.5734824998851182,0.2973369899087136,384,True,0.03325587813511414
+dinov2_vits14,single_axis_axial,none,knn,"{'leaf_size': 1, 'metric': 'minkowski', 'n_neighbors': 15, 'weights': 'uniform'}",0.47079297794626784,0.5297912232941167,0.15226008793965384,384,True,0.03587696133834093
+dinov2_vits14,single_axis_axial,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5023092369477912,,,384,True,
+dinov2_vits14,single_axis_coronal,none,logistic,"{'C': 1, 'l1_ratio': 0.2}",0.6232912947265177,0.577580061739541,0.23464247560081652,384,True,0.04162355776848365
+dinov2_vits14,single_axis_coronal,none,knn,"{'leaf_size': 1, 'metric': 'cosine', 'n_neighbors': 15, 'weights': 'uniform'}",0.5633725158860688,0.5111573383958962,0.15333750185310624,384,True,0.03674168982033415
+dinov2_vits14,single_axis_coronal,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5221009036144578,,,384,True,
+dinov2_vits14,single_axis_sagittal,none,logistic,"{'C': 0.1, 'l1_ratio': 0.4}",0.46627049760255834,0.5520316385694659,0.056610786844644934,384,True,0.01747010555176491
+dinov2_vits14,single_axis_sagittal,none,knn,"{'leaf_size': 1, 'metric': 'cosine', 'n_neighbors': 3, 'weights': 'distance'}",0.5186978319002044,0.5649583211582443,0.4350416788417557,384,True,0.021518147327761646
+dinov2_vits14,single_axis_sagittal,none,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.508559236947791,,,384,True,
+dinov2_vitb14,multi_axes_average,32,logistic,"{'C': 0.1, 'l1_ratio': 0.30000000000000004}",0.48496221520056815,0.6069103340437136,0.1186556217976763,32,True,0.042571891434486434
+dinov2_vitb14,multi_axes_average,32,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 9, 'weights': 'uniform'}",0.5069540817493321,0.5847187452315147,0.17152901108516494,32,True,0.02038992097142812
+dinov2_vitb14,multi_axes_average,32,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.4747238955823293,,,32,True,
+dinov2_vitb14,multi_axes_max,32,logistic,"{'C': 0.01, 'l1_ratio': 0.0}",0.5263574008943079,0.5302846422122666,0.17131750783871924,32,True,0.018178724695335904
+dinov2_vitb14,multi_axes_max,32,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 1, 'weights': 'uniform'}",0.48033993773258166,0.5299365074795619,0.4700634925204381,32,True,0.0309776693771991
+dinov2_vitb14,multi_axes_max,32,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.46175320548248033,,,32,True,
+dinov2_vitb14,multi_axes_add,32,logistic,"{'C': 0.001, 'l1_ratio': 0.0}",0.5218840801357915,0.5834958974642819,0.16019903220037257,32,True,0.028172130407645282
+dinov2_vitb14,multi_axes_add,32,knn,"{'leaf_size': 1, 'metric': 'minkowski', 'n_neighbors': 11, 'weights': 'distance'}",0.5276711559937949,0.5834530230420146,0.41654697695798537,32,True,0.04164411339112615
+dinov2_vitb14,multi_axes_add,32,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5308543808260565,,,32,True,
+dinov2_vitb14,single_axis_axial,32,logistic,"{'C': 1, 'l1_ratio': 1.0}",0.5635102832240064,0.6215448647613907,0.12124986461290066,32,True,0.039754911445925536
+dinov2_vitb14,single_axis_axial,32,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 3, 'weights': 'distance'}",0.5251090450063461,0.5427908179287406,0.4572091820712594,32,True,0.047590613288414296
+dinov2_vitb14,single_axis_axial,32,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.4933860441767069,,,32,True,
+dinov2_vitb14,single_axis_coronal,32,logistic,"{'C': 0.1, 'l1_ratio': 0.1}",0.5562920040649787,0.5851528387296696,0.10196541958083749,32,True,0.027670805701375506
+dinov2_vitb14,single_axis_coronal,32,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 11, 'weights': 'uniform'}",0.5001217877679653,0.5277678443612965,0.1834099058260048,32,True,0.05363322060026563
+dinov2_vitb14,single_axis_coronal,32,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5,,,32,True,
+dinov2_vitb14,single_axis_sagittal,32,logistic,"{'C': 1, 'l1_ratio': 1.0}",0.4354525524591247,0.5680737853850998,0.15504823111827692,32,True,0.04338784753077692
+dinov2_vitb14,single_axis_sagittal,32,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 11, 'weights': 'distance'}",0.4927262633260025,0.5637053188430915,0.4362946811569085,32,True,0.038120760576979565
+dinov2_vitb14,single_axis_sagittal,32,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.4927083333333333,,,32,True,
+dinov2_vits14,multi_axes_average,32,logistic,"{'C': 0.1, 'l1_ratio': 0.1}",0.550432394319448,0.5950656999364465,0.1289465287740843,32,True,0.028097416298112618
+dinov2_vits14,multi_axes_average,32,knn,"{'leaf_size': 1, 'metric': 'minkowski', 'n_neighbors': 7, 'weights': 'distance'}",0.5422234155699038,0.5853043974235271,0.41469560257647287,32,True,0.024951328474665704
+dinov2_vits14,multi_axes_average,32,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.4811119477911646,,,32,True,
+dinov2_vits14,multi_axes_max,32,logistic,"{'C': 0.1, 'l1_ratio': 1.0}",0.5678026404891949,0.5232190367143577,0.13222554717698176,32,True,0.029097967862803012
+dinov2_vits14,multi_axes_max,32,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 13, 'weights': 'uniform'}",0.5387414137727755,0.5249425190596556,0.16150030348860567,32,True,0.03373225725284742
+dinov2_vits14,multi_axes_max,32,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5278488955823293,,,32,True,
+dinov2_vits14,multi_axes_add,32,logistic,"{'C': 0.01, 'l1_ratio': 0.2}",0.5566891696809383,0.6008707799977875,0.13438271423984194,32,True,0.0281620662272187
+dinov2_vits14,multi_axes_add,32,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 5, 'weights': 'distance'}",0.5241389891263885,0.6107563294671248,0.38924367053287523,32,True,0.01609376539680697
+dinov2_vits14,multi_axes_add,32,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5183795963671198,,,32,True,
+dinov2_vits14,single_axis_axial,32,logistic,"{'C': 1, 'l1_ratio': 0.4}",0.5259609955957967,0.5734877124551103,0.15645972717433343,32,True,0.032085958907232856
+dinov2_vits14,single_axis_axial,32,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 11, 'weights': 'uniform'}",0.47128725277573436,0.5358101935115627,0.18643988046709348,32,True,0.035153370911130626
+dinov2_vits14,single_axis_axial,32,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5,,,32,True,
+dinov2_vits14,single_axis_coronal,32,logistic,"{'C': 0.1, 'l1_ratio': 0.0}",0.5929648799246338,0.5748146396423895,0.11463506642127796,32,True,0.05192051551901416
+dinov2_vits14,single_axis_coronal,32,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 13, 'weights': 'uniform'}",0.6029053843895036,0.5228634941259314,0.16429552658578028,32,True,0.05915746327050751
+dinov2_vits14,single_axis_coronal,32,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5,,,32,True,
+dinov2_vits14,single_axis_sagittal,32,logistic,"{'C': 0.1, 'l1_ratio': 1.0}",0.48413675661202227,0.571571005578904,0.019813818817647766,32,True,0.015225070402125009
+dinov2_vits14,single_axis_sagittal,32,knn,"{'leaf_size': 1, 'metric': 'minkowski', 'n_neighbors': 3, 'weights': 'distance'}",0.5291987369757423,0.5554954751591505,0.44450452484084946,32,True,0.025476650791118938
+dinov2_vits14,single_axis_sagittal,32,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5041666666666667,,,32,True,
+dinov2_vitg14,multi_axes_average,32,logistic,"{'C': 0.1, 'l1_ratio': 0.4}",0.5547534888049509,0.6117416584107634,0.1160016974129986,32,True,0.039788551973873154
+dinov2_vitg14,multi_axes_average,32,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 15, 'weights': 'uniform'}",0.5789383143535864,0.5722522605594759,0.12363627274887257,32,True,0.03204240316541812
+dinov2_vitg14,multi_axes_average,32,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5290975829925205,,,32,True,
+dinov2_vitg14,multi_axes_max,32,logistic,"{'C': 0.01, 'l1_ratio': 0.5}",0.5857757945734218,0.5898843755564461,0.014090872474991634,32,True,0.05220020691002454
+dinov2_vitg14,multi_axes_max,32,knn,"{'leaf_size': 1, 'metric': 'cosine', 'n_neighbors': 11, 'weights': 'uniform'}",0.5938453880771424,0.5450267689939643,0.16412596508487187,32,True,0.023698887694835226
+dinov2_vitg14,multi_axes_max,32,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5648027891382041,,,32,True,
+dinov2_vitg14,multi_axes_add,32,logistic,"{'C': 1, 'l1_ratio': 0.0}",0.5716456660237914,0.5951702192584504,0.16016148818806464,32,True,0.045343297014729854
+dinov2_vitg14,multi_axes_add,32,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 15, 'weights': 'distance'}",0.6169663230587648,0.5498807600581711,0.4501192399418289,32,True,0.04993773603924147
+dinov2_vitg14,multi_axes_add,32,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5262611224715376,,,32,True,
+dinov2_vitg14,single_axis_axial,32,logistic,"{'C': 0.1, 'l1_ratio': 0.1}",0.6186768169641552,0.5809660650263654,0.12354020406710975,32,True,0.043467231202828346
+dinov2_vitg14,single_axis_axial,32,knn,"{'leaf_size': 1, 'metric': 'cosine', 'n_neighbors': 15, 'weights': 'uniform'}",0.5773862235560401,0.5258840168393534,0.1347705651639478,32,True,0.0429750029574329
+dinov2_vitg14,single_axis_axial,32,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5013052208835341,,,32,True,
+dinov2_vitg14,single_axis_coronal,32,logistic,"{'C': 0.1, 'l1_ratio': 0.30000000000000004}",0.5218143354023496,0.5615794408583952,0.084792974118853,32,True,0.023193244366241456
+dinov2_vitg14,single_axis_coronal,32,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 3, 'weights': 'uniform'}",0.5061678698342881,0.521425150457542,0.3250154193985435,32,True,0.030774315829590494
+dinov2_vitg14,single_axis_coronal,32,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.4985943775100402,,,32,True,
+dinov2_vitg14,single_axis_sagittal,32,logistic,"{'C': 1, 'l1_ratio': 1.0}",0.4916996858836803,0.5494834886907098,0.16748637024469826,32,True,0.036018330546267796
+dinov2_vitg14,single_axis_sagittal,32,knn,"{'leaf_size': 1, 'metric': 'cosine', 'n_neighbors': 11, 'weights': 'uniform'}",0.4893263142732271,0.5629671531826069,0.16165392728423977,32,True,0.0274777251654327
+dinov2_vitg14,single_axis_sagittal,32,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5301581325301206,,,32,True,
+dinov2_vitl14,multi_axes_average,32,logistic,"{'C': 0.1, 'l1_ratio': 1.0}",0.5034366904505081,0.5851462485249728,0.07639792934212197,32,True,0.035262723810114215
+dinov2_vitl14,multi_axes_average,32,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 15, 'weights': 'uniform'}",0.5426408765003068,0.5849839503708928,0.1290117860050326,32,True,0.025071891629064546
+dinov2_vitl14,multi_axes_average,32,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.4832329317269076,,,32,True,
+dinov2_vitl14,multi_axes_max,32,logistic,"{'C': 0.1, 'l1_ratio': 0.8}",0.5850674347977167,0.5697170648716885,0.142058176804577,32,True,0.03388489158892444
+dinov2_vitl14,multi_axes_max,32,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 15, 'weights': 'uniform'}",0.5241027857078424,0.5272563160798747,0.13234318161519254,32,True,0.020014789637585743
+dinov2_vitl14,multi_axes_max,32,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.4847072924726429,,,32,True,
+dinov2_vitl14,multi_axes_add,32,logistic,"{'C': 0.001, 'l1_ratio': 0.0}",0.5273850979685906,0.5675338861744221,0.16962765773651,32,True,0.02275916922727308
+dinov2_vitl14,multi_axes_add,32,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 15, 'weights': 'distance'}",0.5253496169905817,0.5620530828165764,0.4379469171834236,32,True,0.021166709813939276
+dinov2_vitl14,multi_axes_add,32,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.4944273654250027,,,32,True,
+dinov2_vitl14,single_axis_axial,32,logistic,"{'C': 1, 'l1_ratio': 0.0}",0.6073306413728308,0.5892909524336268,0.14638846773299952,32,True,0.025879006307678584
+dinov2_vitl14,single_axis_axial,32,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 13, 'weights': 'uniform'}",0.5516060991434895,0.5264201641624839,0.170350510438386,32,True,0.04566326782786769
+dinov2_vitl14,single_axis_axial,32,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.4971887550200803,,,32,True,
+dinov2_vitl14,single_axis_coronal,32,logistic,"{'C': 0.1, 'l1_ratio': 0.2}",0.5569531308562311,0.5768307944918787,0.08657450570175573,32,True,0.039840182712301137
+dinov2_vitl14,single_axis_coronal,32,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 11, 'weights': 'distance'}",0.6394931255391703,0.5464409138589392,0.4535590861410608,32,True,0.0212714313256334
+dinov2_vitl14,single_axis_coronal,32,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.4985943775100401,,,32,True,
+dinov2_vitl14,single_axis_sagittal,32,logistic,"{'C': 0.1, 'l1_ratio': 0.5}",0.44392068431905407,0.5598771388883594,0.07074411613423082,32,True,0.031202324636491485
+dinov2_vitl14,single_axis_sagittal,32,knn,"{'leaf_size': 1, 'metric': 'minkowski', 'n_neighbors': 3, 'weights': 'uniform'}",0.5113382984643414,0.5793471409688646,0.2786648343093784,32,True,0.02152241891894338
+dinov2_vitl14,single_axis_sagittal,32,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.47658132530120484,,,32,True,
+dinov2_vits14,multi_axes_average,95,logistic,"{'C': 0.1, 'l1_ratio': 0.0}",0.551746709234915,0.594498267801151,0.2232668519792559,104,True,0.020979290346808302
+dinov2_vits14,multi_axes_average,95,knn,"{'leaf_size': 1, 'metric': 'minkowski', 'n_neighbors': 9, 'weights': 'distance'}",0.549200648290727,0.577598798440248,0.422401201559752,104,True,0.030215274107342347
+dinov2_vits14,multi_axes_average,95,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.4811119477911646,,,104,True,
+dinov2_vits14,multi_axes_max,95,logistic,"{'C': 0.01, 'l1_ratio': 0.2}",0.5523514355587489,0.5121193288582819,0.07098911136435437,313,True,0.03783034831043023
+dinov2_vits14,multi_axes_max,95,knn,"{'leaf_size': 1, 'metric': 'cosine', 'n_neighbors': 5, 'weights': 'uniform'}",0.507896454530555,0.5494894571568125,0.24666773259533592,313,True,0.0272023944081331
+dinov2_vits14,multi_axes_max,95,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5201932730923695,,,313,True,
+dinov2_vits14,multi_axes_add,95,logistic,"{'C': 0.01, 'l1_ratio': 0.6000000000000001}",0.5897868721008679,0.6011640562182684,0.1902500891487504,101,True,0.015046259876018292
+dinov2_vits14,multi_axes_add,95,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 13, 'weights': 'distance'}",0.5251762060500782,0.5897144883966496,0.41028551160335036,101,True,0.03518657200560192
+dinov2_vits14,multi_axes_add,95,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5452431284772116,,,101,True,
+dinov2_vits14,single_axis_axial,95,logistic,"{'C': 1, 'l1_ratio': 0.0}",0.5363554721098884,0.5620949640747359,0.20886619691437758,50,True,0.0368282803856854
+dinov2_vits14,single_axis_axial,95,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 7, 'weights': 'uniform'}",0.5087609007288247,0.5368621245161104,0.21874943873118846,50,True,0.023757340525457055
+dinov2_vits14,single_axis_axial,95,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5,,,50,True,
+dinov2_vits14,single_axis_coronal,95,logistic,"{'C': 0.1, 'l1_ratio': 0.0}",0.6002362125661775,0.5755050210281268,0.12625286042117434,43,True,0.0508879624386157
+dinov2_vits14,single_axis_coronal,95,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 9, 'weights': 'uniform'}",0.5826945495522107,0.5126346521218197,0.19494346427914766,43,True,0.07418307885832523
+dinov2_vits14,single_axis_coronal,95,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5,,,43,True,
+dinov2_vits14,single_axis_sagittal,95,logistic,"{'C': 0.1, 'l1_ratio': 1.0}",0.48413675661202227,0.571571005578904,0.019815854316752146,45,True,0.015225070402125009
+dinov2_vits14,single_axis_sagittal,95,knn,"{'leaf_size': 1, 'metric': 'minkowski', 'n_neighbors': 3, 'weights': 'distance'}",0.5409040126815392,0.5598639114402777,0.4401360885597223,45,True,0.020548174522611613
+dinov2_vits14,single_axis_sagittal,95,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.4958333333333334,,,45,True,
+dinov2_vitb14,multi_axes_average,95,logistic,"{'C': 0.1, 'l1_ratio': 0.1}",0.5222365597314916,0.6186661446737839,0.22302858632289002,150,True,0.04503312453956821
+dinov2_vitb14,multi_axes_average,95,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 11, 'weights': 'distance'}",0.5391886203863222,0.5901367163183211,0.4098632836816789,150,True,0.0484477025932777
+dinov2_vitb14,multi_axes_average,95,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.491390562248996,,,150,True,
+dinov2_vitb14,multi_axes_max,95,logistic,"{'C': 0.01, 'l1_ratio': 0.0}",0.5963331418048022,0.5492735044521627,0.4365099217493148,359,True,0.0136584263961656
+dinov2_vitb14,multi_axes_max,95,knn,"{'leaf_size': 1, 'metric': 'cosine', 'n_neighbors': 1, 'weights': 'uniform'}",0.5015746472127041,0.5314371963588915,0.46856280364110847,359,True,0.020644725846058948
+dinov2_vitb14,multi_axes_max,95,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5426894504624,,,359,True,
+dinov2_vitb14,multi_axes_add,95,logistic,"{'C': 0.01, 'l1_ratio': 0.7000000000000001}",0.5315192099463975,0.5906813456204101,0.23686750251091615,145,True,0.02808776910114082
+dinov2_vitb14,multi_axes_add,95,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 15, 'weights': 'uniform'}",0.5462670021274596,0.5887618068481913,0.13402304697348344,145,True,0.03852580954763312
+dinov2_vitb14,multi_axes_add,95,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5309481043439814,,,145,True,
+dinov2_vitb14,single_axis_axial,95,logistic,"{'C': 1, 'l1_ratio': 1.0}",0.5704974755078523,0.610102379314348,0.19580545029680485,81,True,0.03793240100966916
+dinov2_vitb14,single_axis_axial,95,knn,"{'leaf_size': 1, 'metric': 'cosine', 'n_neighbors': 13, 'weights': 'distance'}",0.6138213384223385,0.5459725403174741,0.4540274596825259,81,True,0.021080635683519568
+dinov2_vitb14,single_axis_axial,95,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.4933860441767069,,,81,True,
+dinov2_vitb14,single_axis_coronal,95,logistic,"{'C': 0.1, 'l1_ratio': 0.1}",0.5598780085543058,0.5823232436096383,0.12098304712517594,69,True,0.03109269456614963
+dinov2_vitb14,single_axis_coronal,95,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 13, 'weights': 'uniform'}",0.556278192293057,0.529775888214956,0.16336278730859988,69,True,0.04880723874110546
+dinov2_vitb14,single_axis_coronal,95,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5,,,69,True,
+dinov2_vitb14,single_axis_sagittal,95,logistic,"{'C': 1, 'l1_ratio': 0.0}",0.4983438777253906,0.5631608010525518,0.2538609608197706,73,True,0.02558131433181682
+dinov2_vitb14,single_axis_sagittal,95,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 9, 'weights': 'uniform'}",0.561180620933592,0.5595650455698363,0.16937047921978565,73,True,0.036919306417822255
+dinov2_vitb14,single_axis_sagittal,95,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.4927083333333333,,,73,True,
+dinov2_vitl14,multi_axes_average,95,logistic,"{'C': 0.1, 'l1_ratio': 0.2}",0.5357382630807952,0.5908367159667718,0.20160225890556738,158,True,0.0237053683095615
+dinov2_vitl14,multi_axes_average,95,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 15, 'weights': 'distance'}",0.5124669867384756,0.5862832728998231,0.41371672710017693,158,True,0.01719724620120478
+dinov2_vitl14,multi_axes_average,95,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.48635793172690767,,,158,True,
+dinov2_vitl14,multi_axes_max,95,logistic,"{'C': 1, 'l1_ratio': 0.7000000000000001}",0.6079786442511583,0.584037362690539,0.41596263730946104,351,True,0.013779863948575694
+dinov2_vitl14,multi_axes_max,95,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 15, 'weights': 'uniform'}",0.5093986968913299,0.531093799291759,0.166051234408241,351,True,0.031912460152575185
+dinov2_vitl14,multi_axes_max,95,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.502584995947091,,,351,True,
+dinov2_vitl14,multi_axes_add,95,logistic,"{'C': 0.01, 'l1_ratio': 0.4}",0.552151094888888,0.5736985943409839,0.3164501516961643,155,True,0.024798723128848694
+dinov2_vitl14,multi_axes_add,95,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 15, 'weights': 'distance'}",0.5053531489926806,0.5793423739959008,0.42065762600409917,155,True,0.027936934394433195
+dinov2_vitl14,multi_axes_add,95,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5529552844405144,,,155,True,
+dinov2_vitl14,single_axis_axial,95,logistic,"{'C': 1, 'l1_ratio': 0.0}",0.5840324462195509,0.5988847549551934,0.25331598478631645,83,True,0.026626659754227375
+dinov2_vitl14,single_axis_axial,95,knn,"{'leaf_size': 1, 'metric': 'minkowski', 'n_neighbors': 13, 'weights': 'uniform'}",0.5513772952058155,0.5228548116672072,0.17151054081250328,83,True,0.016432027385757834
+dinov2_vitl14,single_axis_axial,95,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.4971887550200803,,,83,True,
+dinov2_vitl14,single_axis_coronal,95,logistic,"{'C': 0.1, 'l1_ratio': 0.30000000000000004}",0.5507837165650898,0.5756200278502991,0.07268581418083453,78,True,0.04221922441439399
+dinov2_vitl14,single_axis_coronal,95,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 3, 'weights': 'uniform'}",0.5518783771593809,0.5548808811679851,0.2879134093800505,78,True,0.06003640933507377
+dinov2_vitl14,single_axis_coronal,95,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.4985943775100401,,,78,True,
+dinov2_vitl14,single_axis_sagittal,95,logistic,"{'C': 1, 'l1_ratio': 0.7000000000000001}",0.529322045378604,0.5628891604812234,0.2472283422422028,84,True,0.04498109230633365
+dinov2_vitl14,single_axis_sagittal,95,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 13, 'weights': 'uniform'}",0.43600579060150757,0.5835353184218492,0.138198278477781,84,True,0.03685405004268953
+dinov2_vitl14,single_axis_sagittal,95,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.47658132530120484,,,84,True,
+dinov2_vitg14,multi_axes_average,95,logistic,"{'C': 1, 'l1_ratio': 1.0}",0.5852460240360365,0.6173563597190951,0.292042096760472,120,True,0.04981268830690005
+dinov2_vitg14,multi_axes_average,95,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 15, 'weights': 'distance'}",0.576844079497363,0.557082078757146,0.442917921242854,120,True,0.03967002179938724
+dinov2_vitg14,multi_axes_average,95,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5267883460447295,,,120,True,
+dinov2_vitg14,multi_axes_max,95,logistic,"{'C': 0.01, 'l1_ratio': 0.5}",0.5857757945734218,0.5899592331444494,0.014025314220480256,359,True,0.05220526396327932
+dinov2_vitg14,multi_axes_max,95,knn,"{'leaf_size': 1, 'metric': 'cosine', 'n_neighbors': 3, 'weights': 'uniform'}",0.5452540180891233,0.5474686410016917,0.29488749495308586,359,True,0.02383689888277351
+dinov2_vitg14,multi_axes_max,95,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5542480702627022,,,359,True,
+dinov2_vitg14,multi_axes_add,95,logistic,"{'C': 0.01, 'l1_ratio': 0.30000000000000004}",0.6026514472950326,0.5854370175809132,0.30513418812723525,117,True,0.06299769204389737
+dinov2_vitg14,multi_axes_add,95,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 5, 'weights': 'distance'}",0.5416359363426501,0.5632926896763675,0.4367073103236325,117,True,0.022120162645930086
+dinov2_vitg14,multi_axes_add,95,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5699041579160679,,,117,True,
+dinov2_vitg14,single_axis_axial,95,logistic,"{'C': 0.1, 'l1_ratio': 0.0}",0.6098770775128354,0.5920166043642697,0.16541442635952996,61,True,0.042923850121539105
+dinov2_vitg14,single_axis_axial,95,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 15, 'weights': 'uniform'}",0.5669724175093287,0.5311246822201314,0.15694529425963777,61,True,0.036063645816728676
+dinov2_vitg14,single_axis_axial,95,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5013052208835341,,,61,True,
+dinov2_vitg14,single_axis_coronal,95,logistic,"{'C': 1, 'l1_ratio': 0.9}",0.5686725726855542,0.5626955785995901,0.1937307868770829,54,True,0.035279475942928996
+dinov2_vitg14,single_axis_coronal,95,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 1, 'weights': 'uniform'}",0.5151728473527136,0.5056352738430092,0.4943647261569908,54,True,0.029882238404731597
+dinov2_vitg14,single_axis_coronal,95,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.4985943775100402,,,54,True,
+dinov2_vitg14,single_axis_sagittal,95,logistic,"{'C': 1, 'l1_ratio': 1.0}",0.507326893384992,0.557422669872384,0.2085081027680118,58,True,0.0382422001640053
+dinov2_vitg14,single_axis_sagittal,95,knn,"{'leaf_size': 1, 'metric': 'cosine', 'n_neighbors': 15, 'weights': 'distance'}",0.47865971160821713,0.5672306326781607,0.43276936732183935,58,True,0.020786436362683312
+dinov2_vitg14,single_axis_sagittal,95,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5218247991967871,,,58,True,
+dinov2_vitl14,multi_axes_average,256,logistic,"{'C': 0.1, 'l1_ratio': 0.2}",0.5341125793112342,0.5908539289798012,0.203007530213564,256,True,0.02395416510426915
+dinov2_vitl14,multi_axes_average,256,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 7, 'weights': 'uniform'}",0.5518799424604461,0.5910006813045457,0.20521440452984885,256,True,0.029314260005875357
+dinov2_vitl14,multi_axes_average,256,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.4938755020080321,,,256,True,
+dinov2_vitl14,multi_axes_max,256,logistic,"{'C': 0.1, 'l1_ratio': 0.30000000000000004}",0.6164299002399984,0.5882205520316093,0.39205279802390525,256,True,0.037141515805850824
+dinov2_vitl14,multi_axes_max,256,knn,"{'leaf_size': 1, 'metric': 'minkowski', 'n_neighbors': 5, 'weights': 'uniform'}",0.522224131618216,0.5448179304865256,0.24663433655422584,256,True,0.03891232886895067
+dinov2_vitl14,multi_axes_max,256,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.4919424256659666,,,256,True,
+dinov2_vitl14,multi_axes_add,256,logistic,"{'C': 0.001, 'l1_ratio': 0.2}",0.5344521712284126,0.5665922983976819,0.1170488352448853,256,True,0.03186360603320693
+dinov2_vitl14,multi_axes_add,256,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 13, 'weights': 'distance'}",0.5451521980836983,0.57442145068167,0.42557854931832995,256,True,0.027402009788520323
+dinov2_vitl14,multi_axes_add,256,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5429591070704839,,,256,True,
+dinov2_vitl14,single_axis_axial,256,logistic,"{'C': 1, 'l1_ratio': 0.9}",0.5897471092849729,0.5840634454306756,0.27441516641051567,256,True,0.01937893508109507
+dinov2_vitl14,single_axis_axial,256,knn,"{'leaf_size': 1, 'metric': 'minkowski', 'n_neighbors': 13, 'weights': 'uniform'}",0.5554092923814842,0.5220610663927994,0.17439996864200646,256,True,0.01394837302667182
+dinov2_vitl14,single_axis_axial,256,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5032128514056226,,,256,True,
+dinov2_vitl14,single_axis_coronal,256,logistic,"{'C': 0.1, 'l1_ratio': 0.30000000000000004}",0.5507837165650898,0.575573774381289,0.07273157426025234,256,True,0.042188652546497
+dinov2_vitl14,single_axis_coronal,256,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 9, 'weights': 'distance'}",0.5610049935585429,0.5469890810930906,0.45301091890690937,256,True,0.041770563192172296
+dinov2_vitl14,single_axis_coronal,256,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.4985943775100401,,,256,True,
+dinov2_vitl14,single_axis_sagittal,256,logistic,"{'C': 10, 'l1_ratio': 1.0}",0.5085688252853235,0.5628195268192245,0.43718047318077546,256,True,0.04230356451554316
+dinov2_vitl14,single_axis_sagittal,256,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 11, 'weights': 'distance'}",0.45754539035610964,0.5874201553583763,0.41257984464162367,256,True,0.017138735786377906
+dinov2_vitl14,single_axis_sagittal,256,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.47658132530120484,,,256,True,
+dinov2_vitg14,multi_axes_average,256,logistic,"{'C': 1, 'l1_ratio': 1.0}",0.5778411772683902,0.6113743792160975,0.34042975631135053,256,True,0.047150904740479116
+dinov2_vitg14,multi_axes_average,256,knn,"{'leaf_size': 1, 'metric': 'minkowski', 'n_neighbors': 15, 'weights': 'distance'}",0.6113473527930132,0.5496576037616636,0.4503423962383364,256,True,0.0302196860831663
+dinov2_vitg14,multi_axes_average,256,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5267883460447295,,,256,True,
+dinov2_vitg14,multi_axes_max,256,logistic,"{'C': 0.01, 'l1_ratio': 0.5}",0.5857757945734218,0.5899592331444494,0.014025314220480256,256,True,0.05220526396327932
+dinov2_vitg14,multi_axes_max,256,knn,"{'leaf_size': 1, 'metric': 'cosine', 'n_neighbors': 11, 'weights': 'uniform'}",0.5338625371066678,0.5559869399559257,0.16055078802949707,256,True,0.024078714987686146
+dinov2_vitg14,multi_axes_max,256,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5602721666482443,,,256,True,
+dinov2_vitg14,multi_axes_add,256,logistic,"{'C': 0.01, 'l1_ratio': 0.5}",0.6292969290956932,0.5973939556280919,0.28839357603457605,256,True,0.06447987666668305
+dinov2_vitg14,multi_axes_add,256,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 13, 'weights': 'distance'}",0.6230911366916575,0.5612049335020564,0.43879506649794364,256,True,0.04948406692705226
+dinov2_vitg14,multi_axes_add,256,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5746858995615489,,,256,True,
+dinov2_vitg14,single_axis_axial,256,logistic,"{'C': 0.1, 'l1_ratio': 0.0}",0.6074227588938481,0.5918877053339631,0.21054598097216837,256,True,0.03950432233321187
+dinov2_vitg14,single_axis_axial,256,knn,"{'leaf_size': 1, 'metric': 'cosine', 'n_neighbors': 15, 'weights': 'uniform'}",0.5894259247921773,0.5248510602712992,0.13083580285490026,256,True,0.04662134545763339
+dinov2_vitg14,single_axis_axial,256,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5096385542168675,,,256,True,
+dinov2_vitg14,single_axis_coronal,256,logistic,"{'C': 0.1, 'l1_ratio': 0.2}",0.5420053593049834,0.5613620377483952,0.10796578721449013,256,True,0.02547679256649789
+dinov2_vitg14,single_axis_coronal,256,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 3, 'weights': 'distance'}",0.5405842048993189,0.5216384746439203,0.4783615253560797,256,True,0.0362818726466066
+dinov2_vitg14,single_axis_coronal,256,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.4985943775100402,,,256,True,
+dinov2_vitg14,single_axis_sagittal,256,logistic,"{'C': 1, 'l1_ratio': 1.0}",0.4931070354654937,0.5914494229311178,0.23070180923801953,256,True,0.033030095062523815
+dinov2_vitg14,single_axis_sagittal,256,knn,"{'leaf_size': 1, 'metric': 'cosine', 'n_neighbors': 11, 'weights': 'uniform'}",0.49687654048652696,0.5656172994750468,0.16240650032927195,256,True,0.032045669433513814
+dinov2_vitg14,single_axis_sagittal,256,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5218247991967871,,,256,True,
+dinov2_vits14,multi_axes_average,256,logistic,"{'C': 0.1, 'l1_ratio': 0.0}",0.554155365133422,0.5974485243676184,0.26165313361778475,256,True,0.0194954961102672
+dinov2_vits14,multi_axes_average,256,knn,"{'leaf_size': 1, 'metric': 'minkowski', 'n_neighbors': 9, 'weights': 'distance'}",0.5514035261577789,0.5759207323147743,0.42407926768522575,256,True,0.025022701618597033
+dinov2_vits14,multi_axes_average,256,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.4811119477911646,,,256,True,
+dinov2_vits14,multi_axes_max,256,logistic,"{'C': 0.01, 'l1_ratio': 0.2}",0.5523514355587489,0.5121517753216174,0.0709519334316625,256,True,0.03779138110840143
+dinov2_vits14,multi_axes_max,256,knn,"{'leaf_size': 1, 'metric': 'cosine', 'n_neighbors': 7, 'weights': 'uniform'}",0.5035716577159636,0.5379271313880126,0.2063811939081498,256,True,0.01904514754632355
+dinov2_vits14,multi_axes_max,256,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5293423694779117,,,256,True,
+dinov2_vits14,multi_axes_add,256,logistic,"{'C': 0.01, 'l1_ratio': 0.6000000000000001}",0.5979036102492855,0.5963532353020048,0.20250601840461224,256,True,0.019537754622205653
+dinov2_vits14,multi_axes_add,256,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 9, 'weights': 'distance'}",0.5170652437335549,0.5881165428191906,0.41188345718080943,256,True,0.029481475760556798
+dinov2_vits14,multi_axes_add,256,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5706949357061274,,,256,True,
+dinov2_vits14,single_axis_axial,256,logistic,"{'C': 1, 'l1_ratio': 0.2}",0.5423205118798509,0.5748711254068714,0.2907126238545188,256,True,0.030415451425306095
+dinov2_vits14,single_axis_axial,256,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 5, 'weights': 'uniform'}",0.5184661971200207,0.5332266971629653,0.25560329470119314,256,True,0.03453823953086512
+dinov2_vits14,single_axis_axial,256,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5,,,256,True,
+dinov2_vits14,single_axis_coronal,256,logistic,"{'C': 0.1, 'l1_ratio': 0.0}",0.6094890654837001,0.576156756987217,0.15679776355409025,256,True,0.05183926145671309
+dinov2_vits14,single_axis_coronal,256,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 15, 'weights': 'uniform'}",0.6444760326897592,0.5361150981111409,0.14358744084462016,256,True,0.04992730986841634
+dinov2_vits14,single_axis_coronal,256,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5,,,256,True,
+dinov2_vits14,single_axis_sagittal,256,logistic,"{'C': 1, 'l1_ratio': 1.0}",0.5072560310047529,0.575277438642393,0.181373488956304,256,True,0.032573229735497845
+dinov2_vits14,single_axis_sagittal,256,knn,"{'leaf_size': 1, 'metric': 'minkowski', 'n_neighbors': 3, 'weights': 'distance'}",0.5295269737602737,0.5628563018167962,0.43714369818320375,256,True,0.021768320917958515
+dinov2_vits14,single_axis_sagittal,256,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.4958333333333334,,,256,True,
+dinov2_vitb14,multi_axes_average,256,logistic,"{'C': 0.1, 'l1_ratio': 0.2}",0.5147661489837871,0.6168518539528342,0.1820741100235812,256,True,0.04503503754032171
+dinov2_vitb14,multi_axes_average,256,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 13, 'weights': 'distance'}",0.5485697972211528,0.5873984263601836,0.4126015736398164,256,True,0.053293549561633596
+dinov2_vitb14,multi_axes_average,256,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.4853664658634538,,,256,True,
+dinov2_vitb14,multi_axes_max,256,logistic,"{'C': 0.1, 'l1_ratio': 0.2}",0.5710266683627899,0.5564098606234877,0.4275983663630374,256,True,0.02638553875388753
+dinov2_vitb14,multi_axes_max,256,knn,"{'leaf_size': 1, 'metric': 'minkowski', 'n_neighbors': 15, 'weights': 'distance'}",0.475939270963957,0.533275094159461,0.46672490584053905,256,True,0.030774077829277727
+dinov2_vitb14,multi_axes_max,256,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.48669667200913735,,,256,True,
+dinov2_vitb14,multi_axes_add,256,logistic,"{'C': 0.001, 'l1_ratio': 0.0}",0.5578551154951982,0.5943559873080237,0.3992266899521779,256,True,0.018866772729151358
+dinov2_vitb14,multi_axes_add,256,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 15, 'weights': 'uniform'}",0.5616655962667501,0.5919247230843883,0.11268841482750647,256,True,0.024290905310917505
+dinov2_vitb14,multi_axes_add,256,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5555780461294721,,,256,True,
+dinov2_vitb14,single_axis_axial,256,logistic,"{'C': 1, 'l1_ratio': 0.6000000000000001}",0.5691932352948649,0.6008474328405924,0.27021644235335407,256,True,0.03222913711036815
+dinov2_vitb14,single_axis_axial,256,knn,"{'leaf_size': 1, 'metric': 'cosine', 'n_neighbors': 13, 'weights': 'distance'}",0.6209616145696357,0.5506740834519176,0.4493259165480824,256,True,0.014334631421292786
+dinov2_vitb14,single_axis_axial,256,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.4933860441767069,,,256,True,
+dinov2_vitb14,single_axis_coronal,256,logistic,"{'C': 0.1, 'l1_ratio': 0.0}",0.5832853777495303,0.5837063005738494,0.18847406385302867,256,True,0.02675486817933376
+dinov2_vitb14,single_axis_coronal,256,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 11, 'weights': 'uniform'}",0.5426092062015858,0.5467227877089523,0.16050915980576186,256,True,0.045321973789131546
+dinov2_vitb14,single_axis_coronal,256,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.5,,,256,True,
+dinov2_vitb14,single_axis_sagittal,256,logistic,"{'C': 1, 'l1_ratio': 1.0}",0.4736142767844551,0.5968421603602441,0.23074108051962072,256,True,0.020005315153559612
+dinov2_vitb14,single_axis_sagittal,256,knn,"{'leaf_size': 1, 'metric': 'manhattan', 'n_neighbors': 15, 'weights': 'distance'}",0.5356951135767365,0.5596886423903575,0.44031135760964246,256,True,0.03629075569220424
+dinov2_vitb14,single_axis_sagittal,256,svm_linear,"{'C': 0.001, 'class_weight': None, 'loss': 'hinge'}",0.4927083333333333,,,256,True,

@@ -77,7 +77,7 @@ experimental:
   # Advanced classifier configs
   classifier_params:
     logistic:
-      max_iter: 50000
+      max_iter: 200000
       random_state: 42
     knn:
       n_jobs: -1
