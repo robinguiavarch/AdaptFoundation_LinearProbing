@@ -129,7 +129,8 @@ def validate_task(task: Dict[str, str], features_path: str, validation_config: D
     return True
 
 
-def execute_task(task: Dict[str, str], features_path: str, reporting_config: Dict[str, Any]) -> Dict[str, Any]:
+def execute_task(task: Dict[str, str], features_path: str, reporting_config: Dict[str, Any],
+                yaml_config: Dict[str, Any] = None) -> Dict[str, Any]:
     """
     Execute a single classification task.
     
@@ -137,6 +138,7 @@ def execute_task(task: Dict[str, str], features_path: str, reporting_config: Dic
         task (Dict[str, str]): Task to execute
         features_path (str): Path to feature_extracted directory
         reporting_config (Dict[str, Any]): Reporting configuration
+        yaml_config (Dict[str, Any], optional): Full YAML configuration for classifier params
         
     Returns:
         Dict[str, Any]: Task results
@@ -152,7 +154,10 @@ def execute_task(task: Dict[str, str], features_path: str, reporting_config: Dic
         print(f"Executing: {model} | {config} | {classifier} | {pca_info}")
     
     try:
-        prober = LinearProber(features_path, model_name=model)
+        # Extract classifier parameters from YAML config
+        classifier_params = yaml_config.get('classifier_params', {}) if yaml_config else {}
+        
+        prober = LinearProber(features_path, model_name=model, classifier_params=classifier_params)
         
         start_time = time.time()
         result = prober.train_classifier(config, classifier, use_pca, int(pca_mode) if pca_mode != 'none' else 95)
@@ -170,7 +175,8 @@ def execute_task(task: Dict[str, str], features_path: str, reporting_config: Dic
             cv_score = result['best_cv_score']
             test_score = result['test_metrics']['roc_auc_weighted']
             overfitting = result['diagnostics']['overfitting_severity']
-            print(f"Completed: CV={cv_score:.4f} | Test={test_score:.4f} | Overfit={overfitting}")
+            convergence = "OK" if not result['diagnostics']['convergence_warning'] else "WARNING"
+            print(f"Completed: CV={cv_score:.4f} | Test={test_score:.4f} | Overfit={overfitting} | Conv={convergence}")
         
         return {'status': 'success', 'result': result}
         
@@ -247,6 +253,14 @@ def run_yaml_classification(config_file: str, focus_only: bool = False) -> None:
     print(f"Features path: {features_path}")
     print(f"Focus mode: {focus_only}")
     
+    # Print classifier parameters if available
+    if 'classifier_params' in config:
+        print("Classifier parameters from YAML:")
+        for clf_type, params in config['classifier_params'].items():
+            if isinstance(params, dict):
+                key_params = {k: v for k, v in params.items() if k in ['max_iter', 'solver', 'penalty']}
+                print(f"  {clf_type}: {key_params}")
+    
     tasks = get_execution_plan(config, focus_only)
     
     valid_tasks = []
@@ -266,7 +280,7 @@ def run_yaml_classification(config_file: str, focus_only: bool = False) -> None:
     for i, task in enumerate(valid_tasks, 1):
         print(f"[{i}/{len(valid_tasks)}]")
         
-        result_data = execute_task(task, features_path, config['reporting'])
+        result_data = execute_task(task, features_path, config['reporting'], config)
         results.append({'task': task, 'result': result_data})
         
         save_results(task, result_data, features_path, config['output'])
@@ -290,7 +304,8 @@ def run_yaml_classification(config_file: str, focus_only: bool = False) -> None:
 
 def run_manual_classification(features_path: str, config_name: str = None, 
                              classifier_type: str = None, use_pca: bool = False, 
-                             pca_mode: int = 95, model_name: str = 'dinov2_vits14') -> None:
+                             pca_mode: int = 95, model_name: str = 'dinov2_vits14',
+                             classifier_params: Dict = None) -> None:
     """
     Run classification pipeline in manual mode.
     
@@ -301,6 +316,7 @@ def run_manual_classification(features_path: str, config_name: str = None,
         use_pca (bool): Whether to use PCA-reduced features
         pca_mode (int): PCA mode (95, 256, 32)
         model_name (str): Foundation model name
+        classifier_params (Dict, optional): Custom classifier parameters
     """
     print("AdaptFoundation Classification Pipeline (Manual Mode)")
     print(f"Features path: {features_path}")
@@ -309,7 +325,8 @@ def run_manual_classification(features_path: str, config_name: str = None,
     if use_pca:
         print(f"PCA mode: {pca_mode}")
     
-    prober = LinearProber(features_path, model_name=model_name)
+    # Initialize prober with classifier parameters
+    prober = LinearProber(features_path, model_name=model_name, classifier_params=classifier_params or {})
     
     available_configs = prober.get_available_configurations()
     print(f"Available configurations: {available_configs}")
@@ -484,7 +501,8 @@ def main():
             classifier_type=args.classifier,
             use_pca=args.use_pca,
             pca_mode=args.pca_mode,
-            model_name=args.model_name
+            model_name=args.model_name,
+            classifier_params=None  # No YAML config in manual mode
         )
 
 

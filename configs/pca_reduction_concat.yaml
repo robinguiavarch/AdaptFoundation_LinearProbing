@@ -1,0 +1,103 @@
+# PCA Dimensionality Reduction Configuration for AdaptFoundation Project - CONCATENATION
+# ======================================================================================
+
+# Foundation Models to Process (Concatenation Strategy)
+models:
+  - dinov2_vits14    # Small: 34560D → reduced (multi-axes)
+  - dinov2_vitb14    # Base: 69120D → reduced (multi-axes)
+  - dinov2_vitl14    # Large: 92160D → reduced (multi-axes)
+  - dinov2_vitg14    # Giant: 138240D → reduced (multi-axes)
+
+# Feature Configurations to Apply PCA (Concatenation Configurations)
+configurations:
+  - multi_axes_concatenation           # Primary concatenation configuration
+  - single_axis_axial_concatenation    # Individual axis analysis with concatenation
+  - single_axis_coronal_concatenation  # Individual axis analysis with concatenation
+  - single_axis_sagittal_concatenation # Individual axis analysis with concatenation
+
+# PCA Reduction Modes (MANDATORY for high-dimensional concatenation features)
+pca_modes:
+  # Champollion comparison modes
+  - mode: "fixed"
+    n_components: 32
+    description: "PCA 32D (Champollion V1 comparison)"
+    
+  - mode: "fixed"
+    n_components: 256
+    description: "PCA 256D (Champollion V0 comparison)"
+    
+  # Variance-based mode
+  - mode: "variance"
+    variance_threshold: 0.95
+    description: "PCA 95% variance (adaptive dimensionality)"
+
+# Data Configuration (Concatenation Path)
+data:
+  features_base_path: "feature_extracted_concat"
+  
+# Processing Configuration
+processing:
+  sequential_models: true        # Process models sequentially to avoid memory issues
+  sequential_configs: true       # Process configurations sequentially
+  skip_existing: false          # Re-process even if PCA files exist
+  
+# Validation and Quality Control
+validation:
+  check_feature_files: true     # Verify source feature files exist
+  validate_dimensions: true     # Check expected input/output dimensions (very high for concat)
+  save_metadata: true          # Save detailed PCA metadata
+  
+# Output Configuration
+output:
+  save_individual: true        # Save PCA files in individual config directories
+  save_summary: true          # Save processing summary
+  detailed_logging: true      # Detailed progress output
+
+# Advanced Configuration (for fine-tuning)
+advanced:
+  # Memory optimization (IMPORTANT for high dimensions)
+  batch_processing: true       # Process in batches due to high memory requirements
+  cleanup_intermediate: false  # Clean intermediate files
+  
+  # Additional PCA modes (experimental)
+  experimental_modes: []
+  
+  # Custom variance thresholds
+  custom_thresholds: []        # e.g., [0.90, 0.99]
+  
+  # Custom fixed components
+  custom_components: []        # e.g., [64, 128, 512]
+
+# Expected Input Dimensions Documentation (for reference)
+expected_input_dimensions:
+  dinov2_vits14:   # 384D per slice
+    multi_axes_concatenation: 34560           # (22+38+30) × 384D = 90 × 384D
+    single_axis_axial_concatenation: 8448     # 22 × 384D
+    single_axis_coronal_concatenation: 14592  # 38 × 384D
+    single_axis_sagittal_concatenation: 11520 # 30 × 384D
+  
+  dinov2_vitb14:   # 768D per slice
+    multi_axes_concatenation: 69120           # 90 × 768D
+    single_axis_axial_concatenation: 16896    # 22 × 768D
+    single_axis_coronal_concatenation: 29184  # 38 × 768D
+    single_axis_sagittal_concatenation: 23040 # 30 × 768D
+  
+  dinov2_vitl14:   # 1024D per slice
+    multi_axes_concatenation: 92160           # 90 × 1024D
+    single_axis_axial_concatenation: 22528    # 22 × 1024D
+    single_axis_coronal_concatenation: 38912  # 38 × 1024D
+    single_axis_sagittal_concatenation: 30720 # 30 × 1024D
+  
+  dinov2_vitg14:   # 1536D per slice
+    multi_axes_concatenation: 138240          # 90 × 1536D
+    single_axis_axial_concatenation: 33792    # 22 × 1536D
+    single_axis_coronal_concatenation: 58368  # 38 × 1536D
+    single_axis_sagittal_concatenation: 46080 # 30 × 1536D
+
+# Notes for Concatenation Strategy
+notes:
+  high_dimensionality: "Concatenation strategy results in VERY high-dimensional features"
+  memory_requirements: "PCA processing will require significant memory due to input dimensions"
+  pca_necessity: "PCA reduction is MANDATORY - original dimensions too high for direct classification"
+  comparison_purpose: "Results can be directly compared with pooling strategy PCA results"
+  batch_processing: "Consider using batch_processing=true for memory optimization"

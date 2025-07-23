@@ -1,0 +1,99 @@
+# Classification Configuration for AdaptFoundation Project - CONCATENATION STRATEGY
+# Rapid Testing Mode: dinov2_vits14 Only for Quick Results
+# ================================================================================
+
+# Foundation Model to Evaluate (Small Model for Rapid Testing)
+models:
+  - dinov2_vits14    # Small: 384D per slice → up to 34560D (multi-axes concatenation)
+
+# Concatenation Feature Configurations to Test
+configurations:
+  - multi_axes_concatenation           # Primary concatenation configuration
+  - single_axis_axial_concatenation    # Individual axis analysis with concatenation
+  - single_axis_coronal_concatenation  # Individual axis analysis with concatenation
+  - single_axis_sagittal_concatenation # Individual axis analysis with concatenation
+
+# Classifiers to Evaluate
+classifiers:
+  - logistic             # Primary focus (best for neuroimaging)
+  - knn                  # Comparison baseline
+  - svm_linear           # Comparison baseline
+
+# PCA Dimensionality Reduction Modes (MANDATORY for concatenation)
+pca_modes:
+  - 32                   # PCA 32D (Champollion V1 comparison)
+  - 95                   # PCA 95% variance (adaptive)
+  - 256                  # PCA 256D (Champollion V0 comparison)
+  - none                 # Original features (VERY high dimensions - may fail)
+
+# Execution Configuration
+execution:
+  parallel_models: false          # Only one model anyway
+  parallel_configs: false         # Sequential for stability
+  focus_mode: false               # Run all combinations
+  
+  # Priority combinations for ultra-quick testing
+  focus_combinations:
+    model: "dinov2_vits14"
+    config: "multi_axes_concatenation"
+    classifier: "logistic"
+    pca_mode: "32"
+
+# Output Configuration (Concatenation Path)
+output:
+  base_path: "feature_extracted_concat"
+  save_consolidated: true         # Save consolidated results
+  save_individual: true          # Save per-config results
+  
+# Validation and Quality Control
+validation:
+  check_pca_availability: true    # Verify PCA files exist before running
+  check_feature_files: true      # Verify feature files exist
+  skip_existing: false           # Re-run even if results exist
+  
+# Classifier Parameters (Optimized for Concatenation Strategy)
+classifier_params:
+  logistic:
+    max_iter: 20000              # Increased for high-dimensional concatenation features
+    solver: 'saga'               # Best for elasticnet penalty
+    penalty: 'elasticnet'        # L1 + L2 regularization
+    random_state: 42
+  
+  knn:
+    n_jobs: -1                   # Use all available cores
+    n_neighbors: [1, 3, 5, 7, 9, 11, 13, 15]
+    leaf_size: [1, 5, 10, 20, 30]
+    weights: ['uniform', 'distance']
+    metric: ['minkowski', 'manhattan', 'cosine']
+  
+  svm_linear:
+    max_iter: 10000              # Increased for concatenation features
+    random_state: 42
+    C_values: [0.001, 0.01, 0.1, 1.0, 10.0, 100.0, 1000.0]
+    class_weight: [null, 'balanced']
+    loss: ['hinge', 'squared_hinge']
+
+# Reporting
+reporting:
+  verbose: true                   # Detailed progress output
+  save_timing: true              # Track execution times
+  save_diagnostics: true        # Include overfitting/convergence diagnostics
+expected_dimensions:
+  dinov2_vits14:   # 384D per slice
+    multi_axes_concatenation: 34560           # (22+38+30) × 384D = 90 × 384D
+    single_axis_axial_concatenation: 8448     # 22 × 384D
+    single_axis_coronal_concatenation: 14592  # 38 × 384D
+    single_axis_sagittal_concatenation: 11520 # 30 × 384D
+
+# Processing Plan Summary
+processing_summary:
+  total_combinations: 48          # 1 model × 4 configs × 3 classifiers × 4 PCA modes
+  estimated_time: "2-4 hours"     # Conservative estimate
+  purpose: "Rapid validation of concatenation strategy before full evaluation"
+  
+# Notes for Rapid Testing
+notes:
+  strategy: "Test concatenation approach quickly with smallest model first"
+  memory_requirements: "Moderate - vits14 has lowest concatenation dimensions"
+  pca_necessity: "PCA highly recommended due to high concatenation dimensions"
+  next_step: "If successful, run full evaluation with classification_concat_full.yaml"

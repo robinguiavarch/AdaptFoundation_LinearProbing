@@ -27,7 +27,8 @@ class LinearProber:
     """
     
     def __init__(self, features_base_path: str, model_name: str = 'dinov2_vits14',
-                 random_state: int = 0, n_jobs: int = -1):
+                 random_state: int = 0, n_jobs: int = -1, 
+                 classifier_params: Dict = None):
         """
         Initialize the linear probing classifier.
         
@@ -36,11 +37,13 @@ class LinearProber:
             model_name (str): Foundation model name. Defaults to 'dinov2_vits14'.
             random_state (int): Random state for reproducibility. Defaults to 0.
             n_jobs (int): Number of parallel jobs. Defaults to -1.
+            classifier_params (Dict, optional): Custom classifier parameters from YAML.
         """
         self.features_base_path = Path(features_base_path)
         self.model_name = model_name
         self.random_state = random_state
         self.n_jobs = n_jobs
+        self.classifier_params = classifier_params or {}
         
         # Validate paths
         self.model_path = self.features_base_path / model_name
@@ -132,14 +135,25 @@ class LinearProber:
         return X_test, y_test
     
     def _get_logistic_regression_config(self) -> Tuple[LogisticRegression, Dict]:
-        """Get logistic regression model and parameter grid."""
+        """Get logistic regression model and parameter grid with YAML-configurable parameters."""
+        # Get parameters from YAML config or use defaults
+        logistic_params = self.classifier_params.get('logistic', {})
+        
+        max_iter = logistic_params.get('max_iter', 20000)  # Default increased for concatenation
+        solver = logistic_params.get('solver', 'saga')
+        penalty = logistic_params.get('penalty', 'elasticnet')
+        random_state = logistic_params.get('random_state', self.random_state)
+        
+        print(f"Logistic Regression config: max_iter={max_iter}, solver={solver}, penalty={penalty}")
+        
         model = LogisticRegression(
-            solver='saga',
-            penalty='elasticnet',
-            max_iter=5000,  
-            random_state=self.random_state
+            solver=solver,
+            penalty=penalty,
+            max_iter=max_iter,
+            random_state=random_state
         )
         
+        # Parameter grid for hyperparameter search
         parameters = {
             'l1_ratio': np.linspace(0, 1, 11),
             'C': [10**k for k in range(-3, 4)]
@@ -148,31 +162,47 @@ class LinearProber:
         return model, parameters
     
     def _get_knn_config(self) -> Tuple[KNeighborsClassifier, Dict]:
-        """Get KNN model and parameter grid."""
-        model = KNeighborsClassifier(n_jobs=self.n_jobs)
+        """Get KNN model and parameter grid with YAML-configurable parameters."""
+        # Get parameters from YAML config or use defaults
+        knn_params = self.classifier_params.get('knn', {})
         
+        n_jobs = knn_params.get('n_jobs', self.n_jobs)
+        
+        model = KNeighborsClassifier(n_jobs=n_jobs)
+        
+        # Parameter grid for hyperparameter search
         parameters = {
-            'n_neighbors': [1, 3, 5, 7, 9, 11, 13, 15],
-            'leaf_size': [1, 5, 10, 20, 30],
-            'weights': ['uniform', 'distance'],
-            'metric': ['minkowski', 'manhattan', 'cosine']
+            'n_neighbors': knn_params.get('n_neighbors', [1, 3, 5, 7, 9, 11, 13, 15]),
+            'leaf_size': knn_params.get('leaf_size', [1, 5, 10, 20, 30]),
+            'weights': knn_params.get('weights', ['uniform', 'distance']),
+            'metric': knn_params.get('metric', ['minkowski', 'manhattan', 'cosine'])
         }
         
         return model, parameters
     
     def _get_linear_svm_config(self) -> Tuple[LinearSVC, Dict]:
-        """Get Linear SVM model and parameter grid."""
-        model = LinearSVC(random_state=self.random_state, max_iter=2000)
+        """Get Linear SVM model and parameter grid with YAML-configurable parameters."""
+        # Get parameters from YAML config or use defaults
+        svm_params = self.classifier_params.get('svm_linear', {})
         
+        max_iter = svm_params.get('max_iter', 10000)  # Increased default for concatenation
+        random_state = svm_params.get('random_state', self.random_state)
+        
+        print(f"Linear SVM config: max_iter={max_iter}")
+        
+        model = LinearSVC(
+            random_state=random_state, 
+            max_iter=max_iter
+        )
+        
+        # Parameter grid for hyperparameter search
         parameters = {
-            'C': [0.001, 0.01, 0.1, 1.0, 10.0, 100.0, 1000.0],
-            'class_weight': [None, 'balanced'],
-            'loss': ['hinge', 'squared_hinge']
+            'C': svm_params.get('C_values', [0.001, 0.01, 0.1, 1.0, 10.0, 100.0, 1000.0]),
+            'class_weight': svm_params.get('class_weight', [None, 'balanced']),
+            'loss': svm_params.get('loss', ['hinge', 'squared_hinge'])
         }
         
         return model, parameters
-    
-
     
     def train_classifier(self, config_name: str, classifier_type: str,
                         use_pca: bool = False, pca_mode: int = 95) -> Dict:
@@ -203,6 +233,7 @@ class LinearProber:
         
         print(f"Data loaded in {load_time:.2f}s")
         print(f"Train/val shape: {X_train_val.shape}, Test shape: {X_test.shape}")
+        print(f"Feature dimensionality: {X_train_val.shape[1]}D")
         
         # Get model configuration
         if classifier_type == 'logistic':
@@ -273,11 +304,15 @@ class LinearProber:
         overfitting_gap = best_train_score - best_val_score
         cv_stability = cv_results_df.iloc[best_idx]['std_test_score']
         
-        # Convergence check for logistic regression
+        # Convergence check for logistic regression and SVM
         convergence_warning = False
         if classifier_type == 'logistic' and hasattr(best_model, 'n_iter_'):
             max_iter = best_model.max_iter
             actual_iter = best_model.n_iter_[0] if len(best_model.n_iter_) > 0 else 0
+            convergence_warning = actual_iter >= max_iter
+        elif classifier_type == 'svm_linear' and hasattr(best_model, 'n_iter_'):
+            max_iter = best_model.max_iter
+            actual_iter = best_model.n_iter_
             convergence_warning = actual_iter >= max_iter
         
         total_time = load_time + gridsearch_time + test_time
@@ -312,7 +347,8 @@ class LinearProber:
                 'train_val_shape': X_train_val.shape,
                 'test_shape': X_test.shape,
                 'n_classes': len(np.unique(y_train_val)),
-                'n_cv_splits': len(cv_splits)
+                'n_cv_splits': len(cv_splits),
+                'feature_dimensionality': X_train_val.shape[1]
             },
             'timing': {
                 'load_time': load_time,
@@ -324,6 +360,9 @@ class LinearProber:
                 'best_index': best_idx,
                 'n_combinations_tested': len(cv_results_df),
                 'param_grid_size': len(parameters)
+            },
+            'classifier_config': {
+                'classifier_params_used': self.classifier_params.get(classifier_type, {})
             }
         }
         
@@ -332,7 +371,9 @@ class LinearProber:
         print(f"Test Accuracy: {test_accuracy:.4f}")
         print(f"Overfitting gap: {overfitting_gap:.4f} ({results['diagnostics']['overfitting_severity']})")
         if convergence_warning:
-            print("Convergence warning: max_iter reached")
+            print("⚠️  Convergence warning: max_iter reached - consider increasing max_iter")
+        else:
+            print("✅ Convergence OK")
         
         return results
     

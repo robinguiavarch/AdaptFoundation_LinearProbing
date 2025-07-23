@@ -1,0 +1,122 @@
+# Classification Configuration for AdaptFoundation Project - CONCATENATION STRATEGY
+# Full Evaluation Mode: dinov2_vitb14, vitl14, vitg14 for Complete Results
+# ==================================================================================
+
+# Foundation Models to Evaluate (Medium to Giant Models for Complete Evaluation)
+models:
+  - dinov2_vitb14    # Base: 768D per slice → up to 69120D (multi-axes concatenation)
+  - dinov2_vitl14    # Large: 1024D per slice → up to 92160D (multi-axes concatenation)
+  - dinov2_vitg14    # Giant: 1536D per slice → up to 138240D (multi-axes concatenation)
+
+# Concatenation Feature Configurations to Test
+configurations:
+  - multi_axes_concatenation           # Primary concatenation configuration
+  - single_axis_axial_concatenation    # Individual axis analysis with concatenation
+  - single_axis_coronal_concatenation  # Individual axis analysis with concatenation
+  - single_axis_sagittal_concatenation # Individual axis analysis with concatenation
+
+# Classifiers to Evaluate
+classifiers:
+  - logistic             # Primary focus (best for neuroimaging)
+  - knn                  # Comparison baseline
+  - svm_linear           # Comparison baseline
+
+# PCA Dimensionality Reduction Modes (MANDATORY for concatenation)
+pca_modes:
+  - 32                   # PCA 32D (Champollion V1 comparison)
+  - 95                   # PCA 95% variance (adaptive)
+  - 256                  # PCA 256D (Champollion V0 comparison)
+  - none                 # Original features (EXTREMELY high dimensions - likely to fail)
+
+# Execution Configuration
+execution:
+  parallel_models: false          # Sequential to avoid memory conflicts
+  parallel_configs: false         # Sequential for stability
+  focus_mode: false               # Run all combinations
+  
+  # Priority combinations for testing (if needed)
+  focus_combinations:
+    model: "dinov2_vitb14"         # Start with base model
+    config: "multi_axes_concatenation"
+    classifier: "logistic"
+    pca_mode: "32"
+
+# Output Configuration (Concatenation Path)
+output:
+  base_path: "feature_extracted_concat"
+  save_consolidated: true         # Save consolidated results
+  save_individual: true          # Save per-config results
+  
+# Validation and Quality Control
+validation:
+  check_pca_availability: true    # Verify PCA files exist before running
+  check_feature_files: true      # Verify feature files exist
+  skip_existing: false           # Re-run even if results exist
+  
+# Classifier Parameters (Optimized for Large Concatenation Features)
+classifier_params:
+  logistic:
+    max_iter: 50000              # Very high for extremely large concatenation features
+    solver: 'saga'               # Best for elasticnet penalty
+    penalty: 'elasticnet'        # L1 + L2 regularization
+    random_state: 42
+  
+  knn:
+    n_jobs: -1                   # Use all available cores
+    n_neighbors: [1, 3, 5, 7, 9, 11, 13, 15]
+    leaf_size: [1, 5, 10, 20, 30]
+    weights: ['uniform', 'distance']
+    metric: ['minkowski', 'manhattan', 'cosine']
+  
+  svm_linear:
+    max_iter: 20000              # Very high for large concatenation features
+    random_state: 42
+    C_values: [0.001, 0.01, 0.1, 1.0, 10.0, 100.0, 1000.0]
+    class_weight: [null, 'balanced']
+    loss: ['hinge', 'squared_hinge']
+
+# Reporting
+reporting:
+  verbose: true                   # Detailed progress output
+  save_timing: true              # Track execution times
+  save_diagnostics: true        # Include overfitting/convergence diagnostics
+
+# Expected Dimensions for All Models (Documentation)
+expected_dimensions:
+  dinov2_vitb14:   # 768D per slice
+    multi_axes_concatenation: 69120           # 90 × 768D
+    single_axis_axial_concatenation: 16896    # 22 × 768D
+    single_axis_coronal_concatenation: 29184  # 38 × 768D
+    single_axis_sagittal_concatenation: 23040 # 30 × 768D
+  
+  dinov2_vitl14:   # 1024D per slice
+    multi_axes_concatenation: 92160           # 90 × 1024D
+    single_axis_axial_concatenation: 22528    # 22 × 1024D
+    single_axis_coronal_concatenation: 38912  # 38 × 1024D
+    single_axis_sagittal_concatenation: 30720 # 30 × 1024D
+  
+  dinov2_vitg14:   # 1536D per slice
+    multi_axes_concatenation: 138240          # 90 × 1536D
+    single_axis_axial_concatenation: 33792    # 22 × 1536D
+    single_axis_coronal_concatenation: 58368  # 38 × 1536D
+    single_axis_sagittal_concatenation: 46080 # 30 × 1536D
+
+# Processing Plan Summary
+processing_summary:
+  total_combinations: 144         # 3 models × 4 configs × 3 classifiers × 4 PCA modes
+  estimated_time: "8-15 hours"    # Conservative estimate for large models
+  purpose: "Complete evaluation of concatenation strategy across all model sizes"
+  
+# Advanced Configuration (for large models)
+advanced:
+  memory_optimization: true       # Enable memory optimizations
+  batch_processing: true          # Process in batches if needed
+  checkpoint_frequency: 12        # Save progress every 12 tasks
+  
+# Notes for Full Evaluation
+notes:
+  strategy: "Complete concatenation evaluation after vits14 validation"
+  memory_requirements: "VERY HIGH - vitg14 concatenation reaches 138K dimensions"
+  pca_necessity: "PCA is ABSOLUTELY MANDATORY for all configurations"
+  performance_expectations: "Expect significant computation time due to high dimensionality"
+  cluster_recommendations: "Consider longer time allocation and high-memory nodes"

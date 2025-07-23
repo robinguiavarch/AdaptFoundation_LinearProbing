@@ -1,0 +1,139 @@
+# Feature Extraction Configuration with Concatenation Strategy for AdaptFoundation Project
+# ========================================================================================
+
+# Dataset Configuration
+dataset:
+  name: "HCP_OFC"
+  data_path: "crops/2mm/S.Or."
+  resolution: "2mm"
+  target_task: "Left_OFC_classification"
+  n_classes: 4
+
+# Foundation Models Configuration
+models:
+  - name: "dinov2_vits14"
+    feature_dimension: 384
+    input_size: 224
+    batch_size: 32
+    device: "auto"  # auto-detect GPU/CPU
+  
+  - name: "dinov2_vitb14"
+    feature_dimension: 768
+    input_size: 224
+    batch_size: 32
+    device: "auto"  # auto-detect GPU/CPU
+  
+  - name: "dinov2_vitl14"
+    feature_dimension: 1024
+    input_size: 224
+    batch_size: 32
+    device: "auto"  # auto-detect GPU/CPU
+  
+  - name: "dinov2_vitg14"
+    feature_dimension: 1536
+    input_size: 224
+    batch_size: 32
+    device: "auto"  # auto-detect GPU/CPU
+
+# Output Configuration
+output:
+  base_path: "feature_extracted_concat"
+  structure: "model_name/configuration_name/"
+  file_format:
+    features: "npy"
+    metadata: "csv"
+    config_info: "json"
+
+# Concatenation Configurations (Applied to All Models)
+configurations:
+  - name: "multi_axes_concatenation"
+    description: "Multi-axis with direct concatenation"
+    pooling_strategy: "average"  # Kept for compatibility, unused in concatenation
+    required_axes: null  # All axes: [axial, coronal, sagittal]
+
+  - name: "single_axis_axial_concatenation"
+    description: "Single axis (axial) with direct concatenation"
+    pooling_strategy: "average"  # Kept for compatibility, unused in concatenation
+    required_axes: ["axial"]
+
+  - name: "single_axis_coronal_concatenation"
+    description: "Single axis (coronal) with direct concatenation"
+    pooling_strategy: "average"  # Kept for compatibility, unused in concatenation
+    required_axes: ["coronal"]
+
+  - name: "single_axis_sagittal_concatenation"
+    description: "Single axis (sagittal) with direct concatenation"
+    pooling_strategy: "average"  # Kept for compatibility, unused in concatenation
+    required_axes: ["sagittal"]
+
+# Batch Processing Configuration
+processing:
+  multiprocessing: false
+  progress_tracking: true
+  validation_enabled: true
+  sequential_models: true      # Process models sequentially to avoid memory issues
+  sequential_configs: true     # Process configurations sequentially per model
+  
+# Slicing Configuration
+slicing:
+  target_size: 224
+  normalization: "imagenet"
+  interpolation: "nearest"
+
+# Validation Configuration
+validation:
+  check_file_integrity: true
+  verify_dimensions: true
+  validate_label_correspondence: true
+  required_files:
+    - "metadata.json"
+    - "test_split_features.npy"
+    - "test_split_metadata.csv"
+    - "train_val_split_0_features.npy"
+    - "train_val_split_0_metadata.csv"
+    - "train_val_split_1_features.npy"
+    - "train_val_split_1_metadata.csv"
+    - "train_val_split_2_features.npy"
+    - "train_val_split_2_metadata.csv"
+    - "train_val_split_3_features.npy"
+    - "train_val_split_3_metadata.csv"
+    - "train_val_split_4_features.npy"
+    - "train_val_split_4_metadata.csv"
+
+# Expected Dimensions by Model (for documentation)
+expected_dimensions:
+  dinov2_vits14:  # 384D per slice
+    multi_axes_concatenation: 34560    # (22+38+30) × 384D = 90 × 384D
+    single_axis_axial_concatenation: 8448      # 22 × 384D
+    single_axis_coronal_concatenation: 14592   # 38 × 384D
+    single_axis_sagittal_concatenation: 11520  # 30 × 384D
+  
+  dinov2_vitb14:  # 768D per slice
+    multi_axes_concatenation: 69120    # 90 × 768D
+    single_axis_axial_concatenation: 16896     # 22 × 768D
+    single_axis_coronal_concatenation: 29184   # 38 × 768D
+    single_axis_sagittal_concatenation: 23040  # 30 × 768D
+  
+  dinov2_vitl14:  # 1024D per slice
+    multi_axes_concatenation: 92160    # 90 × 1024D
+    single_axis_axial_concatenation: 22528     # 22 × 1024D
+    single_axis_coronal_concatenation: 38912   # 38 × 1024D
+    single_axis_sagittal_concatenation: 30720  # 30 × 1024D
+  
+  dinov2_vitg14:  # 1536D per slice
+    multi_axes_concatenation: 138240   # 90 × 1536D
+    single_axis_axial_concatenation: 33792     # 22 × 1536D
+    single_axis_coronal_concatenation: 58368   # 38 × 1536D
+    single_axis_sagittal_concatenation: 46080  # 30 × 1536D
+
+# Notes on High Dimensionality
+notes:
+  pca_requirement: "PCA dimensionality reduction is MANDATORY due to high feature dimensions"
+  recommended_pca_modes:
+    - 32    # Champollion V1 comparison
+    - 256   # Champollion V0 comparison  
+    - 95    # 95% variance threshold (adaptive)
+  
+  memory_considerations: "Concatenation strategy results in very high-dimensional features requiring careful memory management"
+  
+  comparison_purpose: "This configuration enables direct comparison between pooling vs concatenation aggregation strategies"
