@@ -36,6 +36,7 @@ ENV/
 # Data
 feature_extracted/
 feature_extracted_concat/
+cpkt/
 
 # Jobs
 *.out
@@ -71,4 +72,5 @@ htmlcov/
 coverage.xml
 
 
-.mypy_cache/
+.mypy_cache/backup_env_*/
+all_packages_with_source.txt
