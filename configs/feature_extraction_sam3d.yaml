@@ -1,0 +1,87 @@
+# SAM-Med3D Feature Extraction Configuration
+# AdaptFoundation Project - Native 3D Approach
+# 4 spatial aggregation methods for optimal sulcal skeleton analysis
+
+# Model configuration
+model:
+  name: "sam_med3d_turbo"
+  type: "vit_b_ori"  # 768D internal, 384 output channels, 8³ grid
+  checkpoint_path: "ckpt/sam_med3d_turbo.pth"
+  
+# Processing configuration  
+processing:
+  input_size: [128, 128, 128]  # Mandatory for SAM-Med3D (empirically determined)
+  batch_size: 8               # Optimized for GPU A100
+  device: "auto"              # auto-detect CUDA/CPU
+  
+# Data configuration
+data:
+  dataset_path: "data/HCP_OFC"
+  output_base_path: "feature_extracted_sam3d"
+  
+# Spatial aggregation configurations
+# Each method optimizes different aspects of spatial information preservation
+aggregation_configs:
+  
+  # Method 1: Average Pooling - Compact representation
+  avg_pool:
+    method: "avg_pool"
+    description: "Global average pooling - compact 384D features"
+    output_dim: 384
+    preserves_spatial: false
+    memory_efficient: true
+    pca_required: false
+    recommended_for: "memory-constrained environments, baseline comparison"
+    
+  # Method 2: Max Pooling - Salient features  
+  max_pool:
+    method: "max_pool" 
+    description: "Global max pooling - emphasizes salient features"
+    output_dim: 384
+    preserves_spatial: false
+    memory_efficient: true
+    pca_required: false
+    recommended_for: "detecting prominent sulcal patterns, robust features"
+    
+  # Method 3: Sum Pooling - Accumulation
+  sum_pool:
+    method: "sum_pool"
+    description: "Global sum pooling - accumulates all spatial information"
+    output_dim: 384
+    preserves_spatial: false
+    memory_efficient: true
+    pca_required: false
+    recommended_for: "preserving total activation, quantitative analysis"
+    
+  # Method 4: Flatten - Full spatial preservation (RECOMMENDED)
+  flatten:
+    method: "flatten"
+    description: "Spatial concatenation - preserves ALL spatial information"
+    output_dim: 196608  # 384 * 8 * 8 * 8
+    preserves_spatial: true
+    memory_efficient: false
+    pca_required: true
+    recommended_for: "sulcal skeleton analysis, spatial pattern classification"
+    pca_target_dim: 1024  # Reduce from 196608 to manageable size
+    
+# Default configuration for initial runs
+default_config: "flatten"  # Recommended for sulcal skeleton analysis
+
+# Hardware optimization
+hardware:
+  gpu_memory_gb: 40      # A100 GPU memory
+  cpu_cores: 32
+  max_parallel_workers: 4
+
+  
+# Quality assurance
+validation:
+  check_input_size: true
+  validate_features: true
+  feature_range_check: true
+  
+# Compatibility with existing infrastructure  
+compatibility:
+  dinov2_format: true       # Ensure feature format compatibility
+  pca_pipeline: true        # Compatible with existing PCA scripts
+  classification_pipeline: true  # Compatible with linear probing scripts
