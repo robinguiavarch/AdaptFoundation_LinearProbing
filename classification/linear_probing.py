@@ -135,21 +135,25 @@ class LinearProber:
         return X_test, y_test
     
     def _get_logistic_regression_config(self) -> Tuple[LogisticRegression, Dict]:
-        """Get logistic regression model and parameter grid with YAML-configurable parameters."""
+        """
+        Get logistic regression model and parameter grid with YAML-configurable parameters.
+        """
         # Get parameters from YAML config or use defaults
         logistic_params = self.classifier_params.get('logistic', {})
         
-        max_iter = logistic_params.get('max_iter', 20000)  # Default increased for concatenation
+        max_iter = logistic_params.get('max_iter', 20000)
         solver = logistic_params.get('solver', 'saga')
         penalty = logistic_params.get('penalty', 'elasticnet')
+        n_jobs = logistic_params.get('n_jobs', self.n_jobs)  # ✅ CORRECTION APPLIQUÉE
         random_state = logistic_params.get('random_state', self.random_state)
         
-        print(f"Logistic Regression config: max_iter={max_iter}, solver={solver}, penalty={penalty}")
+        print(f"Logistic Regression config: max_iter={max_iter}, solver={solver}, penalty={penalty}, n_jobs={n_jobs}")
         
         model = LogisticRegression(
             solver=solver,
             penalty=penalty,
             max_iter=max_iter,
+            n_jobs=n_jobs,  # ✅ AJOUT DU PARAMÈTRE n_jobs
             random_state=random_state
         )
         
@@ -162,11 +166,15 @@ class LinearProber:
         return model, parameters
     
     def _get_knn_config(self) -> Tuple[KNeighborsClassifier, Dict]:
-        """Get KNN model and parameter grid with YAML-configurable parameters."""
+        """
+        Get KNN model and parameter grid with YAML-configurable parameters.
+        """
         # Get parameters from YAML config or use defaults
         knn_params = self.classifier_params.get('knn', {})
         
         n_jobs = knn_params.get('n_jobs', self.n_jobs)
+        
+        print(f"KNN config: n_jobs={n_jobs}")
         
         model = KNeighborsClassifier(n_jobs=n_jobs)
         
@@ -181,11 +189,13 @@ class LinearProber:
         return model, parameters
     
     def _get_linear_svm_config(self) -> Tuple[LinearSVC, Dict]:
-        """Get Linear SVM model and parameter grid with YAML-configurable parameters."""
+        """
+        Get Linear SVM model and parameter grid with YAML-configurable parameters.
+        """
         # Get parameters from YAML config or use defaults
         svm_params = self.classifier_params.get('svm_linear', {})
         
-        max_iter = svm_params.get('max_iter', 10000)  # Increased default for concatenation
+        max_iter = svm_params.get('max_iter', 10000)
         random_state = svm_params.get('random_state', self.random_state)
         
         print(f"Linear SVM config: max_iter={max_iter}")
@@ -261,7 +271,7 @@ class LinearProber:
             cv=cv_splits,
             scoring=scoring,
             refit=True,
-            n_jobs=self.n_jobs,
+            n_jobs=self.n_jobs,  # ✅ GridSearchCV utilise aussi n_jobs=-1
             return_train_score=True,
             verbose=1
         )
@@ -371,14 +381,16 @@ class LinearProber:
         print(f"Test Accuracy: {test_accuracy:.4f}")
         print(f"Overfitting gap: {overfitting_gap:.4f} ({results['diagnostics']['overfitting_severity']})")
         if convergence_warning:
-            print("⚠️  Convergence warning: max_iter reached - consider increasing max_iter")
+            print("Warning: Convergence issue - consider increasing max_iter")
         else:
-            print("✅ Convergence OK")
+            print("Convergence OK")
         
         return results
     
     def get_available_configurations(self) -> List[str]:
-        """Get list of available configurations for classification."""
+        """
+        Get list of available configurations for classification.
+        """
         configs = []
         for path in self.model_path.iterdir():
             if path.is_dir() and (path / "metadata.json").exists():
@@ -386,7 +398,9 @@ class LinearProber:
         return configs
     
     def check_pca_availability(self, config_name: str, pca_mode: int = 95) -> bool:
-        """Check if PCA-reduced features are available for a configuration."""
+        """
+        Check if PCA-reduced features are available for a configuration.
+        """
         pca_dir = f"PCA_{pca_mode}"
         pca_path = self.model_path / config_name / pca_dir
         return pca_path.exists() and (pca_path / "pca_metadata.json").exists()

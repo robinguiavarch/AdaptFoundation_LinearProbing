@@ -1,0 +1,102 @@
+# PCA Dimensionality Reduction Configuration for AdaptFoundation Project - SAM-MED3D
+# =================================================================================
+
+# SAM-Med3D Model to Process (Native 3D Strategy)
+models:
+  - sam_med3d_turbo    # SAM-Med3D with 4 spatial aggregation methods
+
+# SAM-Med3D Feature Configurations to Apply PCA
+configurations:
+  - avg_pool     # 384D - Global average pooling (PCA optional)
+  - max_pool     # 384D - Global max pooling (PCA optional)  
+  - sum_pool     # 384D - Global sum pooling (PCA optional)
+  - flatten      # 196608D - Spatial concatenation (PCA MANDATORY)
+
+# PCA Reduction Modes (Adapted for SAM-Med3D dimensions)
+pca_modes:
+  # Champollion comparison modes
+  - mode: "fixed"
+    n_components: 32
+    description: "PCA 32D (Champollion V1 comparison)"
+    
+  - mode: "fixed"
+    n_components: 256
+    description: "PCA 256D (Champollion V0 comparison)"
+    
+  # Variance-based mode
+  - mode: "variance"
+    variance_threshold: 0.95
+    description: "PCA 95% variance (adaptive dimensionality)"
+
+# Data Configuration (SAM-Med3D Path)
+data:
+  features_base_path: "feature_extracted_sam3d"
+  
+# Processing Configuration
+processing:
+  sequential_models: true        # Process single model with 4 aggregation methods
+  sequential_configs: true       # Process configurations sequentially
+  skip_existing: false          # Re-process even if PCA files exist
+  detailed_logging: true        # Detailed progress output
+  
+# Validation and Quality Control
+validation:
+  check_feature_files: true     # Verify source feature files exist
+  validate_dimensions: true     # Check expected input/output dimensions
+  save_metadata: true          # Save detailed PCA metadata
+  
+# Output Configuration
+output:
+  save_individual: true        # Save PCA files in individual config directories
+  save_summary: true          # Save processing summary
+
+# Advanced Configuration (for SAM-Med3D optimization)
+advanced:
+  # Memory optimization (IMPORTANT for flatten method)
+  batch_processing: true       # Process in batches due to flatten's 196608D
+  cleanup_intermediate: false  # Keep intermediate files for analysis
+  
+  # Custom PCA modes for SAM-Med3D analysis
+  experimental_modes: []
+  custom_thresholds: []        # e.g., [0.90, 0.99] for flatten analysis
+  custom_components: []        # e.g., [64, 128, 512, 2048] for flatten
+
+# Expected Input Dimensions Documentation (SAM-Med3D specific)
+expected_input_dimensions:
+  sam_med3d_turbo:
+    avg_pool: 384      # Global average pooling - compact representation
+    max_pool: 384      # Global max pooling - salient features
+    sum_pool: 384      # Global sum pooling - total activation
+    flatten: 196608    # Spatial concatenation - ALL spatial information (384 * 8 * 8 * 8)
+
+# PCA Requirements by Aggregation Method
+pca_requirements:
+  avg_pool:
+    pca_required: false
+    reason: "Compact 384D representation suitable for direct classification"
+    recommended_modes: ["32", "256"]  # For comparison with DINOv2
+    
+  max_pool:
+    pca_required: false  
+    reason: "Compact 384D representation suitable for direct classification"
+    recommended_modes: ["32", "256"]  # For comparison with DINOv2
+    
+  sum_pool:
+    pca_required: false
+    reason: "Compact 384D representation suitable for direct classification" 
+    recommended_modes: ["32", "256"]  # For comparison with DINOv2
+    
+  flatten:
+    pca_required: true
+    reason: "196608D too high-dimensional for direct classification"
+    recommended_modes: ["32", "256", "95% variance"]  # Essential reduction for comparison
+    priority: "MANDATORY - Cannot classify without PCA"
+
+# Notes for SAM-Med3D Strategy
+notes:
+  native_3d: "SAM-Med3D processes volumes natively in 3D without slicing"
+  mixed_dimensionality: "3 methods are 384D (optional PCA), 1 method is 196608D (mandatory PCA)"
+  flatten_priority: "Flatten method preserves ALL spatial info but requires PCA reduction"
+  comparison_capability: "Results directly comparable with DINOv2 pooling and concatenation"
+  memory_consideration: "Flatten method requires significant memory for PCA processing"
+  spatial_preservation: "Flatten method maintains complete spatial information for optimal classification"

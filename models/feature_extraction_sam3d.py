@@ -4,13 +4,15 @@ SAM-Med3D feature extraction module for AdaptFoundation.
 This module implements authentic feature extraction using the real SAM-Med3D
 3D Image Encoder with direct model loading and forward pass.
 
+Supports YAML configuration for all aggregation methods and parameters.
 Requires init_sammed3d.py for SAM-Med3D imports.
 """
 
 import torch
 import torch.nn.functional as F
+import yaml
 from pathlib import Path
-from typing import Tuple, Optional
+from typing import Tuple, Optional, Dict, Any
 import sys
 
 # Add project root to path
@@ -27,7 +29,10 @@ class SAMMed3DFeatureExtractor:
     This class loads the actual SAM-Med3D model, extracts the 3D Image Encoder,
     and performs genuine feature extraction through native forward pass.
     
+    Supports YAML configuration with 4 spatial aggregation methods.
+    
     Attributes:
+        config (dict): Configuration dictionary from YAML
         model_type (str): SAM-Med3D model variant
         checkpoint_path (Optional[Path]): Path to checkpoint file
         device (torch.device): Computation device
@@ -37,105 +42,131 @@ class SAMMed3DFeatureExtractor:
     """
     
     def __init__(self, 
-                 model_type: str = "vit_b_ori",  
-                 checkpoint_path: Optional[str] = None,
-                 device: str = "auto",
-                 aggregation_method: str = "avg_pool"):
+                 config_path: Optional[str] = None,
+                 aggregation_method: Optional[str] = None,
+                 **override_params):
         """
-        Initialize authentic SAM-Med3D feature extractor.
+        Initialize authentic SAM-Med3D feature extractor with YAML configuration.
         
         Args:
-            model_type (str): Model type from sam_model_registry3D
-            checkpoint_path (Optional[str]): Path to checkpoint for loading weights
-            device (str): Device to use ('auto', 'cpu', 'cuda')
-            aggregation_method (str): Spatial aggregation method
-                - 'avg_pool': Global average pooling [1, 384]
-                - 'max_pool': Global max pooling [1, 384]  
-                - 'sum_pool': Global sum pooling [1, 384]
-                - 'flatten': Spatial concatenation [1, 196608]
+            config_path (Optional[str]): Path to YAML configuration file
+            aggregation_method (Optional[str]): Override aggregation method from config
+            **override_params: Additional parameters to override config values
         """
-        self.model_type = model_type
-        self.checkpoint_path = Path(checkpoint_path) if checkpoint_path else None
-        self.aggregation_method = aggregation_method
+        # Load configuration
+        self.config = self._load_config(config_path)
         
-        # Validate aggregation method
-        valid_methods = ['avg_pool', 'max_pool', 'sum_pool', 'flatten']
-        if aggregation_method not in valid_methods:
-            raise ValueError(f"aggregation_method must be one of {valid_methods}")
+        # Override aggregation method if specified
+        if aggregation_method:
+            self.aggregation_method = aggregation_method
+        else:
+            self.aggregation_method = self.config.get('default_config', 'flatten')
         
-        if device == "auto":
+        # Apply parameter overrides
+        self._apply_overrides(override_params)
+        
+        # Extract configuration values
+        self.model_type = self.config['model']['type']
+        self.checkpoint_path = Path(self.config['model']['checkpoint_path']) if self.config['model']['checkpoint_path'] else None
+        
+        # Device configuration
+        device_config = self.config['processing']['device']
+        if device_config == "auto":
             self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         else:
-            self.device = torch.device(device)
+            self.device = torch.device(device_config)
         
-        # Load the real SAM-Med3D model
+        # Validate aggregation method
+        valid_methods = list(self.config['aggregation_configs'].keys())
+        if self.aggregation_method not in valid_methods:
+            raise ValueError(f"aggregation_method must be one of {valid_methods}")
+        
+        # Get aggregation configuration
+        self.aggregation_config = self.config['aggregation_configs'][self.aggregation_method]
+        
+        # Initialize model components
         self.model = None
         self.image_encoder = None
-        self.optimal_input_size = None  # Cache for input size
-        self.feature_dim = None  # Will be determined after loading
+        # Use known optimal specifications (no need to test)
+        self.optimal_input_size = tuple(self.config['processing']['input_size'])  # (128, 128, 128)
+        self.feature_dim = self.aggregation_config['output_dim']  # From YAML config
         
         self._load_sam_med3d_model()
         
         print(f"SAM-Med3D Feature Extractor initialized")
+        print(f"Configuration: {config_path or 'default'}")
         print(f"Model type: {self.model_type}")
         print(f"Device: {self.device}")
         print(f"Checkpoint: {self.checkpoint_path}")
         print(f"Aggregation method: {self.aggregation_method}")
+        print(f"Aggregation description: {self.aggregation_config['description']}")
         print(f"Feature dimension: {self.feature_dim}")
         print(f"Optimal input size: {self.optimal_input_size}")
+        print(f"PCA required: {self.aggregation_config['pca_required']}")
+    
+    def _load_config(self, config_path: Optional[str]) -> Dict[str, Any]:
+        """
+        Load configuration from YAML file.
+        
+        Args:
+            config_path (Optional[str]): Path to configuration file
+            
+        Returns:
+            Dict[str, Any]: Configuration dictionary
+        """
+        if config_path is None:
+            # Use default configuration path
+            config_path = Path(__file__).parent.parent / "configs" / "feature_extraction_sam3d.yaml"
+        else:
+            config_path = Path(config_path)
+        
+        if not config_path.exists():
+            raise FileNotFoundError(f"Configuration file not found: {config_path}")
+        
+        with open(config_path, 'r') as f:
+            config = yaml.safe_load(f)
+        
+        print(f"Configuration loaded from: {config_path}")
+        return config
+    
+    def _apply_overrides(self, override_params: Dict[str, Any]):
+        """
+        Apply parameter overrides to configuration.
+        
+        Args:
+            override_params (Dict[str, Any]): Parameters to override
+        """
+        for key, value in override_params.items():
+            if key in ['batch_size']:
+                self.config['processing'][key] = value
+            elif key in ['device']:
+                self.config['processing'][key] = value
+            elif key in ['model_type']:
+                self.config['model']['type'] = value
+            elif key in ['checkpoint_path']:
+                self.config['model']['checkpoint_path'] = value
+            else:
+                print(f"Warning: Unknown override parameter: {key}")
     
     def _load_sam_med3d_model(self):
         """Load the authentic SAM-Med3D model and extract image encoder."""
         print("Loading SAM-Med3D model...")
         
-        # Load model using helper function or manual construction for 768D
+        # Direct loading with known working model type (vit_b_ori)
         if self.checkpoint_path and self.checkpoint_path.exists():
-            print("Creating 768D model to match sam_med3d_turbo.pth checkpoint...")
+            print("Loading sam_med3d_turbo.pth checkpoint with vit_b_ori...")
             
-            # Try to load with registry first
             try:
-                # Test if any registry model gives us 768D
-                test_models = ['default', 'vit_h', 'vit_l', 'vit_b_ori']
-                working_model_type = None
+                # Use known working model type directly
+                self.model = load_sam_med3d_model(
+                    model_type='vit_b_ori',
+                    checkpoint_path=str(self.checkpoint_path)
+                )
+                print("✅ Checkpoint loaded successfully with vit_b_ori")
                 
-                for test_type in test_models:
-                    try:
-                        test_model = sam_model_registry3D[test_type]()
-                        embed_dim = test_model.image_encoder.pos_embed.shape[-1]
-                        if embed_dim == 768:
-                            working_model_type = test_type
-                            print(f"Found 768D model: {test_type}")
-                            break
-                        else:
-                            print(f"{test_type}: {embed_dim}D (not compatible)")
-                    except:
-                        continue
-                
-                if working_model_type:
-                    # Use the working model type
-                    self.model = load_sam_med3d_model(
-                        model_type=working_model_type,
-                        checkpoint_path=str(self.checkpoint_path)
-                    )
-                else:
-                    # Manual construction approach
-                    print("No 768D model found in registry, using fallback approach...")
-                    # Load model without checkpoint first
-                    self.model = sam_model_registry3D['vit_b_ori']()
-                    
-                    # Load checkpoint with strict=False to ignore size mismatches
-                    checkpoint = torch.load(str(self.checkpoint_path), map_location='cpu')
-                    state_dict = checkpoint['model_state_dict']
-                    
-                    # Try to load with strict=False (will skip incompatible layers)
-                    missing_keys, unexpected_keys = self.model.load_state_dict(state_dict, strict=False)
-                    
-                    print(f"Loaded checkpoint with {len(missing_keys)} missing keys and {len(unexpected_keys)} unexpected keys")
-                    print("Note: Using partial checkpoint loading due to architecture mismatch")
-                    
             except Exception as e:
-                print(f"Registry loading failed: {e}")
-                print("Using model without checkpoint...")
+                print(f"Direct loading failed: {e}")
+                print("Fallback: Using model without checkpoint...")
                 self.model = sam_model_registry3D[self.model_type]()
         else:
             # Load model without checkpoint
@@ -153,48 +184,15 @@ class SAMMed3DFeatureExtractor:
         print("SAM-Med3D model loaded successfully")
         print(f"Image encoder type: {type(self.image_encoder).__name__}")
         
-        # Verify final architecture and determine feature dimension
+        # Verify final architecture (quick check)
         if hasattr(self.image_encoder, 'pos_embed'):
             pos_embed_shape = self.image_encoder.pos_embed.shape
             embed_dim = pos_embed_shape[-1]
-            print(f"Final model embed_dim: {embed_dim}, pos_embed: {pos_embed_shape}")
-        
-        # Determine optimal input size and feature dimension once
-        self._determine_model_specs()
-    
-    def _determine_model_specs(self):
-        """
-        Determine optimal input size and feature dimension once at initialization.
-        """
-        print("Determining model specifications...")
-        
-        # Test input sizes to find the working one
-        test_sizes = [(128, 128, 128), (96, 96, 96), (256, 256, 256)]
-        
-        for size in test_sizes:
-            try:
-                test_volume = torch.randn(1, 1, *size, device=self.device)
-                with torch.no_grad():
-                    output = self.image_encoder(test_volume)
-                    processed_features = self._process_encoder_output(output)
-                    
-                self.optimal_input_size = size
-                self.feature_dim = processed_features.shape[-1]
-                print(f"Optimal input size: {size}")
-                print(f"Feature dimension: {self.feature_dim}")
-                return
-                
-            except Exception as e:
-                continue
-        
-        # Fallback
-        self.optimal_input_size = (128, 128, 128)
-        self.feature_dim = 384
-        print(f"Using fallback specs: {self.optimal_input_size}, {self.feature_dim}D")
+            print(f"Model embed_dim: {embed_dim}, pos_embed: {pos_embed_shape}")
     
     def preprocess_volume(self, volume: torch.Tensor) -> torch.Tensor:
         """
-        Preprocess volume for SAM-Med3D input using known optimal size.
+        Preprocess volume for SAM-Med3D input using configuration parameters.
         
         Args:
             volume (torch.Tensor): Input volume
@@ -211,7 +209,7 @@ class SAMMed3DFeatureExtractor:
             if volume.shape[1] != 1:
                 volume = volume[:, :1]  # Use first channel only
         
-        # Resize to optimal size
+        # Resize to configured input size
         current_size = volume.shape[2:]
         if current_size != self.optimal_input_size:
             volume = F.interpolate(
@@ -273,7 +271,7 @@ class SAMMed3DFeatureExtractor:
     
     def _process_encoder_output(self, encoder_output) -> torch.Tensor:
         """
-        Process the raw output from SAM-Med3D image encoder using specified aggregation.
+        Process the raw output from SAM-Med3D image encoder using configured aggregation.
         
         Args:
             encoder_output: Raw output from image encoder [B, 384, 8, 8, 8]
@@ -310,7 +308,7 @@ class SAMMed3DFeatureExtractor:
     
     def _apply_spatial_aggregation(self, spatial_features: torch.Tensor) -> torch.Tensor:
         """
-        Apply spatial aggregation method to feature maps.
+        Apply configured spatial aggregation method to feature maps.
         
         Args:
             spatial_features (torch.Tensor): Features [B, C, H, W, D]
@@ -318,35 +316,37 @@ class SAMMed3DFeatureExtractor:
         Returns:
             torch.Tensor: Aggregated features
         """
-        if self.aggregation_method == 'avg_pool':
+        method = self.aggregation_method
+        
+        if method == 'avg_pool':
             # Global average pooling
             features = F.adaptive_avg_pool3d(spatial_features, (1, 1, 1))
             return features.flatten(1)  # [B, C]
             
-        elif self.aggregation_method == 'max_pool':
+        elif method == 'max_pool':
             # Global max pooling
             features = F.adaptive_max_pool3d(spatial_features, (1, 1, 1))
             return features.flatten(1)  # [B, C]
             
-        elif self.aggregation_method == 'sum_pool':
+        elif method == 'sum_pool':
             # Global sum pooling
             features = spatial_features.sum(dim=(2, 3, 4))  # Sum over H, W, D
             return features  # [B, C]
             
-        elif self.aggregation_method == 'flatten':
+        elif method == 'flatten':
             # Spatial concatenation - preserves ALL spatial information
             return spatial_features.flatten(1)  # [B, C*H*W*D]
             
         else:
-            raise ValueError(f"Unknown aggregation method: {self.aggregation_method}")
+            raise ValueError(f"Unknown aggregation method: {method}")
     
-    def extract_features_batch(self, volumes: torch.Tensor, batch_size: int = 8) -> torch.Tensor:
+    def extract_features_batch(self, volumes: torch.Tensor, batch_size: Optional[int] = None) -> torch.Tensor:
         """
         Extract features from multiple volumes with batch processing.
         
         Args:
             volumes (torch.Tensor): Multiple volumes [N, H, W, D] or [N, C, H, W, D]
-            batch_size (int): Batch size for processing
+            batch_size (Optional[int]): Batch size for processing (uses config if None)
         
         Returns:
             torch.Tensor: Features for all volumes [N, feature_dim]
@@ -355,6 +355,11 @@ class SAMMed3DFeatureExtractor:
             volumes = volumes.unsqueeze(1)  # [N, 1, H, W, D]
         
         n_volumes = volumes.shape[0]
+        
+        # Use configured batch size if not specified
+        if batch_size is None:
+            batch_size = self.config['processing']['batch_size']
+        
         all_features = []
         
         print(f"Processing {n_volumes} volumes with batch size {batch_size}")
@@ -385,42 +390,69 @@ class SAMMed3DFeatureExtractor:
     
     def get_model_info(self) -> dict:
         """
-        Get information about the loaded SAM-Med3D model.
+        Get information about the loaded SAM-Med3D model and configuration.
         
         Returns:
-            dict: Model information
+            dict: Model information including configuration details
         """
         return {
             'model_type': self.model_type,
             'checkpoint_path': str(self.checkpoint_path) if self.checkpoint_path else None,
             'device': str(self.device),
             'aggregation_method': self.aggregation_method,
+            'aggregation_description': self.aggregation_config['description'],
             'image_encoder_type': type(self.image_encoder).__name__,
             'num_parameters': sum(p.numel() for p in self.image_encoder.parameters()),
             'optimal_input_size': self.optimal_input_size,
             'feature_dim': self.feature_dim,
-            'extraction_method': 'authentic_sam_med3d'
+            'pca_required': self.aggregation_config['pca_required'],
+            'preserves_spatial': self.aggregation_config['preserves_spatial'],
+            'memory_efficient': self.aggregation_config['memory_efficient'],
+            'recommended_for': self.aggregation_config['recommended_for'],
+            'extraction_method': 'authentic_sam_med3d_yaml_config',
+            'batch_size': self.config['processing']['batch_size']
         }
+    
+    def get_aggregation_info(self) -> dict:
+        """
+        Get detailed information about the current aggregation configuration.
+        
+        Returns:
+            dict: Aggregation configuration details
+        """
+        return self.aggregation_config
 
 
-def test_sam_med3d_extractor():
-    """Test function for authentic SAM-Med3D feature extractor with different aggregation methods."""
+def test_sam_med3d_extractor_with_yaml():
+    """Test function for SAM-Med3D feature extractor with YAML configuration."""
     print("=" * 60)
-    print("TESTING AUTHENTIC SAM-MED3D FEATURE EXTRACTOR")
+    print("TESTING SAM-MED3D FEATURE EXTRACTOR WITH YAML CONFIG")
     print("=" * 60)
     
-    # Test different aggregation methods
-    aggregation_methods = ['avg_pool', 'max_pool', 'sum_pool', 'flatten']
+    # Test each aggregation method defined in YAML
+    config_path = "configs/feature_extraction_sam3d.yaml"
+    
+    # Load config to get available methods
+    try:
+        with open(config_path, 'r') as f:
+            config = yaml.safe_load(f)
+        
+        aggregation_methods = list(config['aggregation_configs'].keys())
+        print(f"Available aggregation methods: {aggregation_methods}")
+        
+    except FileNotFoundError:
+        print(f"Configuration file not found: {config_path}")
+        print("Using default methods for testing...")
+        aggregation_methods = ['avg_pool', 'max_pool', 'sum_pool', 'flatten']
     
     for method in aggregation_methods:
         print(f"\n{'='*20} TESTING {method.upper()} {'='*20}")
         
         try:
-            # Initialize extractor with specific aggregation method
-            print(f"\n1. Initializing with {method} aggregation...")
+            # Initialize extractor with YAML configuration
+            print(f"\n1. Initializing with {method} aggregation from YAML...")
             extractor = SAMMed3DFeatureExtractor(
-                model_type="vit_b_ori",
-                checkpoint_path="ckpt/sam_med3d_turbo.pth",
+                config_path=config_path,
                 aggregation_method=method
             )
             
@@ -430,8 +462,14 @@ def test_sam_med3d_extractor():
             for key, value in info.items():
                 print(f"  {key}: {value}")
             
+            # Get aggregation details
+            print(f"\n3. Aggregation Configuration:")
+            agg_info = extractor.get_aggregation_info()
+            for key, value in agg_info.items():
+                print(f"  {key}: {value}")
+            
             # Test single volume
-            print(f"\n3. Testing feature extraction with {method}...")
+            print(f"\n4. Testing feature extraction with {method}...")
             dummy_volume = torch.randint(0, 2, (96, 96, 96), dtype=torch.float32)
             
             # Preprocess
@@ -452,16 +490,17 @@ def test_sam_med3d_extractor():
             print(f"❌ {method} aggregation failed: {e}")
     
     print("\n" + "=" * 60)
-    print("✅ AGGREGATION METHODS TESTING COMPLETED!")
-    print("✅ Ready for Phase 2 with configurable spatial aggregation")
+    print("✅ YAML CONFIGURATION TESTING COMPLETED!")
+    print("✅ Ready for Phase 2 Pipeline Integration")
     print("=" * 60)
     
     return True
 
 
 if __name__ == "__main__":
-    success = test_sam_med3d_extractor()
+    success = test_sam_med3d_extractor_with_yaml()
     if success:
-        print("\n🚀 Phase 1 COMPLETE - Ready for Phase 2 Pipeline Integration!")
+        print("\n🚀 Phase 1.5 COMPLETE - YAML Configuration Integrated!")
+        print("🚀 Ready for Phase 2 Pipeline Development!")
     else:
-        print("\n⚠️ Fix issues before proceeding to Phase 2")
+        print("\n⚠️ Fix configuration issues before proceeding to Phase 2")

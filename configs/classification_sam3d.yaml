@@ -1,0 +1,125 @@
+# Classification Configuration for AdaptFoundation Project - SAM-MED3D STRATEGY
+# Native 3D Approach: sam_med3d_turbo with 4 spatial aggregation methods
+# ================================================================================
+
+# SAM-Med3D Model to Evaluate (Native 3D Strategy)
+models:
+  - sam_med3d_turbo    # SAM-Med3D with 4 spatial aggregation methods
+
+# SAM-Med3D Aggregation Configurations to Test
+configurations:
+  - avg_pool     # 384D - Global average pooling (compact representation)
+  - max_pool     # 384D - Global max pooling (salient features)
+  - sum_pool     # 384D - Global sum pooling (total activation)
+  - flatten      # 196608D → PCA reduced (ALL spatial information)
+
+# Classifiers to Evaluate (Optimized - removed SVM due to poor performance)
+classifiers:
+  - logistic             # Primary focus (best for neuroimaging)
+  - knn                  # Comparison baseline
+
+# PCA Dimensionality Reduction Modes (Required for flatten, optional for others)
+pca_modes:
+  - 32                   # PCA 32D (Champollion V1 comparison)
+  - 95                   # PCA 95% variance (adaptive)
+  - 256                  # PCA 256D (Champollion V0 comparison)
+  # Note: 'none' excluded for flatten method due to memory constraints (196608D)
+
+# Execution Configuration
+execution:
+  parallel_models: false          # Single model processing
+  parallel_configs: false         # Sequential for stability
+  focus_mode: false               # Run all combinations
+  
+  # Priority combinations for testing (if needed)
+  focus_combinations:
+    model: "sam_med3d_turbo"       # Only SAM-Med3D model
+    config: "avg_pool"             # Start with most reliable method
+    classifier: "logistic"
+    pca_mode: "32"
+
+# Output Configuration (SAM-Med3D Path)
+output:
+  base_path: "feature_extracted_sam3d"
+  save_consolidated: true         # Save consolidated results
+  save_individual: true          # Save per-config results
+  
+# Validation and Quality Control
+validation:
+  check_pca_availability: true    # Verify PCA files exist before running
+  check_feature_files: true      # Verify feature files exist
+  skip_existing: false           # Re-run even if results exist
+  
+# Classifier Parameters (Optimized for SAM-Med3D Features)
+classifier_params:
+  logistic:
+    max_iter: 20000              # High for flatten method after PCA
+    solver: 'saga'               # Best for elasticnet penalty
+    penalty: 'elasticnet'        # L1 + L2 regularization
+    n_jobs: -1                   # Use all available cores for parallel processing
+    random_state: 42
+  
+  knn:
+    n_jobs: -1                   # Use all available cores
+    n_neighbors: [1, 3, 5, 7, 9, 11, 13, 15]
+    leaf_size: [1, 5, 10, 20, 30]
+    weights: ['uniform', 'distance']
+    metric: ['minkowski', 'manhattan', 'cosine']
+
+# Reporting
+reporting:
+  verbose: true                   # Detailed progress output
+  save_timing: true              # Track execution times
+  save_diagnostics: true        # Include overfitting/convergence diagnostics
+
+# Expected Dimensions for SAM-Med3D (Documentation)
+expected_dimensions:
+  sam_med3d_turbo:
+    avg_pool: 384        # Global average pooling - direct classification possible
+    max_pool: 384        # Global max pooling - direct classification possible
+    sum_pool: 384        # Global sum pooling - direct classification possible
+    flatten: 196608      # Spatial concatenation - PCA MANDATORY
+
+# PCA Requirements by Aggregation Method
+classification_requirements:
+  avg_pool:
+    pca_recommended: false
+    reason: "384D suitable for direct classification"
+    best_pca_modes: ["32", "256"]  # For comparison with other foundation models
+    
+  max_pool:
+    pca_recommended: false
+    reason: "384D suitable for direct classification"
+    best_pca_modes: ["32", "256"]  # For comparison with other foundation models
+    
+  sum_pool:
+    pca_recommended: false
+    reason: "384D suitable for direct classification"
+    best_pca_modes: ["32", "256"]  # For comparison with other foundation models
+    
+  flatten:
+    pca_mandatory: true
+    reason: "196608D too high-dimensional for direct classification"
+    best_pca_modes: ["32", "256", "95% variance"]  # Essential reduction
+    no_pca_skipped: "Skipped to avoid memory issues - 196608D would cause OOM errors"
+
+# Processing Plan Summary
+processing_summary:
+  total_combinations: 24          # 1 model × 4 configs × 2 classifiers × 3 PCA modes
+  estimated_time: "1-2 hours"     # Much faster: no SVM, no 'none' PCA for flatten
+  purpose: "Optimized evaluation of SAM-Med3D native 3D approach"
+  
+# Advanced Configuration (for SAM-Med3D optimization)
+advanced:
+  memory_optimization: true       # Enable memory optimizations
+  batch_processing: false         # Not needed for single model
+  checkpoint_frequency: 12        # Save progress every 12 tasks
+  
+# Notes for SAM-Med3D Classification
+notes:
+  strategy: "Native 3D processing without slicing - fundamentally different from DINOv2"
+  dimensionality_variety: "Mixed dimensions: 3 methods at 384D, 1 method at 196608D"
+  comparison_capability: "Results directly comparable with DINOv2 pooling and concatenation"
+  flatten_priority: "Flatten method preserves ALL spatial information - critical for spatial pattern classification"
+  expected_performance: "Flatten method (with PCA) expected to perform best due to complete spatial preservation"
+  memory_efficiency: "Much more memory-efficient than DINOv2 concatenation strategies"

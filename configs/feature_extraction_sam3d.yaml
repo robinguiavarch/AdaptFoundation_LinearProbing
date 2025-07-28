@@ -16,7 +16,7 @@ processing:
   
 # Data configuration
 data:
-  dataset_path: "data/HCP_OFC"
+  dataset_path: "crops/2mm/S.Or."  # Correct path matching DINOv2 config
   output_base_path: "feature_extracted_sam3d"
   
 # Spatial aggregation configurations
