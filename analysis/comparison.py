@@ -58,16 +58,13 @@ class ComparisonAnalyzer:
             results = []
             
             # Extract model name from filename
-            # e.g., "classification_results_pca_32_dinov2_vitb14.json"
             filename = filepath.name
             if filename.startswith('classification_results_pca_'):
-                # With PCA: classification_results_pca_32_dinov2_vitb14.json
                 parts = filename.replace('.json', '').split('_')
-                model = '_'.join(parts[4:])  # dinov2_vitb14
+                model = '_'.join(parts[4:])
             elif filename.startswith('classification_results_'):
-                # Without PCA: classification_results_dinov2_vitb14.json
                 parts = filename.replace('.json', '').split('_')
-                model = '_'.join(parts[2:])  # dinov2_vitb14
+                model = '_'.join(parts[2:])
             else:
                 return []
             
@@ -90,7 +87,7 @@ class ComparisonAnalyzer:
                             diagnostics = result.get('diagnostics', {})
                             cv_metrics = result.get('cv_metrics', {})
                             
-                            # Handle convergence_warning (can be string or boolean)
+                            # Handle convergence_warning
                             convergence_warning = diagnostics.get('convergence_warning', False)
                             if isinstance(convergence_warning, str):
                                 convergence_ok = convergence_warning.lower() != 'true'
@@ -281,25 +278,25 @@ class ComparisonAnalyzer:
                 cell.set_height(0.08)
                 
                 # Special styling for rank column
-                if j == 0:  # Rank column
-                    if i == 1:  # First place
-                        cell.set_facecolor('#FFD700')  # Gold
+                if j == 0:
+                    if i == 1:
+                        cell.set_facecolor('#FFD700')
                         cell.set_text_props(weight='bold', color='#8B4513')
-                    elif i == 2:  # Second place
-                        cell.set_facecolor('#C0C0C0')  # Silver
+                    elif i == 2:
+                        cell.set_facecolor('#C0C0C0')
                         cell.set_text_props(weight='bold', color='#2F4F4F')
-                    elif i == 3:  # Third place
-                        cell.set_facecolor('#CD7F32')  # Bronze
+                    elif i == 3:
+                        cell.set_facecolor('#CD7F32')
                         cell.set_text_props(weight='bold', color='white')
                     else:
                         cell.set_text_props(weight='bold')
                 
-                # Special styling for ROC-AUC columns
-                elif j == 4:  # Overfitting Gap column
+                # Special styling for metrics columns
+                elif j == 4:
                     cell.set_text_props(weight='bold', color='#D32F2F')
-                elif j == 5:  # CV ROC-AUC column
+                elif j == 5:
                     cell.set_text_props(weight='bold', color='#1565C0')
-                elif j == 6:  # Test ROC-AUC column (final column)
+                elif j == 6:
                     cell.set_text_props(weight='bold', color='#1B5E20')
                 
                 # Border styling
@@ -317,109 +314,139 @@ class ComparisonAnalyzer:
         plt.tight_layout()
         return fig
     
-    def create_performance_heatmap(self, df: pd.DataFrame, title: str) -> plt.Figure:
+    def create_comprehensive_heatmap_grid(self, df: pd.DataFrame, title: str) -> plt.Figure:
         """
-        Create performance heatmap for models vs configurations.
+        Create a 2x3 grid of heatmaps with shared colorbar for comprehensive comparison.
+        
+        Top row displays Test ROC-AUC for each classifier (Logistic, KNN, SVM).
+        Bottom row displays CV ROC-AUC for each classifier (Logistic, KNN, SVM).
+        All heatmaps share the same color scale for direct comparison.
         
         Args:
             df (pd.DataFrame): Dataset to visualize
-            title (str): Title for the heatmap
+            title (str): Title for the figure
             
         Returns:
-            plt.Figure: Matplotlib figure containing the heatmap
+            plt.Figure: Matplotlib figure containing the 2x3 grid with shared colorbar
         """
         if df.empty:
-            print(f"Warning: Empty dataframe for heatmap '{title}'")
-            fig, ax = plt.subplots(figsize=(8, 6))
+            print(f"Warning: Empty dataframe for comprehensive heatmap '{title}'")
+            fig, ax = plt.subplots(figsize=(12, 8))
             ax.text(0.5, 0.5, 'No Data Available', ha='center', va='center', fontsize=16)
             ax.set_title(title)
             return fig
+        
+        # Get unique classifiers and sort them for consistent ordering
+        classifiers = sorted(df['classifier'].unique())
+        
+        # Create the 2x3 subplot grid
+        fig, axes = plt.subplots(2, 3, figsize=(24, 16))
         
         # Create combined configuration + PCA labels
         df = df.copy()
         df['config_pca'] = df['config'] + '_' + df['pca_mode']
         
-        # Create pivot table for heatmap
-        heatmap_data = df.pivot_table(
-            index='config_pca',
-            columns='model', 
-            values='test_roc_auc',
-            aggfunc='mean'
-        )
+        # Find global min/max for consistent colorbar scale
+        all_test_values = df['test_roc_auc'].dropna()
+        all_cv_values = df['cv_roc_auc'].dropna()
+        global_min = min(all_test_values.min(), all_cv_values.min())
+        global_max = max(all_test_values.max(), all_cv_values.max())
         
-        # Create figure
-        fig, ax = plt.subplots(figsize=(14, 10))
+        # Store all heatmap data for consistent colorbar
+        heatmaps = []
         
-        # Create heatmap
-        sns.heatmap(
-            heatmap_data,
-            annot=True,
-            fmt='.4f',
-            cmap='RdYlGn',
-            cbar_kws={'label': 'Test ROC-AUC'},
-            ax=ax
-        )
-        
-        ax.set_title(f'Performance Heatmap: {title}', fontsize=14, fontweight='bold')
-        ax.set_xlabel('Foundation Models', fontsize=12)
-        ax.set_ylabel('Configuration + PCA Mode', fontsize=12)
-        
-        # Rotate x-axis labels for better readability
-        ax.tick_params(axis='x', rotation=45)
-        ax.tick_params(axis='y', rotation=0)
-        
-        plt.tight_layout()
-        
-        return fig
-        """
-        Create performance heatmap for models vs configurations.
-        
-        Args:
-            df (pd.DataFrame): Dataset to visualize
-            title (str): Title for the heatmap
+        # TOP ROW: Test ROC-AUC for each classifier
+        for i, classifier in enumerate(classifiers):
+            classifier_df = df[df['classifier'] == classifier].copy()
             
-        Returns:
-            plt.Figure: Matplotlib figure containing the heatmap
-        """
-        if df.empty:
-            print(f"Warning: Empty dataframe for heatmap '{title}'")
-            fig, ax = plt.subplots(figsize=(8, 6))
-            ax.text(0.5, 0.5, 'No Data Available', ha='center', va='center', fontsize=16)
-            ax.set_title(title)
-            return fig
+            # Create pivot table for test ROC-AUC
+            test_data = classifier_df.pivot_table(
+                index='config_pca',
+                columns='model', 
+                values='test_roc_auc',
+                aggfunc='first'
+            )
+            
+            # Create heatmap (top row)
+            ax_top = axes[0, i]
+            heatmap_test = sns.heatmap(
+                test_data,
+                annot=True,
+                fmt='.4f',
+                cmap='RdYlGn',
+                vmin=global_min,
+                vmax=global_max,
+                cbar=False,
+                ax=ax_top
+            )
+            heatmaps.append(heatmap_test)
+            
+            ax_top.set_title(f'{classifier.upper()}\nTest ROC-AUC', fontsize=14, fontweight='bold')
+            ax_top.set_xlabel('Foundation Models', fontsize=12)
+            if i == 0:
+                ax_top.set_ylabel('Configuration + PCA Mode', fontsize=12)
+            else:
+                ax_top.set_ylabel('')
+            
+            # Rotate labels
+            ax_top.tick_params(axis='x', rotation=45)
+            ax_top.tick_params(axis='y', rotation=0)
         
-        # Create combined configuration + PCA labels
-        df = df.copy()
-        df['config_pca'] = df['config'] + '_' + df['pca_mode']
+        # BOTTOM ROW: CV ROC-AUC for each classifier
+        for i, classifier in enumerate(classifiers):
+            classifier_df = df[df['classifier'] == classifier].copy()
+            
+            # Create pivot table for CV ROC-AUC
+            cv_data = classifier_df.pivot_table(
+                index='config_pca',
+                columns='model', 
+                values='cv_roc_auc',
+                aggfunc='first'
+            )
+            
+            # Create heatmap (bottom row)
+            ax_bottom = axes[1, i]
+            heatmap_cv = sns.heatmap(
+                cv_data,
+                annot=True,
+                fmt='.4f',
+                cmap='RdYlGn',
+                vmin=global_min,
+                vmax=global_max,
+                cbar=False,
+                ax=ax_bottom
+            )
+            heatmaps.append(heatmap_cv)
+            
+            ax_bottom.set_title(f'{classifier.upper()}\nCV ROC-AUC', fontsize=14, fontweight='bold')
+            ax_bottom.set_xlabel('Foundation Models', fontsize=12)
+            if i == 0:
+                ax_bottom.set_ylabel('Configuration + PCA Mode', fontsize=12)
+            else:
+                ax_bottom.set_ylabel('')
+            
+            # Rotate labels
+            ax_bottom.tick_params(axis='x', rotation=45)
+            ax_bottom.tick_params(axis='y', rotation=0)
         
-        # Create pivot table for heatmap
-        heatmap_data = df.pivot_table(
-            index='config_pca',
-            columns='model', 
-            values='test_roc_auc',
-            aggfunc='mean'
-        )
+        # Add a single colorbar on the right side
+        plt.subplots_adjust(right=0.92)
         
-        # Create figure
-        fig, ax = plt.subplots(figsize=(14, 10))
+        # Add colorbar
+        cbar_ax = fig.add_axes([0.93, 0.15, 0.02, 0.7])
         
-        # Create heatmap
-        sns.heatmap(
-            heatmap_data,
-            annot=True,
-            fmt='.4f',
-            cmap='RdYlGn',
-            cbar_kws={'label': 'Test ROC-AUC'},
-            ax=ax
-        )
+        # Use the first heatmap to create the colorbar
+        cbar = plt.colorbar(heatmaps[0].collections[0], cax=cbar_ax)
+        cbar.set_label('ROC-AUC Score', fontsize=14, fontweight='bold')
         
-        ax.set_title(f'Performance Heatmap: {title}', fontsize=14, fontweight='bold')
-        ax.set_xlabel('Foundation Models', fontsize=12)
-        ax.set_ylabel('Configuration + PCA Mode', fontsize=12)
+        # Main title
+        fig.suptitle(f'Comprehensive Performance Analysis: {title}', 
+                     fontsize=18, fontweight='bold', y=0.95)
         
-        # Rotate x-axis labels for better readability
-        ax.tick_params(axis='x', rotation=45)
-        ax.tick_params(axis='y', rotation=0)
+        # Add subtitle explaining the layout
+        fig.text(0.5, 0.02, 
+                 'Top row: Test set performance | Bottom row: Cross-validation performance', 
+                 ha='center', va='bottom', fontsize=12, style='italic')
         
         plt.tight_layout()
         
@@ -427,14 +454,14 @@ class ComparisonAnalyzer:
     
     def run_analysis(self) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, List[plt.Figure]]:
         """
-        Execute complete analysis workflow.
+        Execute complete analysis workflow with comprehensive visualization.
         
         Returns:
             Tuple containing:
                 - Complete DataFrame (all classifiers)
                 - Logistic-only DataFrame  
                 - Top-10 DataFrame
-                - List of matplotlib figures (heatmaps)
+                - List of matplotlib figures
         """
         # Collect all results
         df_all = self.collect_all_results()
@@ -449,15 +476,12 @@ class ComparisonAnalyzer:
         figures = []
         
         if not df_all.empty:
-            fig_a = self.create_performance_heatmap(df_all, "All Classifiers")
-            figures.append(fig_a)
+            # Create comprehensive 2x3 heatmap grid
+            fig_comprehensive = self.create_comprehensive_heatmap_grid(df_all, "All Foundation Models")
+            figures.append(fig_comprehensive)
         
-        if not df_logistic.empty:
-            fig_b = self.create_performance_heatmap(df_logistic, "Logistic Regression Only")
-            figures.append(fig_b)
-            
         if not df_top10.empty:
-            fig_c = self.create_top10_table(df_top10)
-            figures.append(fig_c)
+            fig_top10 = self.create_top10_table(df_top10)
+            figures.append(fig_top10)
         
         return df_all, df_logistic, df_top10, figures
