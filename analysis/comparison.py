@@ -461,7 +461,9 @@ class ComparisonAnalyzer:
                     vmax=global_max,
                     cbar=False,
                     ax=ax,
-                    annot_kws={'size': 8}
+                    annot_kws={'size': 8},
+                    linewidths=0.2,       
+                    linecolor='black'     
                 )
                 heatmaps.append(heatmap)
                 
@@ -478,8 +480,8 @@ class ComparisonAnalyzer:
                 ax.tick_params(axis='y', rotation=0)
                 
                 # Set custom x-tick labels with color coding
-                ax.set_xticks(range(len(column_labels)))
-                ax.set_xticklabels(column_labels, rotation=45, ha='right', fontsize=9)
+                ax.set_xticks(np.arange(len(column_labels)) + 0.5)  
+                ax.set_xticklabels(column_labels, rotation=45, ha='center', fontsize=9)  
                 
                 # Color-code the x-tick labels by model
                 for i, label in enumerate(ax.get_xticklabels()):
