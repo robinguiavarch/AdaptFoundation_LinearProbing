@@ -62,7 +62,7 @@ def main():
     
     # Run complete analysis
     print("\nExecuting analysis workflow...")
-    df_all, df_logistic, df_top10, figures = analyzer.run_analysis()
+    df_all, df_logistic, df_top10_test, df_top10_cv, figures = analyzer.run_analysis()
     
     # Save DataFrames
     if not df_all.empty:
@@ -75,15 +75,21 @@ def main():
         df_logistic.to_csv(output_file, index=False)
         print(f"Saved logistic results: {output_file}")
     
-    if not df_top10.empty:
-        output_file = output_dir / "analysis_results_top10.csv"
-        df_top10.to_csv(output_file, index=False)
-        print(f"Saved top 10 results: {output_file}")
+    if not df_top10_test.empty:
+        output_file = output_dir / "analysis_results_top10_test.csv"
+        df_top10_test.to_csv(output_file, index=False)
+        print(f"Saved top 10 test results: {output_file}")
     
-    # Save figures with updated naming scheme
+    if not df_top10_cv.empty:
+        output_file = output_dir / "analysis_results_top10_cv.csv"
+        df_top10_cv.to_csv(output_file, index=False)
+        print(f"Saved top 10 CV results: {output_file}")
+    
+    # Save figures with updated naming for nested grid
     figure_names = [
-        "comprehensive_pooling_grid",  # Grid 2x3 comprehensive heatmap
-        "top10_pooling_table"          # Top 10 configurations table
+        "nested_pooling_grid",          # 2x2 nested grid heatmap (KNN + Logistic)
+        "top10_pooling_table_test",     # Top 10 configurations table (Test ROC-AUC)
+        "top10_pooling_table_cv"        # Top 10 configurations table (CV ROC-AUC)
     ]
     
     for i, fig in enumerate(figures):
@@ -101,19 +107,32 @@ def main():
         print(f"Configurations tested: {df_all['config'].nunique()}")
         print(f"PCA modes tested: {df_all['pca_mode'].nunique()}")
         print(f"Classifiers tested: {df_all['classifier'].nunique()}")
+        print(f"Unique classifiers: {df_all['classifier'].unique().tolist()}")
     
-    # Display top result
-    if not df_top10.empty:
-        best_result = df_top10.iloc[0]
-        print(f"\nTop performing configuration (Logistic Regression):")
-        print(f"Model: {best_result['model']}")
-        print(f"Configuration: {best_result['config']}")
-        print(f"PCA Mode: {best_result['pca_mode']}")
-        print(f"Test ROC-AUC: {best_result['test_roc_auc']:.4f}")
-        print(f"CV ROC-AUC: {best_result['cv_roc_auc']:.4f}")
-        print(f"Overfitting Gap: {best_result['overfitting_gap']:.4f}")
+    # Display top results for both metrics
+    if not df_top10_test.empty:
+        best_result_test = df_top10_test.iloc[0]
+        print(f"\nTop performing configuration (Test ROC-AUC):")
+        print(f"Model: {best_result_test['model']}")
+        print(f"Configuration: {best_result_test['config']}")
+        print(f"PCA Mode: {best_result_test['pca_mode']}")
+        print(f"Test ROC-AUC: {best_result_test['test_roc_auc']:.4f}")
+        print(f"CV ROC-AUC: {best_result_test['cv_roc_auc']:.4f}")
+        print(f"Overfitting Gap: {best_result_test['overfitting_gap']:.4f}")
+    
+    if not df_top10_cv.empty:
+        best_result_cv = df_top10_cv.iloc[0]
+        print(f"\nTop performing configuration (CV ROC-AUC):")
+        print(f"Model: {best_result_cv['model']}")
+        print(f"Configuration: {best_result_cv['config']}")
+        print(f"PCA Mode: {best_result_cv['pca_mode']}")
+        print(f"Test ROC-AUC: {best_result_cv['test_roc_auc']:.4f}")
+        print(f"CV ROC-AUC: {best_result_cv['cv_roc_auc']:.4f}")
+        print(f"Overfitting Gap: {best_result_cv['overfitting_gap']:.4f}")
     
     print(f"\nPooling strategy analysis completed successfully!")
+    print(f"Nested grid visualization saved as: nested_pooling_grid.png")
+    print(f"Top 10 tables saved as: top10_pooling_table_test.png & top10_pooling_table_cv.png")
     print(f"Results saved in: {output_dir}")
 
 

@@ -68,11 +68,25 @@ class ComparisonAnalyzer:
             else:
                 return []
             
+            # Configuration mapping for anatomical axes
+            config_mapping = {
+                'single_axis_sagittal': 'axis_X',
+                'single_axis_coronal': 'axis_Y', 
+                'single_axis_axial': 'axis_Z'
+            }
+            
             # Navigate JSON structure: {config: {classifier: results}}
             for config_name, config_data in data.items():
                 if isinstance(config_data, dict):
                     for classifier, result in config_data.items():
+                        # Skip SVM classifier
+                        if classifier == 'svm_linear':
+                            continue
+                            
                         if isinstance(result, dict) and 'test_metrics' in result:
+                            
+                            # Apply configuration mapping
+                            mapped_config = config_mapping.get(config_name, config_name)
                             
                             # Extract feature dimension
                             if 'data_info' in result:
@@ -96,7 +110,7 @@ class ComparisonAnalyzer:
                             
                             parsed_result = {
                                 'model': model,
-                                'config': config_name,
+                                'config': mapped_config,
                                 'pca_mode': pca_mode,
                                 'classifier': classifier,
                                 'best_params': best_params,
@@ -191,20 +205,45 @@ class ComparisonAnalyzer:
         
         top10_df = df.nlargest(10, 'test_roc_auc').copy()
         
-        print(f"Selected top {len(top10_df)} configurations")
+        print(f"Selected top {len(top10_df)} configurations (Test ROC-AUC)")
         if not top10_df.empty:
-            print(f"Best performance: {top10_df.iloc[0]['test_roc_auc']:.4f}")
+            print(f"Best Test performance: {top10_df.iloc[0]['test_roc_auc']:.4f}")
             if len(top10_df) >= 10:
                 print(f"Worst in top 10: {top10_df.iloc[-1]['test_roc_auc']:.4f}")
         
         return top10_df
     
-    def create_top10_table(self, df: pd.DataFrame) -> plt.Figure:
+    def get_top_10_configurations_cv(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Get top 10 configurations ranked by CV ROC-AUC performance.
+        
+        Args:
+            df (pd.DataFrame): Input dataset
+            
+        Returns:
+            pd.DataFrame: Top 10 configurations sorted by cv_roc_auc descending
+        """
+        if df.empty:
+            print("Warning: Empty dataframe provided to get_top_10_configurations_cv")
+            return df
+        
+        top10_cv_df = df.nlargest(10, 'cv_roc_auc').copy()
+        
+        print(f"Selected top {len(top10_cv_df)} configurations (CV ROC-AUC)")
+        if not top10_cv_df.empty:
+            print(f"Best CV performance: {top10_cv_df.iloc[0]['cv_roc_auc']:.4f}")
+            if len(top10_cv_df) >= 10:
+                print(f"Worst in top 10: {top10_cv_df.iloc[-1]['cv_roc_auc']:.4f}")
+        
+        return top10_cv_df
+    
+    def create_top10_table(self, df: pd.DataFrame, metric_type: str = "test") -> plt.Figure:
         """
         Create styled table for top 10 configurations ranking.
         
         Args:
             df (pd.DataFrame): Top 10 dataset to visualize
+            metric_type (str): Type of metric used for ranking ("test" or "cv")
             
         Returns:
             plt.Figure: Matplotlib figure containing the styled table
@@ -213,7 +252,7 @@ class ComparisonAnalyzer:
             print("Warning: Empty dataframe for top 10 table")
             fig, ax = plt.subplots(figsize=(12, 6))
             ax.text(0.5, 0.5, 'No Data Available', ha='center', va='center', fontsize=16)
-            ax.set_title('Top 10 Configurations - Logistic Regression')
+            ax.set_title(f'Top 10 Configurations - Logistic Regression ({metric_type.upper()})')
             ax.axis('off')
             return fig
         
@@ -294,78 +333,102 @@ class ComparisonAnalyzer:
                 # Special styling for metrics columns
                 elif j == 4:
                     cell.set_text_props(weight='bold', color='#D32F2F')
-                elif j == 5:
-                    cell.set_text_props(weight='bold', color='#1565C0')
-                elif j == 6:
-                    cell.set_text_props(weight='bold', color='#1B5E20')
+                elif j == 5:  # CV ROC-AUC column
+                    if metric_type == "cv":
+                        cell.set_text_props(weight='bold', color='#1B5E20')  # Green for primary metric
+                    else:
+                        cell.set_text_props(weight='bold', color='#1565C0')  # Blue for secondary
+                elif j == 6:  # Test ROC-AUC column
+                    if metric_type == "test":
+                        cell.set_text_props(weight='bold', color='#1B5E20')  # Green for primary metric
+                    else:
+                        cell.set_text_props(weight='bold', color='#1565C0')  # Blue for secondary
                 
                 # Border styling
                 cell.set_edgecolor('#CCCCCC')
                 cell.set_linewidth(0.5)
         
-        # Title
-        ax.set_title('Top 10 Configurations - Logistic Regression\nRanked by Test ROC-AUC Performance', 
+        # Title with metric type
+        metric_display = "Test ROC-AUC" if metric_type == "test" else "CV ROC-AUC"
+        ax.set_title(f'Top 10 Configurations - Logistic Regression\nRanked by {metric_display} Performance', 
                     fontsize=16, fontweight='bold', pad=30)
         
         # Add subtle note
-        fig.text(0.5, 0.02, 'Higher ROC-AUC scores indicate better classification performance', 
+        fig.text(0.5, 0.02, f'Ranked by {metric_display} - Higher scores indicate better classification performance', 
                 ha='center', va='bottom', fontsize=10, style='italic', color='#666666')
         
         plt.tight_layout()
         return fig
     
-    def create_comprehensive_heatmap_grid(self, df: pd.DataFrame, title: str) -> plt.Figure:
+    def create_nested_grid_heatmap(self, df: pd.DataFrame) -> plt.Figure:
         """
-        Create a 2x3 grid of heatmaps with shared colorbar for comprehensive comparison.
+        Create a 2x2 nested grid heatmap without SVM classifier.
         
-        Top row displays Test ROC-AUC for each classifier (Logistic, KNN, SVM).
-        Bottom row displays CV ROC-AUC for each classifier (Logistic, KNN, SVM).
-        All heatmaps share the same color scale for direct comparison.
+        Creates hierarchical structure with configurations as rows and 
+        models grouped with PCA modes as nested columns.
+        Top row: Test ROC-AUC (KNN, Logistic)
+        Bottom row: CV ROC-AUC (KNN, Logistic)
         
         Args:
             df (pd.DataFrame): Dataset to visualize
-            title (str): Title for the figure
             
         Returns:
-            plt.Figure: Matplotlib figure containing the 2x3 grid with shared colorbar
+            plt.Figure: Matplotlib figure containing the nested grid
         """
         if df.empty:
-            print(f"Warning: Empty dataframe for comprehensive heatmap '{title}'")
+            print("Warning: Empty dataframe for nested grid heatmap")
             fig, ax = plt.subplots(figsize=(12, 8))
             ax.text(0.5, 0.5, 'No Data Available', ha='center', va='center', fontsize=16)
-            ax.set_title(title)
             return fig
         
-        # Get unique classifiers and sort them for consistent ordering
-        classifiers = sorted(df['classifier'].unique())
+        # Filter out SVM and get classifiers
+        df_filtered = df[df['classifier'] != 'svm_linear'].copy()
+        classifiers = sorted(df_filtered['classifier'].unique())
         
-        # Create the 2x3 subplot grid
-        fig, axes = plt.subplots(2, 3, figsize=(24, 16))
+        # Create the 2x2 subplot grid
+        fig, axes = plt.subplots(2, 2, figsize=(28, 16))
         
-        # Create combined configuration + PCA labels
-        df = df.copy()
-        df['config_pca'] = df['config'] + '_' + df['pca_mode']
+        # Define configuration order for better readability
+        config_order = ['multi_axes_add', 'multi_axes_average', 'multi_axes_max', 
+                       'axis_Z', 'axis_Y', 'axis_X']
+        
+        # Create nested column structure: model_pca
+        df_filtered['model_pca'] = df_filtered['model'] + '_' + df_filtered['pca_mode']
+        
+        # Define model and PCA order for consistent display
+        models = ['dinov2_vits14', 'dinov2_vitb14', 'dinov2_vitl14', 'dinov2_vitg14']
+        pca_modes = ['none', '256', '32', '95']
+        
+        # Create ordered column list for nested structure
+        ordered_columns = []
+        for model in models:
+            for pca in pca_modes:
+                ordered_columns.append(f"{model}_{pca}")
         
         # Find global min/max for consistent colorbar scale
-        all_test_values = df['test_roc_auc'].dropna()
-        all_cv_values = df['cv_roc_auc'].dropna()
+        all_test_values = df_filtered['test_roc_auc'].dropna()
+        all_cv_values = df_filtered['cv_roc_auc'].dropna()
         global_min = min(all_test_values.min(), all_cv_values.min())
         global_max = max(all_test_values.max(), all_cv_values.max())
         
-        # Store all heatmap data for consistent colorbar
+        # Store heatmaps for shared colorbar
         heatmaps = []
         
         # TOP ROW: Test ROC-AUC for each classifier
         for i, classifier in enumerate(classifiers):
-            classifier_df = df[df['classifier'] == classifier].copy()
+            classifier_df = df_filtered[df_filtered['classifier'] == classifier].copy()
             
             # Create pivot table for test ROC-AUC
             test_data = classifier_df.pivot_table(
-                index='config_pca',
-                columns='model', 
+                index='config',
+                columns='model_pca', 
                 values='test_roc_auc',
                 aggfunc='first'
             )
+            
+            # Reorder rows and columns
+            test_data = test_data.reindex(index=config_order)
+            test_data = test_data.reindex(columns=ordered_columns)
             
             # Create heatmap (top row)
             ax_top = axes[0, i]
@@ -373,7 +436,7 @@ class ComparisonAnalyzer:
                 test_data,
                 annot=True,
                 fmt='.4f',
-                cmap='RdYlGn',
+                cmap='RdYlBu_r',
                 vmin=global_min,
                 vmax=global_max,
                 cbar=False,
@@ -382,27 +445,31 @@ class ComparisonAnalyzer:
             heatmaps.append(heatmap_test)
             
             ax_top.set_title(f'{classifier.upper()}\nTest ROC-AUC', fontsize=14, fontweight='bold')
-            ax_top.set_xlabel('Foundation Models', fontsize=12)
+            ax_top.set_xlabel('')
             if i == 0:
-                ax_top.set_ylabel('Configuration + PCA Mode', fontsize=12)
+                ax_top.set_ylabel('Configuration', fontsize=12)
             else:
                 ax_top.set_ylabel('')
             
-            # Rotate labels
-            ax_top.tick_params(axis='x', rotation=45)
+            # Custom x-axis labels for nested structure
+            ax_top.set_xticklabels([])
             ax_top.tick_params(axis='y', rotation=0)
         
         # BOTTOM ROW: CV ROC-AUC for each classifier
         for i, classifier in enumerate(classifiers):
-            classifier_df = df[df['classifier'] == classifier].copy()
+            classifier_df = df_filtered[df_filtered['classifier'] == classifier].copy()
             
             # Create pivot table for CV ROC-AUC
             cv_data = classifier_df.pivot_table(
-                index='config_pca',
-                columns='model', 
+                index='config',
+                columns='model_pca', 
                 values='cv_roc_auc',
                 aggfunc='first'
             )
+            
+            # Reorder rows and columns
+            cv_data = cv_data.reindex(index=config_order)
+            cv_data = cv_data.reindex(columns=ordered_columns)
             
             # Create heatmap (bottom row)
             ax_bottom = axes[1, i]
@@ -410,7 +477,7 @@ class ComparisonAnalyzer:
                 cv_data,
                 annot=True,
                 fmt='.4f',
-                cmap='RdYlGn',
+                cmap='RdYlBu_r',
                 vmin=global_min,
                 vmax=global_max,
                 cbar=False,
@@ -419,29 +486,26 @@ class ComparisonAnalyzer:
             heatmaps.append(heatmap_cv)
             
             ax_bottom.set_title(f'{classifier.upper()}\nCV ROC-AUC', fontsize=14, fontweight='bold')
-            ax_bottom.set_xlabel('Foundation Models', fontsize=12)
+            ax_bottom.set_xlabel('')
             if i == 0:
-                ax_bottom.set_ylabel('Configuration + PCA Mode', fontsize=12)
+                ax_bottom.set_ylabel('Configuration', fontsize=12)
             else:
                 ax_bottom.set_ylabel('')
             
-            # Rotate labels
-            ax_bottom.tick_params(axis='x', rotation=45)
+            # Custom x-axis labels for nested structure
+            ax_bottom.set_xticklabels([])
             ax_bottom.tick_params(axis='y', rotation=0)
         
-        # Add a single colorbar on the right side
-        plt.subplots_adjust(right=0.92)
+        # Create custom nested column headers manually
+        self._add_nested_column_headers(fig, axes, models, pca_modes)
+        
+        # Add single colorbar on the right side
+        plt.subplots_adjust(right=0.85, bottom=0.15)
         
         # Add colorbar
-        cbar_ax = fig.add_axes([0.93, 0.15, 0.02, 0.7])
-        
-        # Use the first heatmap to create the colorbar
+        cbar_ax = fig.add_axes([0.87, 0.15, 0.02, 0.7])
         cbar = plt.colorbar(heatmaps[0].collections[0], cax=cbar_ax)
         cbar.set_label('ROC-AUC Score', fontsize=14, fontweight='bold')
-        
-        # Main title
-        fig.suptitle(f'Comprehensive Performance Analysis: {title}', 
-                     fontsize=18, fontweight='bold', y=0.95)
         
         # Add subtitle explaining the layout
         fig.text(0.5, 0.02, 
@@ -452,15 +516,61 @@ class ComparisonAnalyzer:
         
         return fig
     
-    def run_analysis(self) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, List[plt.Figure]]:
+    def _add_nested_column_headers(self, fig, axes, models, pca_modes):
         """
-        Execute complete analysis workflow with comprehensive visualization.
+        Add nested column headers to show model grouping with PCA sub-columns.
+        
+        Args:
+            fig: Matplotlib figure
+            axes: Array of subplot axes
+            models: List of model names
+            pca_modes: List of PCA modes
+        """
+        # Model headers (top level)
+        model_width = len(pca_modes)
+        
+        for i, model in enumerate(models):
+            x_start = i * model_width
+            x_end = (i + 1) * model_width
+            
+            # Add model header above both subplot columns
+            for j in range(2):  # For both KNN and Logistic columns
+                ax = axes[0, j]
+                ax_pos = ax.get_position()
+                
+                # Calculate x position for this model group
+                x_left = ax_pos.x0 + (x_start / (len(models) * model_width)) * ax_pos.width
+                x_right = ax_pos.x0 + (x_end / (len(models) * model_width)) * ax_pos.width
+                x_center = (x_left + x_right) / 2
+                
+                # Add model name
+                model_clean = model.replace('dinov2_', '').upper()
+                fig.text(x_center, ax_pos.y1 + 0.08, model_clean, 
+                        ha='center', va='center', fontsize=11, fontweight='bold')
+        
+        # PCA mode headers (bottom level)
+        for i in range(2):  # For both KNN and Logistic columns
+            ax = axes[1, i]  # Use bottom row for PCA labels
+            ax_pos = ax.get_position()
+            
+            # Add PCA mode labels
+            for j, pca in enumerate(pca_modes * len(models)):
+                x_pos = ax_pos.x0 + ((j + 0.5) / (len(models) * len(pca_modes))) * ax_pos.width
+                pca_clean = 'None' if pca == 'none' else f'PCA_{pca}'
+                
+                fig.text(x_pos, ax_pos.y0 - 0.05, pca_clean, 
+                        ha='center', va='center', fontsize=9, rotation=45)
+    
+    def run_analysis(self) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, List[plt.Figure]]:
+        """
+        Execute complete analysis workflow with nested grid visualization.
         
         Returns:
             Tuple containing:
-                - Complete DataFrame (all classifiers)
+                - Complete DataFrame (KNN + Logistic only)
                 - Logistic-only DataFrame  
-                - Top-10 DataFrame
+                - Top-10 DataFrame (Test ROC-AUC)
+                - Top-10 DataFrame (CV ROC-AUC)
                 - List of matplotlib figures
         """
         # Collect all results
@@ -469,19 +579,24 @@ class ComparisonAnalyzer:
         # Filter to logistic regression only
         df_logistic = self.filter_logistic_only(df_all)
         
-        # Get top 10 configurations
-        df_top10 = self.get_top_10_configurations(df_logistic)
+        # Get top 10 configurations for both metrics
+        df_top10_test = self.get_top_10_configurations(df_logistic)
+        df_top10_cv = self.get_top_10_configurations_cv(df_logistic)
         
         # Create visualizations
         figures = []
         
         if not df_all.empty:
-            # Create comprehensive 2x3 heatmap grid
-            fig_comprehensive = self.create_comprehensive_heatmap_grid(df_all, "All Foundation Models")
-            figures.append(fig_comprehensive)
+            # Create nested grid heatmap (2x2, no SVM)
+            fig_nested = self.create_nested_grid_heatmap(df_all)
+            figures.append(fig_nested)
         
-        if not df_top10.empty:
-            fig_top10 = self.create_top10_table(df_top10)
-            figures.append(fig_top10)
+        if not df_top10_test.empty:
+            fig_top10_test = self.create_top10_table(df_top10_test, metric_type="test")
+            figures.append(fig_top10_test)
         
-        return df_all, df_logistic, df_top10, figures
+        if not df_top10_cv.empty:
+            fig_top10_cv = self.create_top10_table(df_top10_cv, metric_type="cv")
+            figures.append(fig_top10_cv)
+        
+        return df_all, df_logistic, df_top10_test, df_top10_cv, figures
