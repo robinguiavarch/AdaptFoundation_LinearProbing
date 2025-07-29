@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Dict, List, Tuple
 import matplotlib.pyplot as plt
 import seaborn as sns
+from matplotlib.colors import LinearSegmentedColormap
 
 
 class ComparisonAnalyzer:
@@ -360,23 +361,18 @@ class ComparisonAnalyzer:
         plt.tight_layout()
         return fig
     
-    def create_nested_grid_heatmap(self, df: pd.DataFrame) -> plt.Figure:
+    def create_simple_grid_heatmap(self, df: pd.DataFrame) -> plt.Figure:
         """
-        Create a 2x2 nested grid heatmap without SVM classifier.
-        
-        Creates hierarchical structure with configurations as rows and 
-        models grouped with PCA modes as nested columns.
-        Top row: Test ROC-AUC (KNN, Logistic)
-        Bottom row: CV ROC-AUC (KNN, Logistic)
+        Create a 2x2 grid heatmap with simple column labels and color-coded model names.
         
         Args:
             df (pd.DataFrame): Dataset to visualize
             
         Returns:
-            plt.Figure: Matplotlib figure containing the nested grid
+            plt.Figure: Matplotlib figure containing the grid
         """
         if df.empty:
-            print("Warning: Empty dataframe for nested grid heatmap")
+            print("Warning: Empty dataframe for grid heatmap")
             fig, ax = plt.subplots(figsize=(12, 8))
             ax.text(0.5, 0.5, 'No Data Available', ha='center', va='center', fontsize=16)
             return fig
@@ -386,7 +382,7 @@ class ComparisonAnalyzer:
         classifiers = sorted(df_filtered['classifier'].unique())
         
         # Create the 2x2 subplot grid
-        fig, axes = plt.subplots(2, 2, figsize=(28, 16))
+        fig, axes = plt.subplots(2, 2, figsize=(32, 16))
         
         # Define configuration order for better readability
         config_order = ['multi_axes_add', 'multi_axes_average', 'multi_axes_max', 
@@ -405,165 +401,107 @@ class ComparisonAnalyzer:
             for pca in pca_modes:
                 ordered_columns.append(f"{model}_{pca}")
         
+        # Create human-readable column labels with color coding
+        column_labels = []
+        model_colors = {
+            'dinov2_vits14': '#1f4e79',  # Bleu foncé
+            'dinov2_vitb14': '#2d5016',  # Vert foncé
+            'dinov2_vitl14': '#4a148c',  # Violet foncé
+            'dinov2_vitg14': '#5d4037'   # Marron foncé
+        }
+        
+        for model in models:
+            model_clean = model.replace('dinov2_', '').upper()
+            for pca in pca_modes:
+                pca_clean = 'None' if pca == 'none' else f'PCA{pca}'
+                column_labels.append(f"{model_clean}_{pca_clean}")
+        
         # Find global min/max for consistent colorbar scale
         all_test_values = df_filtered['test_roc_auc'].dropna()
         all_cv_values = df_filtered['cv_roc_auc'].dropna()
         global_min = min(all_test_values.min(), all_cv_values.min())
         global_max = max(all_test_values.max(), all_cv_values.max())
         
+        # Create custom colormap (Rouge → Orange → Jaune → Vert pâle → Vert foncé)
+        colors = ['#d32f2f', '#ff6f00', '#ffd600', '#8bc34a', '#2e7d32']
+        n_bins = 100
+        cmap = LinearSegmentedColormap.from_list('custom', colors, N=n_bins)
+        
         # Store heatmaps for shared colorbar
         heatmaps = []
         
-        # TOP ROW: Test ROC-AUC for each classifier
-        for i, classifier in enumerate(classifiers):
-            classifier_df = df_filtered[df_filtered['classifier'] == classifier].copy()
-            
-            # Create pivot table for test ROC-AUC
-            test_data = classifier_df.pivot_table(
-                index='config',
-                columns='model_pca', 
-                values='test_roc_auc',
-                aggfunc='first'
-            )
-            
-            # Reorder rows and columns
-            test_data = test_data.reindex(index=config_order)
-            test_data = test_data.reindex(columns=ordered_columns)
-            
-            # Create heatmap (top row)
-            ax_top = axes[0, i]
-            heatmap_test = sns.heatmap(
-                test_data,
-                annot=True,
-                fmt='.4f',
-                cmap='RdYlBu_r',
-                vmin=global_min,
-                vmax=global_max,
-                cbar=False,
-                ax=ax_top
-            )
-            heatmaps.append(heatmap_test)
-            
-            ax_top.set_title(f'{classifier.upper()}\nTest ROC-AUC', fontsize=14, fontweight='bold')
-            ax_top.set_xlabel('')
-            if i == 0:
-                ax_top.set_ylabel('Configuration', fontsize=12)
-            else:
-                ax_top.set_ylabel('')
-            
-            # Custom x-axis labels for nested structure
-            ax_top.set_xticklabels([])
-            ax_top.tick_params(axis='y', rotation=0)
+        # Process each subplot (2x2 grid)
+        for row in range(2):
+            for col, classifier in enumerate(classifiers):
+                ax = axes[row, col]
+                classifier_df = df_filtered[df_filtered['classifier'] == classifier].copy()
+                
+                # Choose metric based on row
+                metric = 'test_roc_auc' if row == 0 else 'cv_roc_auc'
+                
+                # Create pivot table
+                pivot_data = classifier_df.pivot_table(
+                    index='config',
+                    columns='model_pca', 
+                    values=metric,
+                    aggfunc='first'
+                )
+                
+                # Reorder rows and columns
+                pivot_data = pivot_data.reindex(index=config_order)
+                pivot_data = pivot_data.reindex(columns=ordered_columns)
+                
+                # Create heatmap
+                heatmap = sns.heatmap(
+                    pivot_data,
+                    annot=True,
+                    fmt='.4f',
+                    cmap=cmap,
+                    vmin=global_min,
+                    vmax=global_max,
+                    cbar=False,
+                    ax=ax,
+                    annot_kws={'size': 8}
+                )
+                heatmaps.append(heatmap)
+                
+                # Set title
+                metric_label = 'Test ROC-AUC' if row == 0 else 'CV ROC-AUC'
+                ax.set_title(f'{classifier.upper()}\n{metric_label}', fontsize=14, fontweight='bold')
+                
+                # Configure axes
+                ax.set_xlabel('')
+                if col == 0:
+                    ax.set_ylabel('Configuration', fontsize=12)
+                else:
+                    ax.set_ylabel('')
+                ax.tick_params(axis='y', rotation=0)
+                
+                # Set custom x-tick labels with color coding
+                ax.set_xticks(range(len(column_labels)))
+                ax.set_xticklabels(column_labels, rotation=45, ha='right', fontsize=9)
+                
+                # Color-code the x-tick labels by model
+                for i, label in enumerate(ax.get_xticklabels()):
+                    model_idx = i // len(pca_modes)  # Which model group (0,1,2,3)
+                    model_key = models[model_idx]
+                    color = model_colors[model_key]
+                    label.set_color(color)
+                    label.set_fontweight('bold')
         
-        # BOTTOM ROW: CV ROC-AUC for each classifier
-        for i, classifier in enumerate(classifiers):
-            classifier_df = df_filtered[df_filtered['classifier'] == classifier].copy()
-            
-            # Create pivot table for CV ROC-AUC
-            cv_data = classifier_df.pivot_table(
-                index='config',
-                columns='model_pca', 
-                values='cv_roc_auc',
-                aggfunc='first'
-            )
-            
-            # Reorder rows and columns
-            cv_data = cv_data.reindex(index=config_order)
-            cv_data = cv_data.reindex(columns=ordered_columns)
-            
-            # Create heatmap (bottom row)
-            ax_bottom = axes[1, i]
-            heatmap_cv = sns.heatmap(
-                cv_data,
-                annot=True,
-                fmt='.4f',
-                cmap='RdYlBu_r',
-                vmin=global_min,
-                vmax=global_max,
-                cbar=False,
-                ax=ax_bottom
-            )
-            heatmaps.append(heatmap_cv)
-            
-            ax_bottom.set_title(f'{classifier.upper()}\nCV ROC-AUC', fontsize=14, fontweight='bold')
-            ax_bottom.set_xlabel('')
-            if i == 0:
-                ax_bottom.set_ylabel('Configuration', fontsize=12)
-            else:
-                ax_bottom.set_ylabel('')
-            
-            # Custom x-axis labels for nested structure
-            ax_bottom.set_xticklabels([])
-            ax_bottom.tick_params(axis='y', rotation=0)
-        
-        # Create custom nested column headers manually
-        self._add_nested_column_headers(fig, axes, models, pca_modes)
+        # Adjust layout for better spacing
+        plt.subplots_adjust(left=0.06, right=0.85, top=0.92, bottom=0.15, hspace=0.3, wspace=0.15)
         
         # Add single colorbar on the right side
-        plt.subplots_adjust(right=0.85, bottom=0.15)
-        
-        # Add colorbar
         cbar_ax = fig.add_axes([0.87, 0.15, 0.02, 0.7])
         cbar = plt.colorbar(heatmaps[0].collections[0], cax=cbar_ax)
         cbar.set_label('ROC-AUC Score', fontsize=14, fontweight='bold')
         
-        # Add subtitle explaining the layout
-        fig.text(0.5, 0.02, 
-                 'Top row: Test set performance | Bottom row: Cross-validation performance', 
-                 ha='center', va='bottom', fontsize=12, style='italic')
-        
-        plt.tight_layout()
-        
         return fig
-    
-    def _add_nested_column_headers(self, fig, axes, models, pca_modes):
-        """
-        Add nested column headers to show model grouping with PCA sub-columns.
-        
-        Args:
-            fig: Matplotlib figure
-            axes: Array of subplot axes
-            models: List of model names
-            pca_modes: List of PCA modes
-        """
-        # Model headers (top level)
-        model_width = len(pca_modes)
-        
-        for i, model in enumerate(models):
-            x_start = i * model_width
-            x_end = (i + 1) * model_width
-            
-            # Add model header above both subplot columns
-            for j in range(2):  # For both KNN and Logistic columns
-                ax = axes[0, j]
-                ax_pos = ax.get_position()
-                
-                # Calculate x position for this model group
-                x_left = ax_pos.x0 + (x_start / (len(models) * model_width)) * ax_pos.width
-                x_right = ax_pos.x0 + (x_end / (len(models) * model_width)) * ax_pos.width
-                x_center = (x_left + x_right) / 2
-                
-                # Add model name
-                model_clean = model.replace('dinov2_', '').upper()
-                fig.text(x_center, ax_pos.y1 + 0.08, model_clean, 
-                        ha='center', va='center', fontsize=11, fontweight='bold')
-        
-        # PCA mode headers (bottom level)
-        for i in range(2):  # For both KNN and Logistic columns
-            ax = axes[1, i]  # Use bottom row for PCA labels
-            ax_pos = ax.get_position()
-            
-            # Add PCA mode labels
-            for j, pca in enumerate(pca_modes * len(models)):
-                x_pos = ax_pos.x0 + ((j + 0.5) / (len(models) * len(pca_modes))) * ax_pos.width
-                pca_clean = 'None' if pca == 'none' else f'PCA_{pca}'
-                
-                fig.text(x_pos, ax_pos.y0 - 0.05, pca_clean, 
-                        ha='center', va='center', fontsize=9, rotation=45)
     
     def run_analysis(self) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, List[plt.Figure]]:
         """
-        Execute complete analysis workflow with nested grid visualization.
+        Execute complete analysis workflow with simple grid visualization.
         
         Returns:
             Tuple containing:
@@ -587,9 +525,9 @@ class ComparisonAnalyzer:
         figures = []
         
         if not df_all.empty:
-            # Create nested grid heatmap (2x2, no SVM)
-            fig_nested = self.create_nested_grid_heatmap(df_all)
-            figures.append(fig_nested)
+            # Create simple grid heatmap (2x2, no SVM)
+            fig_grid = self.create_simple_grid_heatmap(df_all)
+            figures.append(fig_grid)
         
         if not df_top10_test.empty:
             fig_top10_test = self.create_top10_table(df_top10_test, metric_type="test")
