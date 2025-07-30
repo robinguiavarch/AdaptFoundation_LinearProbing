@@ -40,7 +40,7 @@ class ComparisonAnalyzerConcat:
     
     def _parse_consolidated_file(self, filepath: Path, pca_mode: str) -> List[Dict]:
         """
-        Parse a consolidated classification_results.json file for concatenation results.
+        Parse a consolidated classification_results.json file for concatenation results with duplicate detection and debug.
         
         Args:
             filepath (Path): Path to consolidated JSON file
@@ -52,21 +52,27 @@ class ComparisonAnalyzerConcat:
         if not filepath.exists():
             return []
         
+        print(f"🔍 DEBUG: Processing {filepath.name} → pca_mode = '{pca_mode}'")
+        
         try:
             with open(filepath, 'r') as f:
                 data = json.load(f)
             
             results = []
+            seen_combinations = set()  # Track unique combinations
             
             # Extract model name from filename
             filename = filepath.name
             if filename.startswith('classification_results_pca_'):
                 parts = filename.replace('.json', '').split('_')
                 model = '_'.join(parts[4:])
+                print(f"🔍 DEBUG: PCA file detected → model = '{model}'")
             elif filename.startswith('classification_results_'):
                 parts = filename.replace('.json', '').split('_')
                 model = '_'.join(parts[2:])
+                print(f"🔍 DEBUG: Non-PCA file detected → model = '{model}'")
             else:
+                print(f"🔍 DEBUG: Unrecognized filename pattern: {filename}")
                 return []
             
             # Configuration mapping for concatenation anatomical axes
@@ -90,11 +96,38 @@ class ComparisonAnalyzerConcat:
                             # Apply configuration mapping
                             mapped_config = config_mapping.get(config_name, config_name)
                             
-                            # Extract feature dimension
+                            # Extract feature dimension with debug
                             if 'data_info' in result:
                                 feature_dim = result['data_info']['train_val_shape'][1]
                             else:
                                 feature_dim = None
+                            
+                            # 🔍 DEBUG: Log the key information
+                            print(f"🔍 DEBUG: {model}/{mapped_config}/{classifier} → pca_mode='{pca_mode}', feature_dim={feature_dim}")
+                            
+                            # Create unique key to detect duplicates
+                            unique_key = (model, mapped_config, pca_mode, classifier)
+                            
+                            if unique_key in seen_combinations:
+                                print(f"⚠️  CONCAT DOUBLON DÉTECTÉ: {unique_key}")
+                                continue  # Skip this duplicate
+                            
+                            seen_combinations.add(unique_key)
+                            
+                            # Verify PCA consistency with CORRECTED logic for CONCATENATION
+                            if feature_dim is not None:
+                                if pca_mode == 'none':
+                                    # Sans PCA pour concatenation, on s'attend à des dimensions très élevées (>1000D)
+                                    if feature_dim < 1000:
+                                        print(f"⚠️  CONCAT INCOHÉRENCE: Pas de PCA mais seulement {feature_dim}D features pour {model}/{mapped_config}")
+                                else:
+                                    # Avec PCA pour concatenation, vérifications spécifiques par mode
+                                    if pca_mode == '32' and feature_dim != 32:
+                                        print(f"⚠️  CONCAT INCOHÉRENCE: PCA_32 mais {feature_dim}D features (attendu: 32D) pour {model}/{mapped_config}")
+                                    elif pca_mode == '256' and feature_dim != 256:
+                                        print(f"⚠️  CONCAT INCOHÉRENCE: PCA_256 mais {feature_dim}D features (attendu: 256D) pour {model}/{mapped_config}")
+                                    elif pca_mode == '95' and feature_dim > 50000:
+                                        print(f"⚠️  CONCAT INCOHÉRENCE: PCA_95% mais {feature_dim}D features (trop élevé) pour {model}/{mapped_config}")
                             
                             # Extract best parameters
                             best_params = str(result.get('best_params', {}))
@@ -127,10 +160,11 @@ class ComparisonAnalyzerConcat:
                             
                             results.append(parsed_result)
             
+            print(f"✅ CONCAT: Parsed {len(results)} unique results from {filepath.name} (pca_mode='{pca_mode}')")
             return results
             
         except Exception as e:
-            print(f"Error parsing concatenation results from {filepath}: {e}")
+            print(f"❌ CONCAT: Error parsing {filepath}: {e}")
             return []
     
     def collect_all_results(self) -> pd.DataFrame:
@@ -145,9 +179,12 @@ class ComparisonAnalyzerConcat:
         """
         all_results = []
         
-        # Define consolidated file patterns for concatenation results
+        # 🔧 PATTERNS CORRIGÉS : Plus spécifiques pour éviter les doublons (même correction que pooling)
         file_patterns = [
-            ('classification_results_*.json', 'none'),
+            # ✅ Pattern spécifique pour les fichiers SANS PCA uniquement
+            ('classification_results_dinov2_*.json', 'none'),
+            
+            # ✅ Patterns spécifiques pour chaque type de PCA
             ('classification_results_pca_32_*.json', '32'),
             ('classification_results_pca_95_*.json', '95'),
             ('classification_results_pca_256_*.json', '256')
@@ -176,7 +213,7 @@ class ComparisonAnalyzerConcat:
             if 'feature_dim' in df.columns:
                 valid_dims = df['feature_dim'].dropna()
                 if not valid_dims.empty:
-                    print(f"Concatenation feature dimensions: {int(valid_dims.min())}D - {int(valid_dims.max())}D")
+                    print(f"Concatenation feature dimensions: {int(valid_dims.min())} - {int(valid_dims.max())}")
         else:
             print("No concatenation results collected - check file paths and structure")
         
@@ -474,7 +511,9 @@ class ComparisonAnalyzerConcat:
                     vmax=global_max,
                     cbar=False,
                     ax=ax,
-                    annot_kws={'size': 8}
+                    annot_kws={'size': 8},
+                    linewidths=0.2,       
+                    linecolor='black'     
                 )
                 heatmaps.append(heatmap)
                 
@@ -491,8 +530,8 @@ class ComparisonAnalyzerConcat:
                 ax.tick_params(axis='y', rotation=0)
                 
                 # Set custom x-tick labels with color coding
-                ax.set_xticks(range(len(column_labels)))
-                ax.set_xticklabels(column_labels, rotation=45, ha='right', fontsize=9)
+                ax.set_xticks(np.arange(len(column_labels)) + 0.5)  
+                ax.set_xticklabels(column_labels, rotation=45, ha='center', fontsize=9)
                 
                 # Color-code the x-tick labels by model
                 for i, label in enumerate(ax.get_xticklabels()):

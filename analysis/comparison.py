@@ -40,7 +40,7 @@ class ComparisonAnalyzer:
     
     def _parse_consolidated_file(self, filepath: Path, pca_mode: str) -> List[Dict]:
         """
-        Parse a consolidated classification_results.json file.
+        Parse a consolidated classification_results.json file with duplicate detection and debug.
         
         Args:
             filepath (Path): Path to consolidated JSON file
@@ -52,21 +52,27 @@ class ComparisonAnalyzer:
         if not filepath.exists():
             return []
         
+        print(f"🔍 DEBUG: Processing {filepath.name} → pca_mode = '{pca_mode}'")
+        
         try:
             with open(filepath, 'r') as f:
                 data = json.load(f)
             
             results = []
+            seen_combinations = set()  # Track unique combinations
             
             # Extract model name from filename
             filename = filepath.name
             if filename.startswith('classification_results_pca_'):
                 parts = filename.replace('.json', '').split('_')
                 model = '_'.join(parts[4:])
+                print(f"🔍 DEBUG: PCA file detected → model = '{model}'")
             elif filename.startswith('classification_results_'):
                 parts = filename.replace('.json', '').split('_')
                 model = '_'.join(parts[2:])
+                print(f"🔍 DEBUG: Non-PCA file detected → model = '{model}'")
             else:
+                print(f"🔍 DEBUG: Unrecognized filename pattern: {filename}")
                 return []
             
             # Configuration mapping for anatomical axes
@@ -89,11 +95,38 @@ class ComparisonAnalyzer:
                             # Apply configuration mapping
                             mapped_config = config_mapping.get(config_name, config_name)
                             
-                            # Extract feature dimension
+                            # Extract feature dimension with debug
                             if 'data_info' in result:
                                 feature_dim = result['data_info']['train_val_shape'][1]
                             else:
                                 feature_dim = None
+                            
+                            # 🔍 DEBUG: Log the key information
+                            print(f"🔍 DEBUG: {model}/{mapped_config}/{classifier} → pca_mode='{pca_mode}', feature_dim={feature_dim}")
+                            
+                            # Create unique key to detect duplicates
+                            unique_key = (model, mapped_config, pca_mode, classifier)
+                            
+                            if unique_key in seen_combinations:
+                                print(f"⚠️  POOLING DOUBLON DÉTECTÉ: {unique_key}")
+                                continue  # Skip this duplicate
+                            
+                            seen_combinations.add(unique_key)
+                            
+                            # Verify PCA consistency with CORRECTED logic
+                            if feature_dim is not None:
+                                if pca_mode == 'none':
+                                    # Sans PCA, on s'attend à des dimensions élevées (>500D pour pooling)
+                                    if feature_dim < 300:
+                                        print(f"⚠️  POOLING INCOHÉRENCE: Pas de PCA mais seulement {feature_dim}D features pour {model}/{mapped_config}")
+                                else:
+                                    # Avec PCA, on s'attend à des dimensions réduites
+                                    if pca_mode == '32' and feature_dim != 32:
+                                        print(f"⚠️  POOLING INCOHÉRENCE: PCA_32 mais {feature_dim}D features (attendu: 32D) pour {model}/{mapped_config}")
+                                    elif pca_mode == '256' and feature_dim != 256:
+                                        print(f"⚠️  POOLING INCOHÉRENCE: PCA_256 mais {feature_dim}D features (attendu: 256D) pour {model}/{mapped_config}")
+                                    elif pca_mode == '95' and feature_dim > 500:
+                                        print(f"⚠️  POOLING INCOHÉRENCE: PCA_95% mais {feature_dim}D features (trop élevé) pour {model}/{mapped_config}")
                             
                             # Extract best parameters
                             best_params = str(result.get('best_params', {}))
@@ -120,37 +153,42 @@ class ComparisonAnalyzer:
                                 'overfitting_gap': cv_metrics.get('overfitting_gap', None),
                                 'feature_dim': feature_dim,
                                 'convergence_ok': convergence_ok,
-                                'cv_stability': cv_metrics.get('cv_stability', None)
+                                'cv_stability': cv_metrics.get('cv_stability', None),
+                                'strategy': 'pooling'
                             }
                             
                             results.append(parsed_result)
             
+            print(f"✅ POOLING: Parsed {len(results)} unique results from {filepath.name} (pca_mode='{pca_mode}')")
             return results
             
         except Exception as e:
-            print(f"Error parsing {filepath}: {e}")
-            return []
+            print(f"❌ POOLING: Error parsing {filepath}: {e}")
+            return []    
     
     def collect_all_results(self) -> pd.DataFrame:
         """
         Collect all classification results from consolidated JSON files.
-        
+
         Parses consolidated classification_results*.json files at the root
         of features_base_path directory.
-        
+
         Returns:
             pd.DataFrame: Complete dataset with all experimental results
         """
         all_results = []
-        
-        # Define consolidated file patterns
+
+        # 🔧 PATTERNS CORRIGÉS : Plus spécifiques pour éviter les doublons
         file_patterns = [
-            ('classification_results_*.json', 'none'),
+            # ✅ Pattern spécifique pour les fichiers SANS PCA uniquement
+            ('classification_results_dinov2_*.json', 'none'),
+            
+            # ✅ Patterns spécifiques pour chaque type de PCA
             ('classification_results_pca_32_*.json', '32'),
             ('classification_results_pca_95_*.json', '95'),
             ('classification_results_pca_256_*.json', '256')
         ]
-        
+
         # Process consolidated files
         for pattern, pca_mode in file_patterns:
             files = list(self.features_base_path.glob(pattern))
@@ -159,9 +197,9 @@ class ComparisonAnalyzer:
                 results = self._parse_consolidated_file(filepath, pca_mode)
                 all_results.extend(results)
                 print(f"Parsed {len(results)} results from {filepath.name}")
-        
+
         df = pd.DataFrame(all_results)
-        
+
         if not df.empty:
             print(f"Collected {len(df)} experimental results")
             print(f"Models: {df['model'].nunique()}")
@@ -171,7 +209,7 @@ class ComparisonAnalyzer:
             print(f"Unique classifiers: {df['classifier'].unique().tolist()}")
         else:
             print("No results collected - check file paths and structure")
-        
+
         return df
     
     def filter_logistic_only(self, df: pd.DataFrame) -> pd.DataFrame:
