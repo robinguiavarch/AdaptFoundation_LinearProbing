@@ -1,0 +1,41 @@
+# PCA 99% Reduction Configuration for SAM-Med3D
+# =============================================
+
+# SAM-Med3D Model to Process
+models:
+  - sam_med3d_turbo
+
+# All SAM-Med3D Aggregation Methods
+configurations:
+  - avg_pool
+  - max_pool
+  - sum_pool
+  - flatten
+
+# PCA 99% Variance Mode Only
+pca_modes:
+  - mode: "variance"
+    variance_threshold: 0.99
+    description: "PCA 99% variance (high-precision dimensionality)"
+
+# Data Configuration
+data:
+  features_base_path: "feature_extracted_sam3d"
+  
+# Processing Configuration
+processing:
+  sequential_models: true
+  sequential_configs: true
+  skip_existing: false
+  detailed_logging: true
+  
+# Validation
+validation:
+  check_feature_files: true
+  validate_dimensions: true
+  save_metadata: true
+  
+# Output Configuration
+output:
+  save_individual: true
+  save_summary: true

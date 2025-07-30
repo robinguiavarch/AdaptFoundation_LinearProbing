@@ -1,0 +1,122 @@
+# Classification Configuration for AdaptFoundation Project - SAM-MED3D STRATEGY
+# Native 3D Approach: sam_med3d_turbo with PCA 99% variance explained
+# ================================================================================
+
+# SAM-Med3D Model to Evaluate (Native 3D Strategy)
+models:
+  - sam_med3d_turbo    # SAM-Med3D with 4 spatial aggregation methods
+
+# SAM-Med3D Aggregation Configurations to Test
+configurations:
+  - avg_pool     # 384D → PCA 99% (compact representation with 99% variance)
+  - max_pool     # 384D → PCA 99% (salient features with 99% variance)
+  - sum_pool     # 384D → PCA 99% (total activation with 99% variance)
+  - flatten      # 196608D → PCA 99% (ALL spatial information with 99% variance)
+
+# Classifiers to Evaluate (Optimized - removed SVM due to poor performance)
+classifiers:
+  - logistic             # Primary focus (best for neuroimaging)
+  - knn                  # Comparison baseline
+
+# PCA Dimensionality Reduction Modes - FOCUS ON 99% VARIANCE
+pca_modes:
+  - 99                   # PCA 99% variance explained (NEW TARGET)
+
+# Execution Configuration
+execution:
+  parallel_models: false          # Single model processing
+  parallel_configs: false         # Sequential for stability
+  focus_mode: false               # Run all combinations for 99%
+  
+  # Priority combinations for testing (if needed)
+  focus_combinations:
+    model: "sam_med3d_turbo"       # Only SAM-Med3D model
+    config: "avg_pool"             # Start with most reliable method
+    classifier: "logistic"
+    pca_mode: "99"                 # 99% variance target
+
+# Output Configuration (SAM-Med3D Path)
+output:
+  base_path: "feature_extracted_sam3d"
+  save_consolidated: true         # Save consolidated results
+  save_individual: true          # Save per-config results
+  
+# Validation and Quality Control
+validation:
+  check_pca_availability: true    # Verify PCA files exist before running
+  check_feature_files: true      # Verify feature files exist
+  skip_existing: false           # Re-run even if results exist
+  
+# Classifier Parameters (Optimized for SAM-Med3D Features)
+classifier_params:
+  logistic:
+    max_iter: 20000              # High for potential high-dimensional PCA 99%
+    solver: 'saga'               # Best for elasticnet penalty
+    penalty: 'elasticnet'        # L1 + L2 regularization
+    n_jobs: -1                   # Use all available cores for parallel processing
+    random_state: 42
+  
+  knn:
+    n_jobs: -1                   # Use all available cores
+    n_neighbors: [1, 3, 5, 7, 9, 11, 13, 15]
+    leaf_size: [1, 5, 10, 20, 30]
+    weights: ['uniform', 'distance']
+    metric: ['minkowski', 'manhattan', 'cosine']
+
+# Reporting
+reporting:
+  verbose: true                   # Detailed progress output
+  save_timing: true              # Track execution times
+  save_diagnostics: true        # Include overfitting/convergence diagnostics
+
+# Expected Dimensions for SAM-Med3D with PCA 99% (Documentation)
+expected_dimensions_pca_99:
+  sam_med3d_turbo:
+    avg_pool: "~200-350D"        # From 384D to 99% variance
+    max_pool: "~200-350D"        # From 384D to 99% variance  
+    sum_pool: "~200-350D"        # From 384D to 99% variance
+    flatten: "~1000-5000D"       # From 196608D to 99% variance
+
+# PCA 99% Classification Requirements
+classification_requirements_pca_99:
+  avg_pool:
+    pca_mandatory: true
+    reason: "Using PCA 99% variance for optimal dimensionality"
+    expected_dimensions: "~200-350D depending on data variance structure"
+    
+  max_pool:
+    pca_mandatory: true
+    reason: "Using PCA 99% variance for optimal dimensionality"  
+    expected_dimensions: "~200-350D depending on data variance structure"
+    
+  sum_pool:
+    pca_mandatory: true
+    reason: "Using PCA 99% variance for optimal dimensionality"
+    expected_dimensions: "~200-350D depending on data variance structure"
+    
+  flatten:
+    pca_mandatory: true
+    reason: "Using PCA 99% variance to reduce from 196608D"
+    expected_dimensions: "~1000-5000D depending on spatial complexity"
+
+# Processing Plan Summary for PCA 99%
+processing_summary:
+  total_combinations: 8           # 1 model × 4 configs × 2 classifiers × 1 PCA mode (99%)
+  estimated_time: "30-60 minutes" # Fast: single PCA mode, no SVM
+  purpose: "Evaluate SAM-Med3D with 99% variance PCA across all aggregation methods"
+  output_file: "classification_results_pca_99_sam_med3d_turbo.json"
+  
+# Advanced Configuration (for SAM-Med3D optimization)
+advanced:
+  memory_optimization: true       # Enable memory optimizations
+  batch_processing: false         # Not needed for single model
+  checkpoint_frequency: 4         # Save progress every 4 tasks (8 total)
+  
+# Notes for SAM-Med3D Classification with PCA 99%
+notes:
+  strategy: "PCA 99% variance preservation across all 4 SAM-Med3D aggregation methods"
+  dimensionality_adaptive: "Adaptive dimensionality based on actual variance in each aggregation method"
+  comparison_ready: "Results directly comparable with other PCA modes (32, 95, 256)"
+  variance_optimization: "99% ensures near-complete information preservation with significant compression"
+  expected_performance: "Should provide optimal balance between information retention and computational efficiency"
+  memory_efficiency: "Maintains memory efficiency while preserving 99% of feature variance"
