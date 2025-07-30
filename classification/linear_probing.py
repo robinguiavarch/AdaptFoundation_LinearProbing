@@ -153,7 +153,7 @@ class LinearProber:
             solver=solver,
             penalty=penalty,
             max_iter=max_iter,
-            n_jobs=n_jobs,  # ✅ AJOUT DU PARAMÈTRE n_jobs
+            n_jobs=-1, 
             random_state=random_state
         )
         

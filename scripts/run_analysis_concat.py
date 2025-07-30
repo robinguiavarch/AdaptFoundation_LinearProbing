@@ -38,7 +38,7 @@ def main():
         "--output-dir",
         type=str,
         default="analysis_results_concat",
-        help="Directory to save analysis results"
+        help="Directory to save concatenation analysis results"
     )
     
     args = parser.parse_args()
@@ -46,89 +46,104 @@ def main():
     # Validate features path
     features_path = Path(args.features_path)
     if not features_path.exists():
-        print(f"Features directory does not exist: {features_path}")
+        print(f"Concatenation features directory does not exist: {features_path}")
         sys.exit(1)
     
     # Create output directory
     output_dir = Path(args.output_dir)
     output_dir.mkdir(exist_ok=True)
     
-    print("AdaptFoundation Phase 11 - Concatenation Strategy Analysis")
+    print("AdaptFoundation Phase 7 - Concatenation Strategy Analysis")
     print(f"Features path: {features_path}")
     print(f"Output directory: {output_dir}")
     
     # Initialize concatenation analyzer
     analyzer = ComparisonAnalyzerConcat(str(features_path))
     
-    # Run complete analysis
+    # Run complete concatenation analysis
     print("\nExecuting concatenation analysis workflow...")
-    df_all, df_logistic, df_top10, figures = analyzer.run_analysis()
+    df_all, df_logistic, df_top10_test, df_top10_cv, figures = analyzer.run_analysis()
     
     # Save DataFrames
     if not df_all.empty:
-        output_file = output_dir / "analysis_results_concat_all.csv"
+        output_file = output_dir / "analysis_results_all.csv"
         df_all.to_csv(output_file, index=False)
         print(f"Saved complete concatenation results: {output_file}")
     
     if not df_logistic.empty:
-        output_file = output_dir / "analysis_results_concat_logistic.csv" 
+        output_file = output_dir / "analysis_results_logistic.csv" 
         df_logistic.to_csv(output_file, index=False)
         print(f"Saved logistic concatenation results: {output_file}")
     
-    if not df_top10.empty:
-        output_file = output_dir / "analysis_results_concat_top10.csv"
-        df_top10.to_csv(output_file, index=False)
-        print(f"Saved top 10 concatenation results: {output_file}")
+    if not df_top10_test.empty:
+        output_file = output_dir / "analysis_results_top10_test.csv"
+        df_top10_test.to_csv(output_file, index=False)
+        print(f"Saved top 10 test concatenation results: {output_file}")
     
-    # Save figures
-    heatmap_titles = ["all_classifiers_concat", "logistic_only_concat", "top10_configs_concat"]
+    if not df_top10_cv.empty:
+        output_file = output_dir / "analysis_results_top10_cv.csv"
+        df_top10_cv.to_csv(output_file, index=False)
+        print(f"Saved top 10 CV concatenation results: {output_file}")
+    
+    # Save figures with concatenation naming
+    figure_names = [
+        "simple_concat_grid",           # 2x2 simple grid heatmap (KNN + Logistic)
+        "top10_concat_table_test",      # Top 10 configurations table (Test ROC-AUC)
+        "top10_concat_table_cv"         # Top 10 configurations table (CV ROC-AUC)
+    ]
     
     for i, fig in enumerate(figures):
-        if i < len(heatmap_titles):
-            filename = f"heatmap_{heatmap_titles[i]}.png"
+        if i < len(figure_names):
+            filename = f"{figure_names[i]}.png"
             output_file = output_dir / filename
             fig.savefig(output_file, dpi=300, bbox_inches='tight')
-            print(f"Saved concatenation heatmap: {output_file}")
+            print(f"Saved concatenation visualization: {output_file}")
     
-    # Display top result for concatenation
-    if not df_top10.empty:
-        best_result = df_top10.iloc[0]
-        print(f"\nTop performing CONCATENATION configuration:")
-        print(f"Model: {best_result['model']}")
-        print(f"Configuration: {best_result['config']}")
-        print(f"PCA Mode: {best_result['pca_mode']}")
-        print(f"Test ROC-AUC: {best_result['test_roc_auc']:.4f}")
-        print(f"CV ROC-AUC: {best_result['cv_roc_auc']:.4f}")
-        print(f"Overfitting Gap: {best_result['overfitting_gap']:.4f}")
-        
-        # Display feature dimensions for concatenation
-        if 'feature_dim' in best_result and pd.notna(best_result['feature_dim']):
-            print(f"Feature Dimension: {int(best_result['feature_dim'])}D (CONCATENATION)")
-    
-    print(f"\nConcatenation analysis completed successfully!")
-    print(f"Results saved in: {output_dir}")
-    
-    # Additional concatenation-specific insights
+    # Display summary statistics
     if not df_all.empty:
-        print(f"\n=== CONCATENATION STRATEGY INSIGHTS ===")
-        print(f"Total concatenation experiments: {len(df_all)}")
-        print(f"Models tested: {df_all['model'].nunique()} ({', '.join(df_all['model'].unique())})")
-        print(f"Concatenation configs: {df_all['config'].nunique()} ({', '.join(df_all['config'].unique())})")
-        print(f"PCA modes: {df_all['pca_mode'].nunique()} ({', '.join(df_all['pca_mode'].unique())})")
+        print(f"\nConcatenation Analysis Summary:")
+        print(f"Total experimental results: {len(df_all)}")
+        print(f"Foundation models tested: {df_all['model'].nunique()}")
+        print(f"Concatenation configurations tested: {df_all['config'].nunique()}")
+        print(f"PCA modes tested: {df_all['pca_mode'].nunique()}")
+        print(f"Classifiers tested: {df_all['classifier'].nunique()}")
+        print(f"Unique concatenation classifiers: {df_all['classifier'].unique().tolist()}")
         
-        # Dimension analysis for concatenation
+        # Display feature dimension statistics for concatenation
         if 'feature_dim' in df_all.columns:
             valid_dims = df_all['feature_dim'].dropna()
             if not valid_dims.empty:
-                print(f"Feature dimension range: {int(valid_dims.min())}D - {int(valid_dims.max())}D")
-                print(f"Median feature dimension: {int(valid_dims.median())}D")
-        
-        # Best performance by configuration type
-        if not df_logistic.empty:
-            config_performance = df_logistic.groupby('config')['test_roc_auc'].agg(['mean', 'max', 'count']).round(4)
-            print(f"\nConcatenation Performance by Configuration:")
-            for config, stats in config_performance.iterrows():
-                print(f"  {config}: Mean={stats['mean']:.4f}, Best={stats['max']:.4f}, N={int(stats['count'])}")
+                print(f"Concatenation feature dimensions: {int(valid_dims.min())}D - {int(valid_dims.max())}D")
+    
+    # Display top results for both metrics
+    if not df_top10_test.empty:
+        best_result_test = df_top10_test.iloc[0]
+        print(f"\nTop performing concatenation configuration (Test ROC-AUC):")
+        print(f"Model: {best_result_test['model']}")
+        print(f"Configuration: {best_result_test['config']}")
+        print(f"PCA Mode: {best_result_test['pca_mode']}")
+        print(f"Test ROC-AUC: {best_result_test['test_roc_auc']:.4f}")
+        print(f"CV ROC-AUC: {best_result_test['cv_roc_auc']:.4f}")
+        print(f"Overfitting Gap: {best_result_test['overfitting_gap']:.4f}")
+        if 'feature_dim' in best_result_test and pd.notna(best_result_test['feature_dim']):
+            print(f"Feature Dimensions: {int(best_result_test['feature_dim'])}D")
+    
+    if not df_top10_cv.empty:
+        best_result_cv = df_top10_cv.iloc[0]
+        print(f"\nTop performing concatenation configuration (CV ROC-AUC):")
+        print(f"Model: {best_result_cv['model']}")
+        print(f"Configuration: {best_result_cv['config']}")
+        print(f"PCA Mode: {best_result_cv['pca_mode']}")
+        print(f"Test ROC-AUC: {best_result_cv['test_roc_auc']:.4f}")
+        print(f"CV ROC-AUC: {best_result_cv['cv_roc_auc']:.4f}")
+        print(f"Overfitting Gap: {best_result_cv['overfitting_gap']:.4f}")
+        if 'feature_dim' in best_result_cv and pd.notna(best_result_cv['feature_dim']):
+            print(f"Feature Dimensions: {int(best_result_cv['feature_dim'])}D")
+    
+    print(f"\nConcatenation strategy analysis completed successfully!")
+    print(f"Simple grid visualization saved as: simple_concat_grid.png")
+    print(f"Top 10 tables saved as: top10_concat_table_test.png & top10_concat_table_cv.png")
+    print(f"Results saved in: {output_dir}")
 
 
 if __name__ == "__main__":

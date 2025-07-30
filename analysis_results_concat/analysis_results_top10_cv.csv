@@ -1,0 +1,11 @@
+model,config,pca_mode,classifier,best_params,test_roc_auc,cv_roc_auc,overfitting_gap,feature_dim,convergence_ok,cv_stability,strategy
+dinov2_vitb14,multi_axes,none,logistic,"{'C': 0.1, 'l1_ratio': 0.2}",0.5339859199531438,0.615093683108079,0.384906316891921,69120,True,0.04547386629934426,concatenation
+dinov2_vitb14,axis_Y,none,logistic,"{'C': 0.1, 'l1_ratio': 0.1}",0.5199835048831835,0.614350161089002,0.385649838910998,29184,True,0.04103665261952647,concatenation
+dinov2_vitg14,multi_axes,none,logistic,"{'C': 0.001, 'l1_ratio': 0.0}",0.6121407490131358,0.6140962798643572,0.3859037201356428,358,True,0.035592806111852816,concatenation
+dinov2_vitg14,multi_axes,95,logistic,"{'C': 0.001, 'l1_ratio': 0.0}",0.6121407490131358,0.6140962798643572,0.3859037201356428,358,True,0.035592806111852816,concatenation
+dinov2_vits14,axis_Y,none,logistic,"{'C': 0.1, 'l1_ratio': 0.9}",0.5067261850311718,0.6102561831440311,0.3365747206537123,14592,True,0.03788659348912156,concatenation
+dinov2_vitg14,multi_axes,none,logistic,"{'C': 0.001, 'l1_ratio': 0.0}",0.6137437205322398,0.6089271175166617,0.39092186043740773,256,True,0.02842483515023295,concatenation
+dinov2_vitg14,multi_axes,256,logistic,"{'C': 0.001, 'l1_ratio': 0.0}",0.6137437205322398,0.6089271175166617,0.39092186043740773,256,True,0.02842483515023295,concatenation
+dinov2_vits14,axis_X,none,logistic,"{'C': 0.001, 'l1_ratio': 0.0}",0.613379665450794,0.6037381955013823,0.3818659257026489,308,True,0.041941752677784466,concatenation
+dinov2_vits14,axis_X,95,logistic,"{'C': 0.001, 'l1_ratio': 0.0}",0.613379665450794,0.6037381955013823,0.3818659257026489,308,True,0.041941752677784466,concatenation
+dinov2_vitb14,multi_axes,none,logistic,"{'C': 0.001, 'l1_ratio': 0.0}",0.5634117615669892,0.6035107554193838,0.3964892445806162,378,True,0.039555023952421664,concatenation

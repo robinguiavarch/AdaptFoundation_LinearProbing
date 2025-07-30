@@ -24,7 +24,7 @@ pca_modes:
   - 32                   # PCA 32D (Champollion V1 comparison)
   - 95                   # PCA 95% variance (adaptive)
   - 256                  # PCA 256D (Champollion V0 comparison)
-  - none                 # Original features (EXTREME: up to 138K dimensions!)
+  - "none"                 # Original features (EXTREME: up to 138K dimensions!)
 
 # Execution Configuration
 execution:

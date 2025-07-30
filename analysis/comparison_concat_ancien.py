@@ -12,7 +12,6 @@ from pathlib import Path
 from typing import Dict, List, Tuple
 import matplotlib.pyplot as plt
 import seaborn as sns
-from matplotlib.colors import LinearSegmentedColormap
 
 
 class ComparisonAnalyzerConcat:
@@ -59,38 +58,26 @@ class ComparisonAnalyzerConcat:
             results = []
             
             # Extract model name from filename
+            # e.g., "classification_results_pca_32_dinov2_vitb14.json"
             filename = filepath.name
             if filename.startswith('classification_results_pca_'):
+                # With PCA: classification_results_pca_32_dinov2_vitb14.json
                 parts = filename.replace('.json', '').split('_')
-                model = '_'.join(parts[4:])
+                model = '_'.join(parts[4:])  # dinov2_vitb14
             elif filename.startswith('classification_results_'):
+                # Without PCA: classification_results_dinov2_vitb14.json
                 parts = filename.replace('.json', '').split('_')
-                model = '_'.join(parts[2:])
+                model = '_'.join(parts[2:])  # dinov2_vitb14
             else:
                 return []
-            
-            # Configuration mapping for concatenation anatomical axes
-            config_mapping = {
-                'single_axis_sagittal_concatenation': 'axis_X',
-                'single_axis_coronal_concatenation': 'axis_Y', 
-                'single_axis_axial_concatenation': 'axis_Z',
-                'multi_axes_concatenation': 'multi_axes'
-            }
             
             # Navigate JSON structure: {config: {classifier: results}}
             for config_name, config_data in data.items():
                 if isinstance(config_data, dict):
                     for classifier, result in config_data.items():
-                        # Skip SVM classifier
-                        if classifier == 'svm_linear':
-                            continue
-                            
                         if isinstance(result, dict) and 'test_metrics' in result:
                             
-                            # Apply configuration mapping
-                            mapped_config = config_mapping.get(config_name, config_name)
-                            
-                            # Extract feature dimension
+                            # Extract feature dimension (VERY HIGH for concatenation)
                             if 'data_info' in result:
                                 feature_dim = result['data_info']['train_val_shape'][1]
                             else:
@@ -103,16 +90,20 @@ class ComparisonAnalyzerConcat:
                             diagnostics = result.get('diagnostics', {})
                             cv_metrics = result.get('cv_metrics', {})
                             
-                            # Handle convergence_warning
+                            # Handle convergence_warning (especially important for high-dimensional concatenation)
                             convergence_warning = diagnostics.get('convergence_warning', False)
                             if isinstance(convergence_warning, str):
                                 convergence_ok = convergence_warning.lower() != 'true'
                             else:
                                 convergence_ok = not convergence_warning
                             
+                            # Extract timing information (important for concatenation performance analysis)
+                            timing = result.get('timing', {})
+                            total_time = timing.get('total_time', None)
+                            
                             parsed_result = {
                                 'model': model,
-                                'config': mapped_config,
+                                'config': config_name,
                                 'pca_mode': pca_mode,
                                 'classifier': classifier,
                                 'best_params': best_params,
@@ -122,7 +113,8 @@ class ComparisonAnalyzerConcat:
                                 'feature_dim': feature_dim,
                                 'convergence_ok': convergence_ok,
                                 'cv_stability': cv_metrics.get('cv_stability', None),
-                                'strategy': 'concatenation'
+                                'total_time': total_time,
+                                'strategy': 'concatenation'  # Mark as concatenation strategy
                             }
                             
                             results.append(parsed_result)
@@ -214,45 +206,20 @@ class ComparisonAnalyzerConcat:
         
         top10_df = df.nlargest(10, 'test_roc_auc').copy()
         
-        print(f"Selected top {len(top10_df)} concatenation configurations (Test ROC-AUC)")
+        print(f"Selected top {len(top10_df)} concatenation configurations")
         if not top10_df.empty:
-            print(f"Best concatenation Test performance: {top10_df.iloc[0]['test_roc_auc']:.4f}")
+            print(f"Best concatenation performance: {top10_df.iloc[0]['test_roc_auc']:.4f}")
             if len(top10_df) >= 10:
                 print(f"Worst in top 10: {top10_df.iloc[-1]['test_roc_auc']:.4f}")
         
         return top10_df
     
-    def get_top_10_configurations_cv(self, df: pd.DataFrame) -> pd.DataFrame:
-        """
-        Get top 10 concatenation configurations ranked by CV ROC-AUC performance.
-        
-        Args:
-            df (pd.DataFrame): Input concatenation dataset
-            
-        Returns:
-            pd.DataFrame: Top 10 configurations sorted by cv_roc_auc descending
-        """
-        if df.empty:
-            print("Warning: Empty dataframe provided to get_top_10_configurations_cv")
-            return df
-        
-        top10_cv_df = df.nlargest(10, 'cv_roc_auc').copy()
-        
-        print(f"Selected top {len(top10_cv_df)} concatenation configurations (CV ROC-AUC)")
-        if not top10_cv_df.empty:
-            print(f"Best concatenation CV performance: {top10_cv_df.iloc[0]['cv_roc_auc']:.4f}")
-            if len(top10_cv_df) >= 10:
-                print(f"Worst in top 10: {top10_cv_df.iloc[-1]['cv_roc_auc']:.4f}")
-        
-        return top10_cv_df
-    
-    def create_top10_table(self, df: pd.DataFrame, metric_type: str = "test") -> plt.Figure:
+    def create_top10_table(self, df: pd.DataFrame) -> plt.Figure:
         """
         Create styled table for top 10 concatenation configurations ranking.
         
         Args:
             df (pd.DataFrame): Top 10 concatenation dataset to visualize
-            metric_type (str): Type of metric used for ranking ("test" or "cv")
             
         Returns:
             plt.Figure: Matplotlib figure containing the styled table
@@ -261,7 +228,7 @@ class ComparisonAnalyzerConcat:
             print("Warning: Empty dataframe for top 10 concatenation table")
             fig, ax = plt.subplots(figsize=(12, 6))
             ax.text(0.5, 0.5, 'No Concatenation Data Available', ha='center', va='center', fontsize=16)
-            ax.set_title(f'Top 10 Concatenation Configurations - Logistic Regression ({metric_type.upper()})')
+            ax.set_title('Top 10 Concatenation Configurations - Logistic Regression')
             ax.axis('off')
             return fig
         
@@ -272,7 +239,13 @@ class ComparisonAnalyzerConcat:
         table_data = []
         for i, row in df_table.iterrows():
             model_clean = row['model'].replace('dinov2_', '').upper()
-            config_clean = row['config'].replace('_', ' ').replace('multi axes', 'Multi-Axes').replace('axis', 'Axis')
+            
+            # Clean configuration names for concatenation
+            config_clean = row['config'].replace('_concatenation', ' (CONCAT)')
+            config_clean = config_clean.replace('multi_axes', 'Multi-Axes')
+            config_clean = config_clean.replace('single_axis_', 'Single-Axis ')
+            config_clean = config_clean.replace('_', ' ').title()
+            
             pca_clean = 'None' if row['pca_mode'] == 'none' else f"{row['pca_mode']}D"
             gap = f"{row['overfitting_gap']:.3f}" if pd.notna(row['overfitting_gap']) else 'N/A'
             cv_roc_auc = f"{row['cv_roc_auc']:.4f}"
@@ -313,7 +286,7 @@ class ComparisonAnalyzerConcat:
         table.set_fontsize(10)
         table.scale(1, 2.5)
         
-        # Header styling with concatenation theme
+        # Header styling
         for i in range(len(columns)):
             cell = table[(0, i)]
             cell.set_facecolor('#D32F2F')  # Red theme for concatenation
@@ -330,199 +303,120 @@ class ComparisonAnalyzerConcat:
                 cell.set_height(0.08)
                 
                 # Special styling for rank column
-                if j == 0:
-                    if i == 1:
-                        cell.set_facecolor('#FFD700')
+                if j == 0:  # Rank column
+                    if i == 1:  # First place
+                        cell.set_facecolor('#FFD700')  # Gold
                         cell.set_text_props(weight='bold', color='#8B4513')
-                    elif i == 2:
-                        cell.set_facecolor('#C0C0C0')
+                    elif i == 2:  # Second place
+                        cell.set_facecolor('#C0C0C0')  # Silver
                         cell.set_text_props(weight='bold', color='#2F4F4F')
-                    elif i == 3:
-                        cell.set_facecolor('#CD7F32')
+                    elif i == 3:  # Third place
+                        cell.set_facecolor('#CD7F32')  # Bronze
                         cell.set_text_props(weight='bold', color='white')
                     else:
                         cell.set_text_props(weight='bold')
                 
-                # Special styling for concatenation-specific columns
+                # Special styling for feature dimension (NEW for concatenation)
                 elif j == 4:  # Feature Dimension column
                     cell.set_text_props(weight='bold', color='#E65100')  # Orange for high dimensions
+                # Overfitting Gap column
                 elif j == 5:  # Overfitting Gap column
                     cell.set_text_props(weight='bold', color='#D32F2F')
+                # CV ROC-AUC column
                 elif j == 6:  # CV ROC-AUC column
-                    if metric_type == "cv":
-                        cell.set_text_props(weight='bold', color='#1B5E20')  # Green for primary metric
-                    else:
-                        cell.set_text_props(weight='bold', color='#1565C0')  # Blue for secondary
+                    cell.set_text_props(weight='bold', color='#1565C0')
+                # Test ROC-AUC column (final column)
                 elif j == 7:  # Test ROC-AUC column
-                    if metric_type == "test":
-                        cell.set_text_props(weight='bold', color='#1B5E20')  # Green for primary metric
-                    else:
-                        cell.set_text_props(weight='bold', color='#1565C0')  # Blue for secondary
+                    cell.set_text_props(weight='bold', color='#1B5E20')
                 
                 # Border styling
                 cell.set_edgecolor('#CCCCCC')
                 cell.set_linewidth(0.5)
         
         # Title with concatenation emphasis
-        metric_display = "Test ROC-AUC" if metric_type == "test" else "CV ROC-AUC"
-        ax.set_title(f'Top 10 CONCATENATION Configurations - Logistic Regression\nRanked by {metric_display} Performance', 
+        ax.set_title('Top 10 CONCATENATION Configurations - Logistic Regression\nRanked by Test ROC-AUC Performance', 
                     fontsize=16, fontweight='bold', pad=30)
         
         # Add concatenation-specific note
-        fig.text(0.5, 0.02, f'CONCATENATION strategy preserves complete spatial information - Ranked by {metric_display}', 
+        fig.text(0.5, 0.02, 'CONCATENATION strategy preserves complete spatial information (high-dimensional features)', 
                 ha='center', va='bottom', fontsize=10, style='italic', color='#D32F2F')
         
         plt.tight_layout()
         return fig
     
-    def create_simple_grid_heatmap(self, df: pd.DataFrame) -> plt.Figure:
+    def create_performance_heatmap(self, df: pd.DataFrame, title: str) -> plt.Figure:
         """
-        Create a 2x2 grid heatmap with simple column labels for concatenation strategy.
+        Create performance heatmap for concatenation models vs configurations.
         
         Args:
             df (pd.DataFrame): Concatenation dataset to visualize
+            title (str): Title for the heatmap
             
         Returns:
-            plt.Figure: Matplotlib figure containing the grid
+            plt.Figure: Matplotlib figure containing the heatmap
         """
         if df.empty:
-            print("Warning: Empty dataframe for concatenation grid heatmap")
-            fig, ax = plt.subplots(figsize=(12, 8))
+            print(f"Warning: Empty dataframe for concatenation heatmap '{title}'")
+            fig, ax = plt.subplots(figsize=(8, 6))
             ax.text(0.5, 0.5, 'No Concatenation Data Available', ha='center', va='center', fontsize=16)
+            ax.set_title(title)
             return fig
         
-        # Filter out SVM and get classifiers
-        df_filtered = df[df['classifier'] != 'svm_linear'].copy()
-        classifiers = sorted(df_filtered['classifier'].unique())
+        # Create combined configuration + PCA labels for concatenation
+        df = df.copy()
+        df['config_pca'] = df['config'] + '_' + df['pca_mode']
         
-        # Create the 2x2 subplot grid
-        fig, axes = plt.subplots(2, 2, figsize=(32, 16))
+        # Clean up concatenation configuration names for display
+        df['config_pca_clean'] = df['config_pca'].replace({
+            'multi_axes_concatenation_': 'Multi-Axes-CONCAT_',
+            'single_axis_axial_concatenation_': 'Axial-CONCAT_',
+            'single_axis_coronal_concatenation_': 'Coronal-CONCAT_',
+            'single_axis_sagittal_concatenation_': 'Sagittal-CONCAT_'
+        }, regex=True)
         
-        # Define concatenation configuration order for better readability
-        config_order = ['multi_axes', 'axis_Z', 'axis_Y', 'axis_X']
+        # Create pivot table for heatmap
+        heatmap_data = df.pivot_table(
+            index='config_pca_clean',
+            columns='model', 
+            values='test_roc_auc',
+            aggfunc='mean'
+        )
         
-        # Create nested column structure: model_pca
-        df_filtered['model_pca'] = df_filtered['model'] + '_' + df_filtered['pca_mode']
+        # Create figure
+        fig, ax = plt.subplots(figsize=(14, 10))
         
-        # Define model and PCA order for consistent display
-        models = ['dinov2_vits14', 'dinov2_vitb14', 'dinov2_vitl14', 'dinov2_vitg14']
-        pca_modes = ['none', '256', '32', '95']
+        # Create heatmap with red-orange theme for concatenation
+        sns.heatmap(
+            heatmap_data,
+            annot=True,
+            fmt='.4f',
+            cmap='Reds',  # Red theme for concatenation
+            cbar_kws={'label': 'Test ROC-AUC (Concatenation)'},
+            ax=ax
+        )
         
-        # Create ordered column list for nested structure
-        ordered_columns = []
-        for model in models:
-            for pca in pca_modes:
-                ordered_columns.append(f"{model}_{pca}")
+        ax.set_title(f'CONCATENATION Performance Heatmap: {title}', fontsize=14, fontweight='bold')
+        ax.set_xlabel('Foundation Models', fontsize=12)
+        ax.set_ylabel('Concatenation Configuration + PCA Mode', fontsize=12)
         
-        # Create human-readable column labels with color coding for concatenation
-        column_labels = []
-        model_colors = {
-            'dinov2_vits14': '#1f4e79',  # Bleu foncé
-            'dinov2_vitb14': '#2d5016',  # Vert foncé
-            'dinov2_vitl14': '#4a148c',  # Violet foncé
-            'dinov2_vitg14': '#5d4037'   # Marron foncé
-        }
+        # Rotate x-axis labels for better readability
+        ax.tick_params(axis='x', rotation=45)
+        ax.tick_params(axis='y', rotation=0)
         
-        for model in models:
-            model_clean = model.replace('dinov2_', '').upper()
-            for pca in pca_modes:
-                pca_clean = 'None' if pca == 'none' else f'PCA{pca}'
-                column_labels.append(f"{model_clean}_{pca_clean}")
-        
-        # Find global min/max for consistent colorbar scale
-        all_test_values = df_filtered['test_roc_auc'].dropna()
-        all_cv_values = df_filtered['cv_roc_auc'].dropna()
-        global_min = min(all_test_values.min(), all_cv_values.min())
-        global_max = max(all_test_values.max(), all_cv_values.max())
-        
-        # Create custom colormap (Rouge → Orange → Jaune → Vert pâle → Vert foncé)
-        colors = ['#d32f2f', '#ff6f00', '#ffd600', '#8bc34a', '#2e7d32']
-        n_bins = 100
-        cmap = LinearSegmentedColormap.from_list('custom', colors, N=n_bins)
-        
-        # Store heatmaps for shared colorbar
-        heatmaps = []
-        
-        # Process each subplot (2x2 grid)
-        for row in range(2):
-            for col, classifier in enumerate(classifiers):
-                ax = axes[row, col]
-                classifier_df = df_filtered[df_filtered['classifier'] == classifier].copy()
-                
-                # Choose metric based on row
-                metric = 'test_roc_auc' if row == 0 else 'cv_roc_auc'
-                
-                # Create pivot table
-                pivot_data = classifier_df.pivot_table(
-                    index='config',
-                    columns='model_pca', 
-                    values=metric,
-                    aggfunc='first'
-                )
-                
-                # Reorder rows and columns
-                pivot_data = pivot_data.reindex(index=config_order)
-                pivot_data = pivot_data.reindex(columns=ordered_columns)
-                
-                # Create heatmap
-                heatmap = sns.heatmap(
-                    pivot_data,
-                    annot=True,
-                    fmt='.4f',
-                    cmap=cmap,
-                    vmin=global_min,
-                    vmax=global_max,
-                    cbar=False,
-                    ax=ax,
-                    annot_kws={'size': 8}
-                )
-                heatmaps.append(heatmap)
-                
-                # Set title with concatenation indication
-                metric_label = 'Test ROC-AUC' if row == 0 else 'CV ROC-AUC'
-                ax.set_title(f'{classifier.upper()}\n{metric_label}', fontsize=14, fontweight='bold')
-                
-                # Configure axes
-                ax.set_xlabel('')
-                if col == 0:
-                    ax.set_ylabel('Configuration', fontsize=12)
-                else:
-                    ax.set_ylabel('')
-                ax.tick_params(axis='y', rotation=0)
-                
-                # Set custom x-tick labels with color coding
-                ax.set_xticks(range(len(column_labels)))
-                ax.set_xticklabels(column_labels, rotation=45, ha='right', fontsize=9)
-                
-                # Color-code the x-tick labels by model
-                for i, label in enumerate(ax.get_xticklabels()):
-                    model_idx = i // len(pca_modes)  # Which model group (0,1,2,3)
-                    model_key = models[model_idx]
-                    color = model_colors[model_key]
-                    label.set_color(color)
-                    label.set_fontweight('bold')
-        
-        # Adjust layout for better spacing
-        plt.subplots_adjust(left=0.06, right=0.85, top=0.92, bottom=0.15, hspace=0.3, wspace=0.15)
-        
-        # Add single colorbar on the right side
-        cbar_ax = fig.add_axes([0.87, 0.15, 0.02, 0.7])
-        cbar = plt.colorbar(heatmaps[0].collections[0], cax=cbar_ax)
-        cbar.set_label('ROC-AUC Score', fontsize=14, fontweight='bold')
+        plt.tight_layout()
         
         return fig
     
-    def run_analysis(self) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, List[plt.Figure]]:
+    def run_analysis(self) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, List[plt.Figure]]:
         """
         Execute complete concatenation analysis workflow.
         
         Returns:
             Tuple containing:
-                - Complete DataFrame (KNN + Logistic only, concatenation)
+                - Complete DataFrame (all classifiers, concatenation)
                 - Logistic-only DataFrame (concatenation)
-                - Top-10 DataFrame (Test ROC-AUC, concatenation)
-                - Top-10 DataFrame (CV ROC-AUC, concatenation)
-                - List of matplotlib figures
+                - Top-10 DataFrame (concatenation)
+                - List of matplotlib figures (concatenation heatmaps)
         """
         # Collect all concatenation results
         df_all = self.collect_all_results()
@@ -530,24 +424,22 @@ class ComparisonAnalyzerConcat:
         # Filter to logistic regression only
         df_logistic = self.filter_logistic_only(df_all)
         
-        # Get top 10 concatenation configurations for both metrics
-        df_top10_test = self.get_top_10_configurations(df_logistic)
-        df_top10_cv = self.get_top_10_configurations_cv(df_logistic)
+        # Get top 10 concatenation configurations
+        df_top10 = self.get_top_10_configurations(df_logistic)
         
         # Create concatenation-specific visualizations
         figures = []
         
         if not df_all.empty:
-            # Create simple grid heatmap (2x2, no SVM, concatenation)
-            fig_grid = self.create_simple_grid_heatmap(df_all)
-            figures.append(fig_grid)
+            fig_a = self.create_performance_heatmap(df_all, "All Classifiers (Concatenation)")
+            figures.append(fig_a)
         
-        if not df_top10_test.empty:
-            fig_top10_test = self.create_top10_table(df_top10_test, metric_type="test")
-            figures.append(fig_top10_test)
+        if not df_logistic.empty:
+            fig_b = self.create_performance_heatmap(df_logistic, "Logistic Regression Only (Concatenation)")
+            figures.append(fig_b)
+            
+        if not df_top10.empty:
+            fig_c = self.create_top10_table(df_top10)
+            figures.append(fig_c)
         
-        if not df_top10_cv.empty:
-            fig_top10_cv = self.create_top10_table(df_top10_cv, metric_type="cv")
-            figures.append(fig_top10_cv)
-        
-        return df_all, df_logistic, df_top10_test, df_top10_cv, figures
+        return df_all, df_logistic, df_top10, figures
