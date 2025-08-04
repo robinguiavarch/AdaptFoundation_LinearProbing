@@ -1,0 +1,131 @@
+# Classification Configuration for Feature Maps & 2.5D Variants (CORRECTED)
+# ===========================================================================
+
+# Experiment Information
+experiment:
+  name: "Feature Maps & 2.5D Classification"
+  model: "DINOv2 Large (vitl14)"
+  task: "HCP OFC 4-class classification"
+  total_combinations: 10              # CORRIGÉ: 10 au lieu de 12 (PCA 95% failed pour concat)
+  note: "PCA 95% failed for concat variants, only pooling variants have all 3 PCA modes"
+  
+# Expected Variants (automatically detected)
+variants:
+  - concat_patches_without_25d        # Concatenation + standard slicing (PCA_32, PCA_256 only)
+  - concat_patches_with_25d           # Concatenation + 2.5D slicing (PCA_32, PCA_256 only)
+  - pooling_spatial_without_25d       # Spatial pooling + standard slicing (all PCA modes)
+  - pooling_spatial_with_25d          # Spatial pooling + 2.5D slicing (all PCA modes)
+
+# Expected PCA Modes (automatically detected - robust to missing modes)
+pca_modes:
+  - "32"                             # PCA 32D (available for all variants)
+  - "256"                            # PCA 256D (available for all variants)
+  - "95"                             # PCA 95% variance (only available for pooling variants)
+
+# Available Combinations (for reference)
+available_combinations:
+  concat_patches_without_25d: ["32", "256"]         # 2 combinations
+  concat_patches_with_25d: ["32", "256"]            # 2 combinations  
+  pooling_spatial_without_25d: ["32", "256", "95"]  # 3 combinations
+  pooling_spatial_with_25d: ["32", "256", "95"]     # 3 combinations
+  # Total: 2 + 2 + 3 + 3 = 10 combinations
+
+# Classifier Configuration (Logistic Regression Only)
+classifier_config:
+  logistic:
+    # Model parameters
+    solver: "saga"                    # Supports elasticnet penalty
+    penalty: "elasticnet"             # L1 + L2 regularization
+    max_iter: 20000                   # High limit for convergence
+    
+    # Hyperparameter grid for GridSearchCV
+    l1_ratio: [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]  # L1/L2 mix
+    C: [0.001, 0.01, 0.1, 1.0, 10.0, 100.0, 1000.0]                     # Regularization strength
+
+# Cross-Validation Configuration
+cross_validation:
+  method: "LeaveOneGroupOut"          # Respects pre-stratified splits
+  scoring: "roc_auc_ovr_weighted"     # Multi-class ROC-AUC
+  return_train_score: true            # For overfitting diagnostics
+  
+# Output Configuration
+output:
+  save_individual: true               # Save per-variant results
+  save_consolidated: true             # Save summary results
+  include_timing: true                # Track execution times
+  include_diagnostics: true           # Overfitting/convergence analysis
+
+# Processing Configuration
+processing:
+  random_state: 42                    # For reproducibility
+  n_jobs: -1                         # Use all available cores
+  verbose: true                      # Detailed progress output
+
+# Validation Configuration  
+validation:
+  check_required_files: true         # Verify files exist before running
+  skip_missing_gracefully: true      # AJOUTÉ: Continue even if some PCA modes missing
+  required_files_per_combination:
+    - "train_val_split_0_features.npy"
+    - "train_val_split_0_metadata.csv"
+    - "train_val_split_1_features.npy" 
+    - "train_val_split_1_metadata.csv"
+    - "train_val_split_2_features.npy"
+    - "train_val_split_2_metadata.csv"
+    - "train_val_split_3_features.npy"
+    - "train_val_split_3_metadata.csv"
+    - "train_val_split_4_features.npy"
+    - "train_val_split_4_metadata.csv"
+    - "test_split_features.npy"
+    - "test_split_metadata.csv"
+    - "metadata.json"
+
+# Expected Results Structure
+expected_results:
+  metrics:
+    primary: "roc_auc_weighted"       # Main comparison metric
+    secondary: "accuracy"             # Additional metric
+    
+  diagnostics:
+    overfitting_analysis: true        # Train vs validation gap
+    convergence_check: true           # Check if optimization converged
+    cv_stability: true                # Cross-validation consistency
+    
+  comparisons:
+    feature_maps_vs_cls: "Compare with token CLS baseline"
+    method_25d_impact: "Quantify 2.5D vs standard slicing benefit"
+    aggregation_methods: "Compare concatenation vs spatial pooling"
+    pca_impact: "Analyze dimensionality reduction effects"
+    pca_95_analysis: "Note: PCA 95% only available for pooling methods"
+
+# Performance Expectations
+performance:
+  estimated_runtime: "20-45 minutes"  # AJUSTÉ: For 10 combinations instead of 12
+  memory_usage: "< 10 GB"             # Features already PCA-reduced
+  bottleneck: "GridSearchCV"          # Hyperparameter optimization
+  
+# Success Criteria (UPDATED)
+success_criteria:
+  - "10 available combinations evaluated successfully (not 12)"
+  - "ROC-AUC scores computed for each available combination"
+  - "Graceful handling of missing PCA 95% for concat variants"
+  - "Overfitting diagnostics available"
+  - "Results saved in proper structure"
+  - "Convergence achieved for all evaluated models"
+  - "Baseline comparison possible"
+
+# Notes (UPDATED)
+notes:
+  focus: "Logistic regression only (no KNN/SVM)"
+  innovation: "First systematic evaluation of DINOv2 feature maps for neuroimaging"
+  baseline: "Compare with existing token CLS results"
+  method_validation: "Quantify benefit of spatial feature maps vs global token"
+  pca_limitation: "PCA 95% failed for concat methods due to memory constraints"
+  robust_evaluation: "Pipeline handles missing combinations gracefully"
+  next_steps:
+    - "Analyze results across 10 available combinations"
+    - "Identify optimal strategy (method + PCA mode)"
+    - "Compare concat vs pooling performance"
+    - "Assess 2.5D method impact"
+    - "Compare with Champollion V0/V1 baselines"
+    - "Generate publication-ready figures"

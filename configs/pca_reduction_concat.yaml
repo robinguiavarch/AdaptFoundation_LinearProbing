@@ -26,10 +26,14 @@ pca_modes:
     n_components: 256
     description: "PCA 256D (Champollion V0 comparison)"
     
-  # Variance-based mode
+  # Variance-based modes
   - mode: "variance"
     variance_threshold: 0.95
     description: "PCA 95% variance (adaptive dimensionality)"
+    
+  - mode: "variance"
+    variance_threshold: 0.99
+    description: "PCA 99% variance (high retention)"
 
 # Data Configuration (Concatenation Path)
 data:

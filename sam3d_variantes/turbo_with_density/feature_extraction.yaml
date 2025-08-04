@@ -1,0 +1,87 @@
+# SAM-Med3D Density Feature Extraction Configuration
+# AdaptFoundation Project - Density-based spatial optimization
+# 3 approaches: baseline, masking, linear weighting
+
+# Model configuration
+model:
+  name: "sam_med3d_turbo"
+  type: "vit_b_ori"  # 768D internal, 384 output channels, 8³ grid
+  checkpoint_path: "ckpt/sam_med3d_turbo.pth"
+  
+# Processing configuration  
+processing:
+  input_size: [128, 128, 128]  # Mandatory for SAM-Med3D
+  batch_size: 8               # Optimized for GPU A100
+  device: "auto"              # auto-detect CUDA/CPU
+  
+# Data configuration
+data:
+  dataset_path: "crops/2mm/S.Or."  # Correct path matching existing config
+  output_base_path: "feature_extraction_density"
+
+# Required aggregation configs for SAMMed3DFeatureExtractor compatibility
+aggregation_configs:
+  flatten:
+    description: "Flatten spatial features to 1D vector"
+    output_dim: 196608  # 384 * 8 * 8 * 8
+    pca_required: true
+    preserves_spatial: false  # FIELD NAME AJOUTÉ - flatten ne préserve pas la structure spatiale
+    recommended_pca_dims: [32, 256, "95%"]
+    
+# Density optimization approaches
+# Each approach uses different spatial optimization strategies
+density_approaches:
+  
+  # Approach 1: Baseline - Control without density optimization
+  baseline:
+    description: "Standard flatten aggregation without density optimization"
+    expected_output_dim: 196608  # 384 * 8 * 8 * 8
+    uses_density: false
+    pca_required: true
+    recommended_for: "control comparison, baseline performance"
+    
+  # Approach 2: Masking - Exclude zero-density patches
+  masking:
+    description: "Exclude patches with zero density from aggregation"
+    expected_output_dim: "variable"  # Depends on number of valid patches
+    uses_density: true
+    density_threshold: 0.0
+    pca_required: true
+    recommended_for: "anatomically-focused feature extraction"
+    
+  # Approach 3: Linear Weighting - Density-based patch weighting
+  linear_weighting:
+    description: "Apply linear weighting w=d to patches before aggregation"
+    expected_output_dim: 196608  # Same as baseline but weighted
+    uses_density: true
+    weighting_function: "linear"  # w = d
+    pca_required: true
+    recommended_for: "density-aware spatial information preservation"
+
+# Density configuration
+density:
+  patch_density_file: "density/patch_density_map_8x8x8.npy"
+  patch_grid_size: [8, 8, 8]
+  validation_required: true
+  
+# Default configuration for initial runs
+default_approach: "linear_weighting"  # Most promising for anatomical analysis
+
+# Hardware optimization
+hardware:
+  gpu_memory_gb: 40      # A100 GPU memory
+  cpu_cores: 32
+  max_parallel_workers: 4
+
+# Quality assurance
+validation:
+  check_input_size: true
+  validate_features: true
+  feature_range_check: true
+  validate_density_map: true
+  
+# Compatibility with existing infrastructure  
+compatibility:
+  sam3d_format: true            # Compatible with SAM-Med3D pipeline
+  pca_pipeline: true            # Compatible with existing PCA scripts
+  classification_pipeline: true # Compatible with linear probing scripts

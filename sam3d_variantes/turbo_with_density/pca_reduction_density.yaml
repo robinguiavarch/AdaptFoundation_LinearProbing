@@ -1,0 +1,124 @@
+# PCA Dimensionality Reduction Configuration for SAM-Med3D Density Optimization
+# AdaptFoundation Project - Phase 3: PCA Pipeline for Density Approaches
+# =================================================================================
+
+# SAM-Med3D Density Model to Process
+models:
+  - sam_med3d_turbo_density    # SAM-Med3D with density optimization approaches
+
+# Density Approach Configurations to Apply PCA
+configurations:
+  - flatten_baseline          # 196608D - Standard flatten aggregation (baseline)
+  - flatten_masking          # ~124800D - Patches with density > 0 only (variable dimension)
+  - flatten_linear_weighting  # 196608D - Density-weighted flatten aggregation
+
+# PCA Reduction Modes (Adapted for Density Optimization Strategy)
+pca_modes:
+  # Champollion comparison modes
+  - mode: "fixed"
+    n_components: 32
+    description: "PCA 32D (Champollion V1 comparison baseline)"
+    
+  - mode: "fixed"
+    n_components: 256
+    description: "PCA 256D (Champollion V0 comparison baseline)"
+    
+  # Variance-based modes
+  - mode: "variance"
+    variance_threshold: 0.95
+    description: "PCA 95% variance (adaptive dimensionality preservation)"
+    
+  - mode: "variance"
+    variance_threshold: 0.99
+    description: "PCA 99% variance (high dimensionality preservation)"
+
+# Data Configuration (Density-specific paths)
+data:
+  features_base_path: "feature_extraction_density"  # Different from standard SAM-Med3D
+  
+# Processing Configuration
+processing:
+  sequential_models: true        # Process single density model
+  sequential_configs: true       # Process density approaches sequentially
+  skip_existing: false          # Re-process even if PCA files exist
+  detailed_logging: true        # Detailed progress output for density analysis
+  handle_variable_dimensions: true  # CRITICAL: Support masking approach variable dimensions
+  
+# Validation and Quality Control (Adapted for density pipeline)
+validation:
+  check_feature_files: true     # Verify source feature files exist
+  validate_dimensions: true     # Check expected input/output dimensions
+  save_metadata: true          # Save detailed PCA metadata
+  validate_density_structure: true  # Ensure flatten_{approach} structure
+  
+# Output Configuration
+output:
+  save_individual: true        # Save PCA files in individual config directories
+  save_summary: true          # Save processing summary
+  preserve_approach_structure: true  # Maintain flatten_{approach}/PCA_{mode} structure
+
+# Advanced Configuration (Density Optimization Specific)
+advanced:
+  # Memory optimization (IMPORTANT for high-dimensional density features)
+  batch_processing: true       # Process in batches for memory efficiency
+  cleanup_intermediate: false  # Keep intermediate files for density analysis
+  
+  # Density-aware PCA settings
+  handle_masking_variability: true    # Adapt to masking approach variable dimensions
+  preserve_density_metadata: true     # Keep density approach information
+  
+  # Custom modes for density analysis
+  experimental_modes: []
+  custom_thresholds: []        # e.g., [0.90, 0.99] for density approach analysis
+  custom_components: []        # e.g., [64, 128] for intermediate comparisons
+
+# Expected Input Dimensions Documentation (Density-specific)
+expected_input_dimensions:
+  sam_med3d_turbo_density:
+    flatten_baseline: 196608          # Standard flatten: 384 * 8^3
+    flatten_masking: "variable"       # Depends on valid patches (~325 * 384 = ~124800)
+    flatten_linear_weighting: 196608  # Weighted flatten: 384 * 8^3
+
+# PCA Requirements by Density Approach
+pca_requirements:
+  flatten_baseline:
+    pca_required: true
+    reason: "196608D baseline too high-dimensional for classification"
+    recommended_modes: ["32", "256", "95%"]
+    priority: "MANDATORY - Control comparison"
+    
+  flatten_masking:
+    pca_required: true  
+    reason: "~124800D still too high-dimensional, variable dimension handling needed"
+    recommended_modes: ["32", "256", "95%"]
+    priority: "MANDATORY - Variable dimension handling"
+    special_handling: "Adaptive to actual valid patches count"
+    
+  flatten_linear_weighting:
+    pca_required: true
+    reason: "196608D weighted features too high-dimensional for classification"
+    recommended_modes: ["32", "256", "95%"]
+    priority: "MANDATORY - Density-weighted analysis"
+
+# Density Approach Strategy Notes
+density_strategy:
+  approach_comparison: "All 3 approaches reduced to same target dimensions for fair comparison"
+  baseline_control: "flatten_baseline serves as control for density optimization evaluation"
+  masking_innovation: "flatten_masking tests anatomically-focused feature extraction"
+  weighting_innovation: "flatten_linear_weighting tests density-aware spatial information"
+  target_dimensions: "All approaches → 32D, 256D, 95%, 99% for classification pipeline"
+  
+# Processing Order (Optimized for density analysis)
+processing_order:
+  - flatten_baseline          # Process control first
+  - flatten_linear_weighting  # Process weighted approach second  
+  - flatten_masking          # Process variable dimension approach last
+
+# Notes for Density PCA Strategy
+notes:
+  density_aware: "PCA applied to density-optimized features for fair comparison"
+  variable_handling: "Masking approach requires adaptive PCA due to variable input dimensions"
+  comparison_ready: "All approaches reduced to same target dimensions (32D, 256D, 95%, 99%)"
+  anatomical_preservation: "Density optimization preserved during PCA transformation"
+  memory_efficient: "Batch processing essential for high-dimensional density features"
+  evaluation_ready: "Results directly comparable for density optimization assessment"

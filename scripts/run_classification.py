@@ -475,9 +475,9 @@ def main():
     parser.add_argument(
         "--pca-mode",
         type=int,
-        choices=[32, 95, 256],
+        choices=[32, 256, 95, 99],
         default=95,
-        help="PCA mode: 32, 95, or 256"
+        help="PCA mode: 32, 256, 95, or 99"
     )
     
     args = parser.parse_args()

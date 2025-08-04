@@ -1,0 +1,121 @@
+# Classification Configuration for SAM-Med3D Density Optimization Approaches
+# AdaptFoundation Project - Phase 4: Linear Probing Classification
+# ================================================================================
+
+# SAM-Med3D Density Model to Evaluate
+models:
+  - sam_med3d_turbo_density    # SAM-Med3D with density optimization approaches
+
+# Density Approach Configurations to Evaluate
+configurations:
+  - flatten_baseline          # Control: Standard flatten aggregation (196608D → PCA)
+  - flatten_masking          # Innovation: Patches with density > 0 only (~124800D → PCA)
+  - flatten_linear_weighting  # Innovation: Density-weighted flatten aggregation (196608D → PCA)
+
+# Classifiers to Evaluate (Focused on Logistic Regression)
+classifiers:
+  - logistic             # Primary focus for linear probing evaluation
+
+# PCA Dimensionality Reduction Modes (All approaches require PCA)
+pca_modes:
+  - 32                   # PCA 32D (Champollion V1 comparison)
+  - 256                  # PCA 256D (Champollion V0 comparison)
+  - 95                   # PCA 95% variance (adaptive dimensionality)
+  - 99                   # PCA 99% variance (high dimensionality preservation)
+
+# Execution Configuration
+execution:
+  parallel_models: false          # Single density model processing
+  parallel_configs: false         # Sequential for memory stability
+  focus_mode: false               # Run all 9 combinations
+  
+  # Priority combination for testing
+  focus_combinations:
+    model: "sam_med3d_turbo_density"
+    config: "flatten_baseline"     # Start with control approach
+    classifier: "logistic"
+    pca_mode: "32"
+
+# Output Configuration (Density-specific paths)
+output:
+  base_path: "feature_extraction_density"
+  save_consolidated: true         # Save consolidated results per approach
+  save_individual: true          # Save per-config-PCA results
+  
+# Validation and Quality Control
+validation:
+  check_pca_availability: true    # Verify PCA files exist before running
+  check_feature_files: true      # Verify feature files exist
+  skip_existing: false           # Re-run even if results exist
+  validate_density_structure: true  # Ensure flatten_{approach}/PCA_{mode} structure
+  
+# Classifier Parameters (Optimized for Density Approaches)
+classifier_params:
+  logistic:
+    max_iter: 20000              # High iteration limit for PCA-reduced features
+    solver: 'saga'               # Best for elasticnet penalty
+    penalty: 'elasticnet'        # L1 + L2 regularization
+    n_jobs: -1                   # Use all available cores
+    random_state: 42
+    # GridSearchCV parameter grid
+    C_values: [0.001, 0.01, 0.1, 1.0, 10.0, 100.0, 1000.0]
+    l1_ratio_values: [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+
+# Reporting Configuration
+reporting:
+  verbose: true                   # Detailed progress output
+  save_timing: true              # Track execution times per approach
+  save_diagnostics: true        # Include overfitting/convergence diagnostics
+  compare_approaches: true       # Generate approach comparison analysis
+
+# Expected Processing Plan
+processing_plan:
+  total_combinations: 12          # 1 model × 3 approaches × 1 classifier × 4 PCA modes
+  estimated_time: "40-60 minutes" # Increased due to PCA 99% addition
+  purpose: "Density optimization effectiveness evaluation with high-dimensional preservation"
+  
+# Density Approach Evaluation Strategy
+density_evaluation:
+  baseline_control: "flatten_baseline serves as control for density optimization assessment"
+  masking_hypothesis: "flatten_masking should improve performance by focusing on anatomically relevant patches"
+  weighting_hypothesis: "flatten_linear_weighting should improve performance through density-aware spatial information"
+  comparison_metrics: ["roc_auc_weighted", "overfitting_gap", "cv_stability"]
+  
+# Expected Results Structure
+results_structure:
+  per_approach_files: "feature_extraction_density/sam_med3d_turbo_density/flatten_{approach}/PCA_{mode}/classification_results.json"
+  consolidated_files: "feature_extraction_density/classification_results_density_sam_med3d_turbo_density.json"
+  
+# Advanced Configuration
+advanced:
+  memory_optimization: true       # Enable memory optimizations for PCA-reduced features
+  checkpoint_frequency: 3         # Save progress every 3 tasks (per approach)
+  handle_variable_dimensions: true # Support masking approach variable dimensions
+  
+# Data Requirements Validation
+data_requirements:
+  sam_med3d_turbo_density:
+    flatten_baseline:
+      input_features: "PCA-reduced from 196608D"
+      pca_modes_required: ["PCA_32", "PCA_256", "PCA_95", "PCA_99"]
+      expected_samples: "461 train/val + 116 test"
+      
+    flatten_masking:
+      input_features: "PCA-reduced from ~124800D (variable)"
+      pca_modes_required: ["PCA_32", "PCA_256", "PCA_95", "PCA_99"]
+      expected_samples: "461 train/val + 116 test"
+      special_handling: "Variable input dimension support"
+      
+    flatten_linear_weighting:
+      input_features: "PCA-reduced from 196608D (density-weighted)"
+      pca_modes_required: ["PCA_32", "PCA_256", "PCA_95", "PCA_99"]
+      expected_samples: "461 train/val + 116 test"
+
+# Notes for Density Classification Strategy
+notes:
+  methodology: "Linear probing evaluation of density optimization effectiveness"
+  comparison_focus: "All approaches reduced to same PCA dimensions for fair comparison"
+  hypothesis_testing: "Test whether density optimization improves classification performance"
+  anatomical_relevance: "Density approaches leverage anatomical knowledge from unlabeled data"
+  expected_ranking: "Hypothesized performance: linear_weighting > masking > baseline"
+  statistical_validation: "5-fold CV with pre-stratified splits for robust evaluation"

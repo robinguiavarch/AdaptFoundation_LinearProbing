@@ -1,0 +1,85 @@
+# Configuration for HCP OFC Volume Rendering Tests
+# ================================================
+
+# Dataset Configuration
+dataset:
+  name: "HCP_OFC"
+  data_path: "crops/2mm/S.Or."
+  resolution: "2mm"
+  target_task: "Left_OFC_classification"
+  n_classes: 4
+  output_dir: "renders"
+  max_test_subjects: 3
+
+# Camera Configuration
+camera:
+  positions:
+    - [80, 80, 80]    # Diagonal view
+    - [100, 32, 32]   # Side view X
+    - [32, 100, 32]   # Side view Y  
+    - [32, 32, 100]   # Top view Z
+  target: null        # null = use volume center
+  up_vector: [0, 0, 1]
+
+# Rendering Parameters
+rendering:
+  image_size: [224, 224]
+  alpha: 0.6
+  point_size: 2
+  base_color: "red"
+
+# Test Configurations
+test_configs:
+  # Configuration 1: Scatter with no coloring
+  - name: "scatter_uniform"
+    render_method: "scatter"
+    coloring_method: "none"
+    colormap: "viridis"
+    
+  # Configuration 2: Scatter with X coloring + Viridis
+  - name: "scatter_x_viridis"
+    render_method: "scatter"
+    coloring_method: "X"
+    colormap: "viridis"
+    
+  # Configuration 3: Scatter with Y coloring + Blue
+  - name: "scatter_y_blue"
+    render_method: "scatter"
+    coloring_method: "Y"
+    colormap: "blue"
+    
+  # Configuration 4: Scatter with Z coloring + Viridis
+  - name: "scatter_z_viridis"
+    render_method: "scatter"
+    coloring_method: "Z"
+    colormap: "viridis"
+    
+  # Configuration 5: Scatter with Z_camera + Blue
+  - name: "scatter_zcam_blue"
+    render_method: "scatter"
+    coloring_method: "Z_camera"
+    colormap: "blue"
+    
+  # Configuration 6: Surface with X coloring + Viridis
+  - name: "surface_x_viridis"
+    render_method: "surface"
+    coloring_method: "X"
+    colormap: "viridis"
+    
+  # Configuration 7: Voxels with Z_camera + Blue
+  - name: "voxels_zcam_blue"
+    render_method: "voxels"
+    coloring_method: "Z_camera"
+    colormap: "blue"
+    
+  # Configuration 8: Wireframe with no coloring
+  - name: "wireframe_uniform"
+    render_method: "wireframe"
+    coloring_method: "none"
+    colormap: "viridis"
+
+# Analysis Configuration
+analysis:
+  enable_volume_stats: true
+  enable_rendering_comparison: true
+  save_individual_renders: true

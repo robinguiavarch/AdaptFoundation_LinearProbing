@@ -19,12 +19,12 @@ classifiers:
   - knn                  # Comparison baseline
   - svm_linear           # Comparison baseline
 
-# PCA Dimensionality Reduction Modes (including extreme original dimensions)
+# PCA Dimensionality Reduction Modes (PCA 99% replaces "none" for Giant model)
 pca_modes:
   - 32                   # PCA 32D (Champollion V1 comparison)
-  - 95                   # PCA 95% variance (adaptive)
   - 256                  # PCA 256D (Champollion V0 comparison)
-  - "none"                 # Original features (EXTREME: up to 138K dimensions!)
+  - 95                   # PCA 95% variance (adaptive)
+  - 99                   # PCA 99% variance (HIGHEST retention, replaces "none")
 
 # Execution Configuration
 execution:
@@ -54,7 +54,7 @@ validation:
 # Classifier Parameters (Optimized for VERY High-Dimensional Concatenation Features)
 classifier_params:
   logistic:
-    max_iter: 100000             # Very high for 138K dimensional concatenation features
+    max_iter: 100000             # Very high for Giant model concatenation features
     solver: 'saga'               # Best for elasticnet penalty
     penalty: 'elasticnet'        # L1 + L2 regularization crucial for vitg14
     random_state: 42
@@ -67,7 +67,7 @@ classifier_params:
     metric: ['minkowski', 'manhattan', 'cosine']
   
   svm_linear:
-    max_iter: 1000              # Very high for giant model concatenation features
+    max_iter: 10000              # Very high for giant model concatenation features
     random_state: 42
     C_values: [0.001, 0.01, 0.1, 1.0, 10.0, 100.0, 1000.0]
     class_weight: [null, 'balanced']
@@ -89,16 +89,17 @@ expected_dimensions:
 
 # Processing Plan Summary
 processing_summary:
-  total_combinations: 48          # 1 model × 4 configs × 3 classifiers × 4 PCA modes (including none)
-  estimated_time: "6-12 hours"    # Conservative estimate including extreme dimensions
-  purpose: "Test concatenation strategy with largest foundation model + extreme dimensions"
+  total_combinations: 48          # 1 model × 4 configs × 3 classifiers × 4 PCA modes
+  estimated_time: "6-12 hours"    # Conservative estimate for Giant model
+  purpose: "Test concatenation strategy with Giant model + PCA 99% instead of raw dimensions"
   
 # Notes for Giant Model Testing
 notes:
-  strategy: "Evaluate concatenation performance with highest-dimensional model"
-  memory_requirements: "EXTREMELY HIGH - vitg14 concatenation reaches 138K dimensions WITHOUT PCA"
-  pca_necessity: "Original dimensions (138K) will test hardware limits - may cause OOM"
-  performance_expectations: "Longest computation time due to extreme dimensionality, some may fail"
-  cluster_recommendations: "Use highest-memory nodes with extended time allocation"
-  comparison_value: "Critical for understanding scaling behavior + hardware limits of concatenation"
-  risk_warning: "Mode 'none' may cause Out-of-Memory errors - that's part of the experiment"
+  strategy: "Evaluate concatenation performance with Giant model using PCA 99% instead of raw features"
+  memory_requirements: "VERY HIGH - vitg14 concatenation reaches 138K dimensions, PCA 99% essential"
+  pca_necessity: "PCA 99% replaces 'none' mode to avoid OOM crashes while preserving maximum information"
+  performance_expectations: "Longest computation time, but stable execution with PCA 99%"
+  cluster_recommendations: "Use high-memory nodes with extended time allocation"
+  comparison_value: "Critical for understanding Giant model performance + hardware limits of concatenation"
+  pca_99_rationale: "99% variance retention provides near-complete information while avoiding dimensionality curse"
+  improvement: "PCA 99% allows Giant model evaluation that would otherwise fail with raw 138K dimensions"

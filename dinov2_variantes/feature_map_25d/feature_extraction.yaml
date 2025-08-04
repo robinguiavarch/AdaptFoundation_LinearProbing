@@ -1,0 +1,176 @@
+# Feature Extraction Configuration for Feature Maps and 2.5D Variants with Classical PCA
+# ====================================================================================
+
+# Dataset Configuration
+dataset:
+  name: "HCP_OFC"
+  data_path: "crops/2mm/S.Or."
+  resolution: "2mm"
+  target_task: "Left_OFC_classification"
+  n_classes: 4
+
+# Foundation Model Configuration (DINOv2 Large - Memory Optimized)
+model:
+  name: "dinov2_vitl14"
+  feature_dimension: 1024
+  input_size: 224
+  batch_size: 8
+  device: "auto"
+
+# PCA Configuration (Applied Immediately with Classical PCA)
+pca_modes:
+  - mode: "fixed"
+    n_components: 32
+    description: "PCA 32D (Champollion V1 comparison)"
+    
+  - mode: "fixed"
+    n_components: 256
+    description: "PCA 256D (Champollion V0 comparison)"
+    
+  - mode: "variance"
+    variance_threshold: 0.95
+    description: "PCA 95% variance (adaptive dimensionality)"
+
+# Output Configuration
+output:
+  base_path: "feature_extraction_variantes"
+  structure: "{variant_name}/PCA_{pca_mode}/"
+  file_format:
+    features: "npy"
+    metadata: "csv"
+    config_info: "json"
+
+# Feature Maps and 2.5D Configurations
+configurations:
+  - name: "concat_patches_without_25d"
+    description: "Concatenation patches with standard slicing"
+    aggregation_method: "concat"
+    use_25d_method: false
+
+  - name: "concat_patches_with_25d"
+    description: "Concatenation patches with 2.5D slicing"
+    aggregation_method: "concat"
+    use_25d_method: true
+
+  - name: "pooling_spatial_without_25d"
+    description: "Spatial pooling with standard slicing"
+    aggregation_method: "pooling"
+    use_25d_method: false
+
+  - name: "pooling_spatial_with_25d"
+    description: "Spatial pooling with 2.5D slicing"
+    aggregation_method: "pooling"
+    use_25d_method: true
+
+# Processing Configuration (Memory Optimized)
+processing:
+  classical_pca: true           # Use Classical PCA for stability and performance
+  save_raw_features: false     # Never save raw high-dimensional features
+  progress_tracking: true
+  validation_enabled: true
+  memory_optimization: true
+  
+  # Memory optimization parameters
+  subject_batch_size: 1         # Process 1 subject at a time for transform
+  training_sample_size: 500     # Use all subjects from 5 folds (~461 total)
+  cleanup_aggressive: true      # Aggressive memory cleanup after each subject
+
+# Slicing Configuration
+slicing:
+  target_size: 224
+  normalization: "imagenet"
+  interpolation: "nearest"
+  adaptive_grouping_25d:
+    sagittal_groups: 10    # X axis: [0,1,2], [3,4,5], ..., [27,28,29] → 10 groups
+    coronal_groups: 12     # Y axis: [1,2,3], [4,5,6], ..., [34,35,36] → 12 groups 
+    axial_groups: 7        # Z axis: [1,2,3], [4,5,6], ..., [19,20,21] → 7 groups
+
+# Validation Configuration
+validation:
+  check_file_integrity: true
+  verify_dimensions: true
+  validate_feature_maps: true
+  required_files:
+    - "metadata.json"
+    - "test_split_features.npy"
+    - "test_split_metadata.csv"
+    - "train_val_split_0_features.npy"
+    - "train_val_split_0_metadata.csv"
+    - "train_val_split_1_features.npy"
+    - "train_val_split_1_metadata.csv"
+    - "train_val_split_2_features.npy"
+    - "train_val_split_2_metadata.csv"
+    - "train_val_split_3_features.npy"
+    - "train_val_split_3_metadata.csv"
+    - "train_val_split_4_features.npy"
+    - "train_val_split_4_metadata.csv"
+
+# Expected Raw Dimensions Before PCA (Documentation) - 16x16 PATCHES
+expected_raw_dimensions:
+  dinov2_vitl14:
+    feature_maps_per_slice: 256          # 16×16 patches
+    feature_dim_per_patch: 1024          # Large model dimension
+    
+    standard_slicing:
+      sagittal_slices: 30              # X axis
+      coronal_slices: 38               # Y axis  
+      axial_slices: 22                 # Z axis
+      total_slices: 90                 # 30+38+22
+    
+    adaptive_25d_slicing:
+      sagittal_groups: 10              # 30/3 groups
+      coronal_groups: 12               # (38-2)/3 = 12 groups
+      axial_groups: 7                  # (22-1)/3 = 7 groups
+      total_groups: 29                 # 10+12+7
+
+    final_raw_dimensions:
+      concat_without_25d: 23592960     # 90 × 256 × 1024 (~23.6M)
+      concat_with_25d: 7602176         # 29 × 256 × 1024 (~7.6M)
+      pooling_without_25d: 262144      # 256 × 1024 (~262K)
+      pooling_with_25d: 262144         # 256 × 1024 (~262K)
+
+# Final Output Dimensions After Classical PCA
+expected_final_dimensions:
+  after_pca_32: 32                     # Fixed 32 components
+  after_pca_256: 256                   # Fixed 256 components  
+  after_pca_95: "Variable"             # Depends on variance threshold (estimated 500-2000)
+
+# Memory Usage Estimates (DINOv2 Large + 461 subjects)
+memory_estimates:
+  max_subject_memory:
+    concat_without_25d: "95 MB"        # Single subject in memory
+    concat_with_25d: "30 MB"           # Single subject in memory
+    pooling_without_25d: "1 MB"        # Single subject in memory
+    pooling_with_25d: "1 MB"           # Single subject in memory
+  
+  batch_memory_pca:
+    concat_without_25d_461_subjects: "43.5 GB"    # 461 × 95MB for PCA fitting
+    concat_with_25d_461_subjects: "14.0 GB"       # 461 × 30MB for PCA fitting
+    pooling_461_subjects: "0.46 GB"               # 461 × 1MB for PCA fitting
+  
+  total_storage_after_pca:
+    all_variants_all_modes: "20-50 MB" # All 12 configurations combined
+
+# Notes
+notes:
+  feature_maps: "Uses 16×16 spatial patches instead of CLS token"
+  method_25d: "Groups 3 consecutive slices in RGB channels"
+  classical_pca: "Classical PCA fitted on ALL 461 subjects from 5 train/val folds"
+  memory_optimization: "Loads all 5 folds for PCA fitting, then processes splits individually"
+  total_configurations: 12             # 4 variants × 3 PCA modes
+  key_innovation: "Memory-optimized pipeline for high-dimensional features with Classical PCA"
+  compatibility: "Fully compatible with Linear Probing - standard PCA mathematics"
+  pca_fitting_strategy: "Fit once on all train/val data, apply to all splits consistently"
+  next_steps:
+    - "Run linear probing classification"
+    - "Compare with token CLS baseline"
+    - "Analyze feature maps vs CLS performance"
+
+# Performance Expectations
+performance:
+  estimated_runtime: "2-4 hours for all 12 configurations"
+  peak_memory_usage: "< 45 GB RAM (concat_without_25d during PCA fitting)"
+  storage_requirements: "< 100 MB total"
+  bottleneck: "Feature extraction (DINOv2 forward passes)"
+  pca_advantage: "Classical PCA faster and more stable than incremental"
+  pca_subjects: "All 461 subjects from 5 train/val folds used for PCA fitting"

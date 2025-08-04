@@ -38,13 +38,47 @@ class ComparisonAnalyzerConcat:
         if not self.features_base_path.exists():
             raise FileNotFoundError(f"Concatenation features directory not found: {self.features_base_path}")
     
+    def _detect_json_files(self) -> List[Tuple[Path, str]]:
+        """
+        Automatically detect all classification JSON files and extract PCA mode.
+        
+        Returns:
+            List[Tuple[Path, str]]: List of (filepath, pca_mode) tuples
+        """
+        json_files = []
+        
+        # Find all classification_results*.json files
+        all_files = list(self.features_base_path.glob('classification_results*.json'))
+        
+        for filepath in all_files:
+            filename = filepath.name
+            
+            # Extract PCA mode from filename
+            if filename.startswith('classification_results_pca_'):
+                # Format: classification_results_pca_32_dinov2_vits14.json
+                parts = filename.replace('.json', '').split('_')
+                if len(parts) >= 4:
+                    pca_mode = parts[3]  # Extract PCA mode (32, 95, 256, 99)
+                    json_files.append((filepath, pca_mode))
+                    print(f"🔍 Detected PCA file: {filename} → mode '{pca_mode}'")
+            elif filename.startswith('classification_results_dinov2_'):
+                # Format: classification_results_dinov2_vits14.json (no PCA)
+                pca_mode = 'none'
+                json_files.append((filepath, pca_mode))
+                print(f"🔍 Detected no-PCA file: {filename} → mode '{pca_mode}'")
+            else:
+                print(f"⚠️  Unrecognized filename pattern: {filename}")
+        
+        print(f"✅ Detected {len(json_files)} JSON files total")
+        return json_files
+    
     def _parse_consolidated_file(self, filepath: Path, pca_mode: str) -> List[Dict]:
         """
         Parse a consolidated classification_results.json file for concatenation results with duplicate detection and debug.
         
         Args:
             filepath (Path): Path to consolidated JSON file
-            pca_mode (str): PCA mode (none, 32, 256, 95)
+            pca_mode (str): PCA mode (none, 32, 256, 95, 99)
             
         Returns:
             List[Dict]: List of result dictionaries for each config/classifier
@@ -114,7 +148,7 @@ class ComparisonAnalyzerConcat:
                             
                             seen_combinations.add(unique_key)
                             
-                            # Verify PCA consistency with CORRECTED logic for CONCATENATION
+                            # Verify PCA consistency - UPDATED for 5 modes including 99%
                             if feature_dim is not None:
                                 if pca_mode == 'none':
                                     # Sans PCA pour concatenation, on s'attend à des dimensions très élevées (>1000D)
@@ -128,6 +162,8 @@ class ComparisonAnalyzerConcat:
                                         print(f"⚠️  CONCAT INCOHÉRENCE: PCA_256 mais {feature_dim}D features (attendu: 256D) pour {model}/{mapped_config}")
                                     elif pca_mode == '95' and feature_dim > 50000:
                                         print(f"⚠️  CONCAT INCOHÉRENCE: PCA_95% mais {feature_dim}D features (trop élevé) pour {model}/{mapped_config}")
+                                    elif pca_mode == '99' and feature_dim > 50000:  # NEW: PCA 99% validation
+                                        print(f"⚠️  CONCAT INCOHÉRENCE: PCA_99% mais {feature_dim}D features (trop élevé) pour {model}/{mapped_config}")
                             
                             # Extract best parameters
                             best_params = str(result.get('best_params', {}))
@@ -171,33 +207,22 @@ class ComparisonAnalyzerConcat:
         """
         Collect all concatenation classification results from consolidated JSON files.
         
-        Parses consolidated classification_results*.json files at the root
-        of features_base_path directory.
+        Automatically detects and parses all classification_results*.json files
+        in the features_base_path directory.
         
         Returns:
             pd.DataFrame: Complete dataset with all concatenation experimental results
         """
         all_results = []
         
-        # 🔧 PATTERNS CORRIGÉS : Plus spécifiques pour éviter les doublons (même correction que pooling)
-        file_patterns = [
-            # ✅ Pattern spécifique pour les fichiers SANS PCA uniquement
-            ('classification_results_dinov2_*.json', 'none'),
-            
-            # ✅ Patterns spécifiques pour chaque type de PCA
-            ('classification_results_pca_32_*.json', '32'),
-            ('classification_results_pca_95_*.json', '95'),
-            ('classification_results_pca_256_*.json', '256')
-        ]
+        # 🔧 NEW: Dynamic detection of JSON files instead of fixed patterns
+        json_files = self._detect_json_files()
         
-        # Process consolidated files
-        for pattern, pca_mode in file_patterns:
-            files = list(self.features_base_path.glob(pattern))
-            
-            for filepath in files:
-                results = self._parse_consolidated_file(filepath, pca_mode)
-                all_results.extend(results)
-                print(f"Parsed {len(results)} concatenation results from {filepath.name}")
+        # Process each detected file
+        for filepath, pca_mode in json_files:
+            results = self._parse_consolidated_file(filepath, pca_mode)
+            all_results.extend(results)
+            print(f"Parsed {len(results)} concatenation results from {filepath.name}")
         
         df = pd.DataFrame(all_results)
         
@@ -208,6 +233,7 @@ class ComparisonAnalyzerConcat:
             print(f"PCA modes: {df['pca_mode'].nunique()}")
             print(f"Classifiers: {df['classifier'].nunique()}")
             print(f"Unique concatenation configs: {df['config'].unique().tolist()}")
+            print(f"Unique PCA modes: {df['pca_mode'].unique().tolist()}")  # NEW: Show detected PCA modes
             
             # Display feature dimension statistics for concatenation
             if 'feature_dim' in df.columns:
@@ -310,7 +336,15 @@ class ComparisonAnalyzerConcat:
         for i, row in df_table.iterrows():
             model_clean = row['model'].replace('dinov2_', '').upper()
             config_clean = row['config'].replace('_', ' ').replace('multi axes', 'Multi-Axes').replace('axis', 'Axis')
-            pca_clean = 'None' if row['pca_mode'] == 'none' else f"{row['pca_mode']}D"
+            
+            # 🔧 NEW: Handle PCA 99% in display formatting
+            if row['pca_mode'] == 'none':
+                pca_clean = 'None'
+            elif row['pca_mode'] in ['95', '99']:
+                pca_clean = f"{row['pca_mode']}%"
+            else:
+                pca_clean = f"{row['pca_mode']}D"
+            
             gap = f"{row['overfitting_gap']:.3f}" if pd.notna(row['overfitting_gap']) else 'N/A'
             cv_roc_auc = f"{row['cv_roc_auc']:.4f}"
             test_roc_auc = f"{row['test_roc_auc']:.4f}"
@@ -415,6 +449,7 @@ class ComparisonAnalyzerConcat:
     def create_simple_grid_heatmap(self, df: pd.DataFrame) -> plt.Figure:
         """
         Create a 2x2 grid heatmap with simple column labels for concatenation strategy.
+        UPDATED: Now supports 5 PCA modes (none, 32, 256, 95, 99) dynamically.
         
         Args:
             df (pd.DataFrame): Concatenation dataset to visualize
@@ -438,12 +473,22 @@ class ComparisonAnalyzerConcat:
         # Define concatenation configuration order for better readability
         config_order = ['multi_axes', 'axis_Z', 'axis_Y', 'axis_X']
         
+        # 🔧 NEW: Dynamic PCA mode detection and ordering
+        detected_pca_modes = sorted(df_filtered['pca_mode'].unique())
+        print(f"🔍 Detected PCA modes for heatmap: {detected_pca_modes}")
+        
         # Create nested column structure: model_pca
         df_filtered['model_pca'] = df_filtered['model'] + '_' + df_filtered['pca_mode']
         
-        # Define model and PCA order for consistent display
+        # Define model order for consistent display
         models = ['dinov2_vits14', 'dinov2_vitb14', 'dinov2_vitl14', 'dinov2_vitg14']
-        pca_modes = ['none', '256', '32', '95']
+        
+        # 🔧 NEW: Adaptive PCA ordering - supports both 4 and 5 mode configurations
+        # Standard order: none, 256, 32, 95, 99
+        pca_priority = {'none': 0, '256': 1, '32': 2, '95': 3, '99': 4}
+        pca_modes = sorted(detected_pca_modes, key=lambda x: pca_priority.get(x, 999))
+        
+        print(f"🔍 PCA modes order for display: {pca_modes}")
         
         # Create ordered column list for nested structure
         ordered_columns = []
@@ -451,7 +496,7 @@ class ComparisonAnalyzerConcat:
             for pca in pca_modes:
                 ordered_columns.append(f"{model}_{pca}")
         
-        # Create human-readable column labels with color coding for concatenation
+        # 🔧 NEW: Adaptive column labels - handles 99% display
         column_labels = []
         model_colors = {
             'dinov2_vits14': '#1f4e79',  # Bleu foncé
@@ -463,7 +508,12 @@ class ComparisonAnalyzerConcat:
         for model in models:
             model_clean = model.replace('dinov2_', '').upper()
             for pca in pca_modes:
-                pca_clean = 'None' if pca == 'none' else f'PCA{pca}'
+                if pca == 'none':
+                    pca_clean = 'None'
+                elif pca == '99':
+                    pca_clean = 'PCA99%'  # Special label for 99%
+                else:
+                    pca_clean = f'PCA{pca}'
                 column_labels.append(f"{model_clean}_{pca_clean}")
         
         # Find global min/max for consistent colorbar scale

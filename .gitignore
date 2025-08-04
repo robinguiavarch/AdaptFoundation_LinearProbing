@@ -38,6 +38,8 @@ feature_extracted/
 feature_extracted_concat/
 feature_extracted_sam3d/
 ckpt/
+feature_extraction_variantes/
+feature_extraction_density/
 
 # Backup environment files
 backup_env_*/
