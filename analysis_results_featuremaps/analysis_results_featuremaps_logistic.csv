@@ -1,0 +1,11 @@
+model,variant,config,aggregation_method,use_25d,pca_mode,classifier,best_params,test_roc_auc,cv_roc_auc,overfitting_gap,feature_dim,convergence_ok,cv_stability,strategy
+dinov2_vitl14,concat_patches_without_25d,concat_standard,concat,False,32,logistic,"{'C': 0.001, 'l1_ratio': 0.3}",0.6195597638894712,0.5637145072246836,0.15975681766033856,32,False,0.024213739391274018,feature_maps_25d
+dinov2_vitl14,concat_patches_without_25d,concat_standard,concat,False,256,logistic,"{'C': 0.001, 'l1_ratio': 1.0}",0.6611670741809376,0.5801462744394554,0.40131470478070774,256,False,0.0252188843383446,feature_maps_25d
+dinov2_vitl14,concat_patches_with_25d,concat_25d,concat,True,32,logistic,"{'C': 0.001, 'l1_ratio': 1.0}",0.586915163024766,0.5389697549211737,0.15849111769512614,32,False,0.02919387985653819,feature_maps_25d
+dinov2_vitl14,concat_patches_with_25d,concat_25d,concat,True,256,logistic,"{'C': 0.01, 'l1_ratio': 1.0}",0.617135987004011,0.5772681368494388,0.4227318631505612,256,False,0.05724896790320733,feature_maps_25d
+dinov2_vitl14,pooling_spatial_without_25d,pooling_standard,pooling,False,32,logistic,"{'C': 0.1, 'l1_ratio': 0.4}",0.5636950622007169,0.5636440407773554,0.17206931727143315,32,False,0.024337541141629053,feature_maps_25d
+dinov2_vitl14,pooling_spatial_without_25d,pooling_standard,pooling,False,256,logistic,"{'C': 0.001, 'l1_ratio': 0.0}",0.6581541922196854,0.6002599785601996,0.37288244218403843,256,False,0.012602469075374373,feature_maps_25d
+dinov2_vitl14,pooling_spatial_without_25d,pooling_standard,pooling,False,95,logistic,"{'C': 0.001, 'l1_ratio': 0.0}",0.6554098035609697,0.5921338364575292,0.3902959712180516,304,False,0.010825581511910466,feature_maps_25d
+dinov2_vitl14,pooling_spatial_with_25d,pooling_25d,pooling,True,32,logistic,"{'C': 0.01, 'l1_ratio': 0.3}",0.5666589165901188,0.5657655235276039,0.15008302186359612,32,False,0.027347851623200605,feature_maps_25d
+dinov2_vitl14,pooling_spatial_with_25d,pooling_25d,pooling,True,256,logistic,"{'C': 0.01, 'l1_ratio': 0.2}",0.5792224021044634,0.5811021790120515,0.41135804757816885,256,False,0.04069779525442797,feature_maps_25d
+dinov2_vitl14,pooling_spatial_with_25d,pooling_25d,pooling,True,95,logistic,"{'C': 0.01, 'l1_ratio': 0.5}",0.5785683345530176,0.5769764203130878,0.3339518230856704,361,False,0.02335776361006373,feature_maps_25d

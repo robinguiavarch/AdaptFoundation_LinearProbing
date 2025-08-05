@@ -1,0 +1,237 @@
+# Feature Extraction Configuration for DINOv2 Density-Guided CLS Token Variants
+# =============================================================================
+
+# Dataset Configuration
+dataset:
+  name: "HCP_OFC"
+  data_path: "crops/2mm/S.Or."
+  resolution: "2mm"
+  target_task: "Left_OFC_classification"
+  n_classes: 4
+
+# Foundation Model Configuration (DINOv2 Giant)
+model:
+  name: "dinov2_vitg14"
+  feature_dimension: 1536
+  input_size: 224
+  batch_size: 8
+  device: "auto"
+
+# PCA Configuration (Applied by Pipeline 2)
+pca_modes:
+  - mode: "fixed"
+    n_components: 32
+    description: "PCA 32D (Champollion V1 comparison)"
+    
+  - mode: "fixed"
+    n_components: 256
+    description: "PCA 256D (Champollion V0 comparison)"
+    
+  - mode: "variance"
+    variance_threshold: 0.99
+    description: "PCA 99% variance (adaptive dimensionality)"
+
+# Output Configuration
+output:
+  base_path: "dinov2_variantes/density_guided/density_guided_features"
+  structure: "{variant_name}/{pca_mode}/"
+  file_format:
+    features: "npy"
+    metadata: "csv"
+    config_info: "json"
+
+# Density-Guided CLS Token Configurations (6 variants)
+configurations:
+  - name: "central_uniform_concat"
+    description: "Central uniform slices with concatenation"
+    approach: "central_uniform"
+    aggregation_method: "concat"
+
+  - name: "central_uniform_pooling"
+    description: "Central uniform slices with average pooling"
+    approach: "central_uniform"
+    aggregation_method: "pooling"
+
+  - name: "adaptive_density_concat"
+    description: "Adaptive density zones with concatenation"
+    approach: "adaptive_density"
+    aggregation_method: "concat"
+
+  - name: "adaptive_density_pooling"
+    description: "Adaptive density zones with average pooling"
+    approach: "adaptive_density"
+    aggregation_method: "pooling"
+
+  - name: "linear_weighting_concat"
+    description: "Linear density weighting with concatenation"
+    approach: "linear_weighting"
+    aggregation_method: "concat"
+
+  - name: "linear_weighting_pooling"
+    description: "Linear density weighting with average pooling"
+    approach: "linear_weighting"
+    aggregation_method: "pooling"
+
+# Processing Configuration (Memory Optimized for Pipelines)
+processing:
+  # Pipeline 1 settings
+  raw_features_only: true          # Pipeline 1: Save raw features only
+  save_pca_features: false         # Pipeline 1: No PCA
+  
+  # Pipeline 2 settings  
+  classical_pca: true              # Pipeline 2: Use Classical PCA
+  load_from_raw: true              # Pipeline 2: Load from raw_features/
+  
+  # Common settings
+  progress_tracking: true
+  validation_enabled: true
+  memory_optimization: true
+  
+  # Memory optimization parameters
+  subject_batch_size: 1            # Process 1 subject at a time
+  training_sample_size: 500        # Use all 461 subjects from 5 train/val folds
+  cleanup_aggressive: true         # Aggressive memory cleanup
+
+# Density Profiles Configuration
+density_profiles:
+  source_path: "density/"
+  profiles:
+    x_axis: "density_profile_x.npy"    # Sagittal axis (30,)
+    y_axis: "density_profile_y.npy"    # Coronal axis (38,)
+    z_axis: "density_profile_z.npy"    # Axial axis (22,)
+  computed_on: 537                     # Non-labeled subjects (no data leakage)
+
+# Slicing Configuration per Approach
+slicing:
+  target_size: 224
+  normalization: "imagenet"
+  interpolation: "nearest"
+  
+  # Approach 1: Central Uniform Selection
+  central_uniform:
+    sagittal_indices: "10:21"      # 11 central slices (indices 10-20)
+    coronal_indices: "14:25"       # 11 central slices (indices 14-24)
+    axial_indices: "6:16"          # 10 central slices (indices 6-15)
+    total_slices: 32               # 11+11+10
+  
+  # Approach 2: Adaptive Density Selection  
+  adaptive_density:
+    sagittal_indices: "7:26"       # 19 high-density slices (indices 7-25)
+    coronal_indices: "7:34"        # 27 high-density slices (indices 7-33)
+    axial_indices: "4:17"          # 13 high-density slices (indices 4-16)
+    total_slices: 59               # 19+27+13
+  
+  # Approach 3: Linear Weighting (all slices)
+  linear_weighting:
+    sagittal_indices: "0:30"       # All 30 slices with weights
+    coronal_indices: "0:38"        # All 38 slices with weights  
+    axial_indices: "0:22"          # All 22 slices with weights
+    total_slices: 90               # 30+38+22
+    weighting_method: "linear"     # w_i = density_i / max_density
+
+# Validation Configuration
+validation:
+  check_file_integrity: true
+  verify_dimensions: true
+  validate_cls_tokens: true
+  validate_density_profiles: true
+  required_files:
+    - "metadata.json"
+    - "test_split_features.npy"
+    - "test_split_metadata.csv"
+    - "train_val_split_0_features.npy"
+    - "train_val_split_0_metadata.csv"
+    - "train_val_split_1_features.npy"
+    - "train_val_split_1_metadata.csv"
+    - "train_val_split_2_features.npy"
+    - "train_val_split_2_metadata.csv"
+    - "train_val_split_3_features.npy"
+    - "train_val_split_3_metadata.csv"
+    - "train_val_split_4_features.npy"
+    - "train_val_split_4_metadata.csv"
+
+# Expected Raw Dimensions Before PCA (CLS Token Based - DINOv2 Giant)
+expected_raw_dimensions:
+  dinov2_vitg14:
+    cls_token_dim: 1536            # Giant model CLS token dimension
+    
+    central_uniform:
+      sagittal_tokens: 11          # Central slices
+      coronal_tokens: 11           # Central slices
+      axial_tokens: 10             # Central slices
+      total_tokens: 32             # 11+11+10
+    
+    adaptive_density:
+      sagittal_tokens: 19          # High-density slices
+      coronal_tokens: 27           # High-density slices
+      axial_tokens: 13             # High-density slices
+      total_tokens: 59             # 19+27+13
+    
+    linear_weighting:
+      sagittal_tokens: 30          # All slices (weighted)
+      coronal_tokens: 38           # All slices (weighted)
+      axial_tokens: 22             # All slices (weighted)
+      total_tokens: 90             # 30+38+22
+
+    final_raw_dimensions:
+      central_uniform_concat: 49152      # 32 × 1536
+      central_uniform_pooling: 4608      # 3 × 1536
+      adaptive_density_concat: 90624     # 59 × 1536
+      adaptive_density_pooling: 4608     # 3 × 1536
+      linear_weighting_concat: 138240    # 90 × 1536
+      linear_weighting_pooling: 4608     # 3 × 1536
+
+# Final Output Dimensions After Classical PCA
+expected_final_dimensions:
+  after_pca_32: 32
+  after_pca_256: 256
+  after_pca_99: "Variable (estimated 500-2000)"
+
+# Memory Usage Estimates (CLS Token Based - Much Lower than Feature Maps)
+memory_estimates:
+  max_subject_memory:
+    central_uniform_concat: "0.2 MB"     # Single subject raw features
+    adaptive_density_concat: "0.35 MB"   # Single subject raw features
+    linear_weighting_concat: "0.5 MB"    # Single subject raw features
+    all_pooling_variants: "0.02 MB"      # Single subject raw features
+  
+  batch_memory_pca:
+    central_uniform_concat_461_subjects: "0.09 GB"    # 461 × 0.2MB
+    adaptive_density_concat_461_subjects: "0.16 GB"   # 461 × 0.35MB
+    linear_weighting_concat_461_subjects: "0.23 GB"   # 461 × 0.5MB
+    all_pooling_461_subjects: "0.01 GB"               # 461 × 0.02MB
+  
+  total_storage_after_pca:
+    all_variants_all_modes: "10-30 MB"   # All 18 configurations combined
+
+# Notes
+notes:
+  density_guidance: "Uses spatial density profiles to optimize slice selection/weighting"
+  cls_tokens: "Uses CLS token instead of feature maps for global representation"
+  no_data_leakage: "Density profiles computed on 537 non-labeled subjects"
+  classical_pca: "Classical PCA fitted on ALL 461 subjects from 5 train/val folds"
+  memory_advantage: "CLS tokens require significantly less memory than feature maps"
+  total_configurations: 18             # 6 variants × 3 PCA modes
+  key_innovation: "Anatomically-informed CLS token extraction with density guidance"
+  compatibility: "Fully compatible with Linear Probing"
+  pipeline_separation: "Pipeline 1 (extraction) + Pipeline 2 (PCA) for optimal performance"
+
+# Performance Expectations
+performance:
+  pipeline_1_runtime: "6 minutes (6 variants raw extraction)"  
+  pipeline_2_runtime: "3 minutes (18 PCA tasks)"
+  total_runtime: "9 minutes vs 31.5 min with fusion"
+  speedup_factor: "3.5x faster than fusion approach"
+  peak_memory_usage: "< 2 GB RAM (CLS token advantage)"
+  storage_requirements: "< 50 MB total"
+  bottleneck: "CLS token extraction (much lighter than feature maps)"
+  pca_subjects: "All 461 subjects from 5 train/val folds used for PCA fitting"
+  
+# Density-Guided Strategy Details
+strategy_details:
+  motivation: "Exploit spatial density heterogeneity for optimized CLS extraction"
+  approach_1_rationale: "Central regions contain most discriminative anatomical information"
+  approach_2_rationale: "High-density zones maximize sulcal structure capture"
+  approach_3_rationale: "Weighted contribution preserves all information while emphasizing critical regions"
+  validation_method: "Compare with Method 2.5D CLS baseline and standard DINOv2"
+  expected_improvement: "Better ROC-AUC through anatomically-informed feature extraction"

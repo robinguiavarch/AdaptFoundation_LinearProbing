@@ -1,0 +1,167 @@
+# Classification Configuration for Method 2.5D CLS Token Variants
+# ================================================================
+
+# Experiment Information
+experiment:
+  name: "Method 2.5D CLS Token Classification"
+  model: "DINOv2 Giant (vitg14)"
+  feature_type: "CLS tokens (1536D)"
+  task: "HCP OFC 4-class classification"
+  total_combinations: 18
+  note: "Complete evaluation of 2.5D CLS token variants with overlapping support"
+  
+# Expected Variants (automatically detected)
+variants:
+  - concat_baseline             # Concatenation + standard slicing (baseline)
+  - concat_25d_no_overlap       # Concatenation + 2.5D non-overlapping grouping
+  - concat_25d_overlap          # Concatenation + 2.5D overlapping grouping
+  - pooling_baseline            # Average pooling + standard slicing (baseline)
+  - pooling_25d_no_overlap      # Average pooling + 2.5D non-overlapping grouping
+  - pooling_25d_overlap         # Average pooling + 2.5D overlapping grouping
+
+# Expected PCA Modes (automatically detected)
+pca_modes:
+  - "32"                        # PCA 32D (Champollion V1 comparison)
+  - "256"                       # PCA 256D (Champollion V0 comparison)
+  - "99"                        # PCA 99% variance (adaptive dimensionality)
+
+# Available Combinations (complete coverage)
+available_combinations:
+  concat_baseline: ["32", "256", "99"]              # 3 combinations
+  concat_25d_no_overlap: ["32", "256", "99"]        # 3 combinations
+  concat_25d_overlap: ["32", "256", "99"]           # 3 combinations
+  pooling_baseline: ["32", "256", "99"]             # 3 combinations
+  pooling_25d_no_overlap: ["32", "256", "99"]       # 3 combinations
+  pooling_25d_overlap: ["32", "256", "99"]          # 3 combinations
+  # Total: 6 variants × 3 PCA modes = 18 combinations
+
+# Classifier Configuration (Logistic Regression Only)
+classifier_config:
+  logistic:
+    # Model parameters
+    solver: "saga"                    # Supports elasticnet penalty
+    penalty: "elasticnet"             # L1 + L2 regularization
+    max_iter: 20000                   # High limit for convergence
+    
+    # Hyperparameter grid for GridSearchCV
+    l1_ratio: [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]  # L1/L2 mix
+    C: [0.001, 0.01, 0.1, 1.0, 10.0, 100.0, 1000.0]                     # Regularization strength
+
+# Cross-Validation Configuration
+cross_validation:
+  method: "LeaveOneGroupOut"          # Respects pre-stratified splits
+  scoring: "roc_auc_ovr_weighted"     # Multi-class ROC-AUC
+  return_train_score: true            # For overfitting diagnostics
+  
+# Output Configuration
+output:
+  save_individual: true               # Save per-variant results
+  save_consolidated: true             # Save summary results
+  include_timing: true                # Track execution times
+  include_diagnostics: true           # Overfitting/convergence analysis
+
+# Processing Configuration
+processing:
+  random_state: 42                    # For reproducibility
+  n_jobs: -1                         # Use all available cores
+  verbose: true                      # Detailed progress output
+
+# Validation Configuration  
+validation:
+  check_required_files: true         # Verify files exist before running
+  required_files_per_combination:
+    - "train_val_split_0_features.npy"
+    - "train_val_split_0_metadata.csv"
+    - "train_val_split_1_features.npy" 
+    - "train_val_split_1_metadata.csv"
+    - "train_val_split_2_features.npy"
+    - "train_val_split_2_metadata.csv"
+    - "train_val_split_3_features.npy"
+    - "train_val_split_3_metadata.csv"
+    - "train_val_split_4_features.npy"
+    - "train_val_split_4_metadata.csv"
+    - "test_split_features.npy"
+    - "test_split_metadata.csv"
+    - "metadata.json"
+
+# Expected Results Structure
+expected_results:
+  metrics:
+    primary: "roc_auc_weighted"       # Main comparison metric
+    secondary: "accuracy"             # Additional metric
+    
+  diagnostics:
+    overfitting_analysis: true        # Train vs validation gap
+    convergence_check: true           # Check if optimization converged
+    cv_stability: true                # Cross-validation consistency
+    
+  comparisons:
+    cls_vs_feature_maps: "Compare CLS tokens with feature maps baseline"
+    overlapping_impact: "Quantify 2.5D overlapping vs non-overlapping benefit"
+    method_25d_impact: "Quantify 2.5D vs baseline (standard slicing) benefit"
+    aggregation_methods: "Compare concatenation vs average pooling strategies"
+    pca_impact: "Analyze dimensionality reduction effects across variants"
+
+# Performance Expectations
+performance:
+  estimated_runtime: "45-90 minutes"  # 18 combinations with CLS tokens
+  memory_usage: "< 16 GB"             # CLS token features are lightweight
+  bottleneck: "GridSearchCV"          # Hyperparameter optimization
+  
+# Success Criteria
+success_criteria:
+  - "18 combinations evaluated successfully"
+  - "ROC-AUC scores computed for each combination"
+  - "Overfitting diagnostics available for all variants"
+  - "Results saved in proper structure"
+  - "Convergence achieved for all evaluated models"
+  - "2.5D overlapping vs non-overlapping comparison possible"
+  - "Baseline vs 2.5D method comparison quantified"
+
+# Innovation Analysis Framework
+innovation_analysis:
+  method_25d_evaluation:
+    baseline_comparison: "Standard slicing (slice replication) performance"
+    non_overlapping_comparison: "2.5D grouping without overlapping performance" 
+    overlapping_comparison: "2.5D grouping with overlapping performance"
+    expected_ranking: "overlapping > non_overlapping > baseline"
+    
+  aggregation_evaluation:
+    concat_analysis: "Concatenation preserves all spatial information"
+    pooling_analysis: "Average pooling provides global representation"
+    expected_tradeoff: "Concat may overfit, pooling may underfit"
+    
+  pca_evaluation:
+    pca_32d: "Extreme dimensionality reduction for comparison"
+    pca_256d: "Moderate dimensionality reduction for comparison"
+    pca_99: "Adaptive reduction preserving most variance"
+    expected_ranking: "99% > 256D > 32D (with potential overfitting considerations)"
+
+# Expected Dimensional Analysis
+dimensional_analysis:
+  raw_dimensions:
+    concat_baseline: 138240           # 90 × 1536 (baseline slicing)
+    concat_25d_no_overlap: 44544      # 29 × 1536 (non-overlapping 2.5D)
+    concat_25d_overlap: 129024        # 84 × 1536 (overlapping 2.5D)
+    pooling_all_variants: 4608        # 3 × 1536 (tri-axial pooling)
+    
+  final_dimensions:
+    after_pca_32: 32                  # Fixed 32 components
+    after_pca_256: 256                # Fixed 256 components
+    after_pca_99: "Variable"          # Adaptive based on variance threshold
+
+# Notes
+notes:
+  focus: "Logistic regression only (no KNN/SVM for simplicity)"
+  innovation: "First systematic evaluation of 2.5D overlapping CLS tokens for neuroimaging"
+  baseline: "Compare with DINOv2 feature maps and standard methods"
+  method_validation: "Quantify benefit of 2.5D overlapping spatial continuity"
+  memory_advantage: "CLS tokens require 180× less memory than feature maps"
+  complete_evaluation: "All 18 combinations functional (no missing PCA modes)"
+  next_steps:
+    - "Analyze results across all 18 combinations"
+    - "Identify optimal 2.5D strategy (overlapping vs non-overlapping)"
+    - "Compare concat vs pooling performance patterns"
+    - "Assess PCA impact across different aggregation methods"
+    - "Compare with Champollion V0/V1 and feature maps baselines"
+    - "Generate publication-ready comparative analysis"

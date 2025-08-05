@@ -40,6 +40,11 @@ feature_extracted_sam3d/
 ckpt/
 feature_extraction_variantes/
 feature_extraction_density/
+density/unlabeled_skeletons_128.npy
+dinov2_variantes/method_25d_cls/method_25d_cls_features/
+dinov2_variantes/density_guided/density_guided_features/
+jobs/
+logs/
 
 # Backup environment files
 backup_env_*/
