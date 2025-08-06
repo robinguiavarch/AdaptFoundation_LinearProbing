@@ -1,0 +1,190 @@
+# Classification Configuration for DINOv2 Density-Guided CLS Token Variants
+# ==========================================================================
+
+# Experiment Information
+experiment:
+  name: "DINOv2 Density-Guided Classification"
+  model: "DINOv2 Giant (vitg14)"
+  feature_type: "Density-optimized CLS tokens (1536D)"
+  task: "HCP OFC 4-class classification"
+  total_combinations: 18
+  note: "Complete evaluation of density-guided CLS token variants with spatial optimization"
+  
+# Expected Variants (automatically detected)
+variants:
+  - central_uniform_concat       # Central slices + concatenation
+  - central_uniform_pooling      # Central slices + average pooling
+  - adaptive_density_concat      # Density zones + concatenation
+  - adaptive_density_pooling     # Density zones + average pooling
+  - linear_weighting_concat      # Linear weighting + concatenation
+  - linear_weighting_pooling     # Linear weighting + average pooling
+
+# Expected PCA Modes (automatically detected)
+pca_modes:
+  - "32"                        # PCA 32D (Champollion V1 comparison)
+  - "256"                       # PCA 256D (Champollion V0 comparison)
+  - "99"                        # PCA 99% variance (adaptive dimensionality)
+
+# Available Combinations (complete coverage)
+available_combinations:
+  central_uniform_concat: ["32", "256", "99"]        # 3 combinations
+  central_uniform_pooling: ["32", "256", "99"]       # 3 combinations
+  adaptive_density_concat: ["32", "256", "99"]       # 3 combinations
+  adaptive_density_pooling: ["32", "256", "99"]      # 3 combinations
+  linear_weighting_concat: ["32", "256", "99"]       # 3 combinations
+  linear_weighting_pooling: ["32", "256", "99"]      # 3 combinations
+  # Total: 6 variants × 3 PCA modes = 18 combinations
+
+# Classifier Configuration (Logistic Regression Only)
+classifier_config:
+  logistic:
+    # Model parameters
+    solver: "saga"                    # Supports elasticnet penalty
+    penalty: "elasticnet"             # L1 + L2 regularization
+    max_iter: 20000                   # High limit for convergence
+    
+    # Hyperparameter grid for GridSearchCV
+    l1_ratio: [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]  # L1/L2 mix
+    C: [0.001, 0.01, 0.1, 1.0, 10.0, 100.0, 1000.0]                     # Regularization strength
+
+# Cross-Validation Configuration
+cross_validation:
+  method: "LeaveOneGroupOut"          # Respects pre-stratified splits
+  scoring: "roc_auc_ovr_weighted"     # Multi-class ROC-AUC
+  return_train_score: true            # For overfitting diagnostics
+  
+# Output Configuration
+output:
+  save_individual: true               # Save per-variant results
+  save_consolidated: true             # Save summary results
+  include_timing: true                # Track execution times
+  include_diagnostics: true           # Overfitting/convergence analysis
+
+# Processing Configuration
+processing:
+  random_state: 42                    # For reproducibility
+  n_jobs: -1                         # Use all available cores
+  verbose: true                      # Detailed progress output
+
+# Validation Configuration  
+validation:
+  check_required_files: true         # Verify files exist before running
+  required_files_per_combination:
+    - "train_val_split_0_features.npy"
+    - "train_val_split_0_metadata.csv"
+    - "train_val_split_1_features.npy" 
+    - "train_val_split_1_metadata.csv"
+    - "train_val_split_2_features.npy"
+    - "train_val_split_2_metadata.csv"
+    - "train_val_split_3_features.npy"
+    - "train_val_split_3_metadata.csv"
+    - "train_val_split_4_features.npy"
+    - "train_val_split_4_metadata.csv"
+    - "test_split_features.npy"
+    - "test_split_metadata.csv"
+    - "metadata.json"
+
+# Expected Results Structure
+expected_results:
+  metrics:
+    primary: "roc_auc_weighted"       # Main comparison metric
+    secondary: "accuracy"             # Additional metric
+    
+  diagnostics:
+    overfitting_analysis: true        # Train vs validation gap
+    convergence_check: true           # Check if optimization converged
+    cv_stability: true                # Cross-validation consistency
+    
+  comparisons:
+    density_approaches: "Compare central uniform vs adaptive density vs linear weighting"
+    aggregation_methods: "Compare concatenation vs average pooling strategies"
+    pca_impact: "Analyze dimensionality reduction effects across density variants"
+    spatial_optimization: "Quantify benefits of density-guided spatial optimization"
+
+# Performance Expectations
+performance:
+  estimated_runtime: "45-90 minutes"  # 18 combinations with CLS tokens
+  memory_usage: "< 16 GB"             # CLS token features are lightweight
+  bottleneck: "GridSearchCV"          # Hyperparameter optimization
+  
+# Success Criteria
+success_criteria:
+  - "18 combinations evaluated successfully"
+  - "ROC-AUC scores computed for each combination"
+  - "Overfitting diagnostics available for all variants"
+  - "Results saved in proper structure"
+  - "Convergence achieved for all evaluated models"
+  - "Density approaches comparison possible"
+  - "Spatial optimization impact quantified"
+
+# Innovation Analysis Framework
+innovation_analysis:
+  density_approaches_evaluation:
+    central_uniform: "Fixed central slices selection"
+    adaptive_density: "Density-informed slice selection" 
+    linear_weighting: "Density-proportional weighting"
+    expected_ranking: "adaptive_density ≥ linear_weighting > central_uniform"
+    
+  aggregation_evaluation:
+    concat_analysis: "Concatenation preserves spatial information per density approach"
+    pooling_analysis: "Average pooling provides global representation per density approach"
+    expected_tradeoff: "Concat may capture spatial patterns, pooling may be more robust"
+    
+  pca_evaluation:
+    pca_32d: "Extreme dimensionality reduction for comparison"
+    pca_256d: "Moderate dimensionality reduction for comparison"
+    pca_99: "Adaptive reduction preserving most variance"
+    expected_ranking: "99% > 256D > 32D (with potential overfitting considerations)"
+
+# Expected Dimensional Analysis
+dimensional_analysis:
+  raw_dimensions:
+    central_uniform_concat: 49152     # (11+11+10) × 1536 (central slices)
+    adaptive_density_concat: 90624    # (19+27+13) × 1536 (density zones)
+    linear_weighting_concat: 138240   # (30+38+22) × 1536 (all slices weighted)
+    all_pooling_variants: 4608        # 3 × 1536 (tri-axial pooling)
+    
+  final_dimensions:
+    after_pca_32: 32                  # Fixed 32 components
+    after_pca_256: 256                # Fixed 256 components
+    after_pca_99: "Variable"          # Adaptive based on variance threshold
+
+# Density-Guided Strategy Analysis
+density_strategy_analysis:
+  central_uniform:
+    principle: "Extract 8-11 central slices per axis"
+    advantages: "Significant dimensionality reduction, focus on anatomical core"
+    expected_performance: "Baseline for density approaches"
+    
+  adaptive_density:
+    principle: "Select slices based on pre-computed density maxima"
+    advantages: "Evidence-based slice selection, elimination of low-information regions"
+    expected_performance: "Best single approach for spatial optimization"
+    
+  linear_weighting:
+    principle: "Weight all slices proportionally to their density"
+    advantages: "Preserve all information while emphasizing dense regions"
+    expected_performance: "Most robust approach, potentially best overall"
+
+# Spatial Optimization Framework
+spatial_optimization:
+  density_profiles_source: "density/density_profile_{x,y,z}.npy (537 unlabeled subjects)"
+  no_data_leakage: "Density profiles independent from labeled classification data"
+  anatomical_guidance: "Leverage spatial heterogeneity of sulcal information"
+  innovation_focus: "First density-guided CLS token extraction for neuroimaging"
+
+# Notes
+notes:
+  focus: "Logistic regression only for linear probing methodology"
+  innovation: "First systematic evaluation of density-guided CLS tokens for neuroimaging"
+  spatial_optimization: "Leverage anatomical knowledge for improved feature extraction"
+  methodology: "Maintain linear probing principles while adding spatial intelligence"
+  memory_advantage: "CLS tokens require significantly less memory than feature maps"
+  complete_evaluation: "All 18 combinations functional across density approaches"
+  next_steps:
+    - "Analyze density approach performance patterns"
+    - "Identify optimal density-guided strategy"
+    - "Compare concat vs pooling across density variants"
+    - "Assess PCA impact on density optimization benefits"
+    - "Validate spatial optimization methodology"
+    - "Generate density-guided insights for future neuroimaging applications"
