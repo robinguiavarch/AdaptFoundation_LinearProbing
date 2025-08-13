@@ -38,6 +38,10 @@ feature_extracted/
 feature_extracted_concat/
 feature_extracted_sam3d/
 feature_extracted_fip_dinov2/
+feature_extracted_sc_dinov2/
+feature_extracted_lc_dinov2/
+
+
 ckpt/
 feature_extraction_variantes/
 feature_extraction_variantes_giant/

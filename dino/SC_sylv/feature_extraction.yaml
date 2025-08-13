@@ -1,0 +1,212 @@
+# Feature Extraction Configuration for SC_sylv Feature Maps and 2.5D Variants
+# ============================================================================
+
+# Dataset Configuration
+dataset:
+  name: "HCP_SC_SYLV"
+  data_path: "crops/2mm/S.C.-sylv./"
+  resolution: "2mm"
+  target_task: "Sulcus_Central_regression"
+  n_classes: 6
+
+# Foundation Model Configuration (DINOv2 Giant)
+model:
+  name: "dinov2_vitg14"
+  feature_dimension: 1536
+  input_size: 224
+  batch_size: 4
+  device: "auto"
+
+# PCA Configuration (Applied by Pipeline 2)
+pca_modes:
+  - mode: "fixed"
+    n_components: 32
+    description: "PCA 32D (Champollion V1 comparison)"
+    
+  - mode: "fixed"
+    n_components: 256
+    description: "PCA 256D (Champollion V0 comparison)"
+    
+  - mode: "variance"
+    variance_threshold: 0.95
+    description: "PCA 95% variance (adaptive dimensionality)"
+
+  - mode: "variance"
+    variance_threshold: 0.99
+    description: "PCA 99% variance (high preservation)"
+
+# Output Configuration
+output:
+  base_path: "feature_extracted_sc_dinov2"
+  structure: "{variant_name}/{pca_mode}/"
+  file_format:
+    features: "npy"
+    metadata: "csv"
+    config_info: "json"
+
+# Feature Maps and 2.5D Configurations (Pooling Only)
+configurations:
+  - name: "pooling_spatial_without_25d"
+    description: "Spatial pooling with standard slicing"
+    aggregation_method: "pooling"
+    use_25d_method: false
+
+  - name: "pooling_spatial_with_25d"
+    description: "Spatial pooling with 2.5D overlapping slicing"
+    aggregation_method: "pooling"
+    use_25d_method: true
+
+# Processing Configuration (Pipeline Separation)
+processing:
+  # Pipeline 1 settings
+  raw_features_only: true          # Pipeline 1: Save raw features only
+  save_pca_features: false         # Pipeline 1: No PCA
+  
+  # Pipeline 2 settings  
+  classical_pca: true              # Pipeline 2: Use Classical PCA
+  load_from_raw: true              # Pipeline 2: Load from raw_features/
+  
+  # Common settings
+  progress_tracking: true
+  validation_enabled: true
+  memory_optimization: true
+  
+  # Memory optimization parameters
+  subject_batch_size: 1            # Process 1 subject at a time
+  training_sample_size: 500        # Use all subjects from 5 train/val folds
+  cleanup_aggressive: true         # Aggressive memory cleanup
+
+# Slicing Configuration for SC_sylv
+slicing:
+  target_size: 224
+  normalization: "imagenet"
+  interpolation: "nearest"
+  
+  # Standard slicing dimensions
+  standard_slicing:
+    sagittal_slices: 38            # X axis
+    coronal_slices: 36             # Y axis
+    axial_slices: 49               # Z axis
+    total_slices: 123              # 38+36+49
+  
+  # 2.5D overlapping with step=2
+  adaptive_grouping_25d:
+    sagittal_groups: 18            # Overlapping step=2: [0,1,2], [2,3,4], ..., [34,35,36]
+    coronal_groups: 17             # Overlapping step=2: [0,1,2], [2,3,4], ..., [32,33,34]
+    axial_groups: 24               # Overlapping step=2: [0,1,2], [2,3,4], ..., [46,47,48]
+    total_groups: 59               # 18+17+24
+    overlapping_step: 2            # Step size for overlapping
+
+# Validation Configuration
+validation:
+  check_file_integrity: true
+  verify_dimensions: true
+  validate_feature_maps: true
+  required_files:
+    - "metadata.json"
+    - "test_split_features.npy"
+    - "test_split_metadata.csv"
+    - "train_val_split_0_features.npy"
+    - "train_val_split_0_metadata.csv"
+    - "train_val_split_1_features.npy"
+    - "train_val_split_1_metadata.csv"
+    - "train_val_split_2_features.npy"
+    - "train_val_split_2_metadata.csv"
+    - "train_val_split_3_features.npy"
+    - "train_val_split_3_metadata.csv"
+    - "train_val_split_4_features.npy"
+    - "train_val_split_4_metadata.csv"
+
+# Expected Raw Dimensions Before PCA (16x16 PATCHES - DINOv2 Giant)
+expected_raw_dimensions:
+  dinov2_vitg14:
+    feature_maps_per_slice: 256          # 16×16 patches
+    feature_dim_per_patch: 1536          # Giant model dimension
+    
+    standard_slicing:
+      sagittal_slices: 38                # X axis
+      coronal_slices: 36                 # Y axis  
+      axial_slices: 49                   # Z axis
+      total_slices: 123                  # 38+36+49
+    
+    adaptive_25d_slicing:
+      sagittal_groups: 18                # Overlapping groups
+      coronal_groups: 17                 # Overlapping groups
+      axial_groups: 24                   # Overlapping groups
+      total_groups: 59                   # 18+17+24
+
+    final_raw_dimensions:
+      pooling_without_25d: 393216        # 256 × 1536 (~393K)
+      pooling_with_25d: 393216           # 256 × 1536 (~393K) - same for pooling
+
+# Final Output Dimensions After PCA
+expected_final_dimensions:
+  after_pca_32: 32                       # Fixed 32 components
+  after_pca_256: 256                     # Fixed 256 components  
+  after_pca_95: "Variable (estimated 1000-2000)"    # Depends on variance threshold
+  after_pca_99: "Variable (estimated 2000-3000)"    # Depends on variance threshold
+
+# Memory Usage Estimates (DINOv2 Giant + SC_sylv subjects)
+memory_estimates:
+  max_subject_memory:
+    pooling_variants: "1.5 MB"          # Single subject raw features (393K × 4 bytes)
+  
+  batch_memory_pca:
+    pooling_training_subjects: "1.04 GB" # Training subjects × 1.5MB for PCA fitting
+  
+  total_storage_after_pca:
+    all_variants_all_modes: "30-40 MB"  # All 8 configurations combined
+
+# Notes
+notes:
+  feature_maps: "Uses 16×16 spatial patches with pooling aggregation only"
+  method_25d: "Groups 3 consecutive slices with overlapping step=2"
+  overlapping_advantage: "Provides more spatial context vs standard grouping"
+  classical_pca: "Classical PCA fitted on ALL training subjects from 5 train/val folds"
+  memory_optimization: "Pipeline separation for optimal performance"
+  total_configurations: 8              # 2 variants × 4 PCA modes
+  key_innovation: "SC_sylv adapted pipeline with overlapping 2.5D and PCA_99"
+  compatibility: "Fully compatible with Linear Probing"
+  pipeline_separation: "Pipeline 1 (extraction) + Pipeline 2 (PCA)"
+
+# Performance Expectations
+performance:
+  pipeline_1_runtime: "18-22 minutes (2 variants raw extraction)"  
+  pipeline_2_runtime: "3-4 minutes (8 PCA tasks)"
+  total_runtime: "21-26 minutes vs 50+ min with fusion"
+  speedup_factor: "2.5x faster than fusion approach"
+  peak_memory_usage: "< 4 GB RAM (pooling advantage)"
+  storage_requirements: "< 100 MB total"
+  bottleneck: "Feature map extraction (DINOv2 Giant forward passes)"
+  pca_subjects: "All training subjects from 5 train/val folds used for PCA fitting"
+
+# SC_sylv Dataset Specifics
+sc_dataset_info:
+  volume_shape: [38, 36, 49]            # SC_sylv specific dimensions
+  hemisphere: "Left"                    # Left hemisphere analysis
+  task_type: "Regression"               # 6D regression targets
+  subjects_total: 1114                  # Total subjects in dataset
+  subjects_labeled: 883                 # Subjects with Isomap labels
+  subjects_splits:
+    train_val_folds: 707                # Subjects across 5 train/val folds
+    test_split: 176                     # Subjects in test split
+  target_labels:
+    - "Isomap_central_left_dim1"
+    - "Isomap_central_left_dim2"
+    - "Isomap_central_left_dim3"
+    - "Isomap_central_left_dim4"
+    - "Isomap_central_left_dim5"
+    - "Isomap_central_left_dim6"
+  density_average: "1.93%"              # Average voxel density
+  evaluation_metric: "R² (regression)"
+
+# Innovation Highlights
+innovation_highlights:
+  overlapping_25d: "Step=2 overlapping provides richer spatial context"
+  pca_99_mode: "99% variance preservation for maximum information retention"
+  pipeline_separation: "Optimized execution time with flexible PCA experimentation"
+  sc_adaptation: "Tailored to SC_sylv dataset dimensions and regression task"
+  pooling_focus: "Concentrated on most effective aggregation method"
+  giant_model: "Leverages DINOv2 Giant (1536D) for maximum representation power"
+  regression_support: "Optimized for 6D regression vs binary classification"
+  left_hemisphere: "Adapted for left hemisphere sulcus central analysis"
