@@ -1,0 +1,175 @@
+# Feature Extraction Configuration for DINOv2 Giant with Pooling Methods Only
+# =============================================================================
+
+# Dataset Configuration
+dataset:
+  name: "HCP_OFC"
+  data_path: "crops/2mm/S.Or."
+  resolution: "2mm"
+  target_task: "Left_OFC_classification"
+  n_classes: 4
+
+# Foundation Model Configuration (DINOv2 Giant - Pooling Optimized)
+model:
+  name: "dinov2_vitg14"
+  feature_dimension: 1536              # Giant model: 1536D (vs Large: 1024D)
+  input_size: 224
+  batch_size: 4                        # Reduced batch size for Giant model
+  device: "auto"
+
+# PCA Configuration (Classical PCA with 95% and 99.5% variance)
+pca_modes:
+  - mode: "fixed"
+    n_components: 32
+    description: "PCA 32D (Champollion V1 comparison)"
+    
+  - mode: "fixed"
+    n_components: 256
+    description: "PCA 256D (Champollion V0 comparison)"
+    
+  - mode: "variance"
+    variance_threshold: 0.95
+    description: "PCA 95% variance (standard high retention)"
+    
+  - mode: "variance"
+    variance_threshold: 0.995
+    description: "PCA 99.5% variance (maximum information retention)"
+
+# Output Configuration
+output:
+  base_path: "feature_extraction_variantes_giant"
+  structure: "{variant_name}/PCA_{pca_mode}/"
+  file_format:
+    features: "npy"
+    metadata: "csv"
+    config_info: "json"
+  pca_folder_mapping:
+    "32": "32"
+    "256": "256"
+    "0.95": "95"                      # PCA 95% → dossier PCA_95/
+    "0.995": "995"                    # PCA 99.5% → dossier PCA_995/
+
+# Feature Maps and 2.5D Configurations (POOLING ONLY)
+configurations:
+  - name: "pooling_spatial_without_25d"
+    description: "Spatial pooling with standard slicing"
+    aggregation_method: "pooling"
+    use_25d_method: false
+
+  - name: "pooling_spatial_with_25d"
+    description: "Spatial pooling with 2.5D slicing"
+    aggregation_method: "pooling"
+    use_25d_method: true
+
+# Processing Configuration (Memory Optimized for Giant)
+processing:
+  classical_pca: true                 # Use Classical PCA for stability and performance
+  save_raw_features: false           # Never save raw high-dimensional features
+  progress_tracking: true
+  validation_enabled: true
+  memory_optimization: true
+  
+  # Memory optimization parameters (adjusted for Giant)
+  subject_batch_size: 1               # Process 1 subject at a time
+  training_sample_size: 500           # Use all subjects from 5 folds (~461 total)
+  cleanup_aggressive: true            # Aggressive memory cleanup after each subject
+
+# Slicing Configuration
+slicing:
+  target_size: 224
+  normalization: "imagenet"
+  interpolation: "nearest"
+  adaptive_grouping_25d:
+    sagittal_groups: 10              # X axis: [0,1,2], [3,4,5], ..., [27,28,29] → 10 groups
+    coronal_groups: 12               # Y axis: [1,2,3], [4,5,6], ..., [34,35,36] → 12 groups 
+    axial_groups: 7                  # Z axis: [1,2,3], [4,5,6], ..., [19,20,21] → 7 groups
+
+# Validation Configuration
+validation:
+  check_file_integrity: true
+  verify_dimensions: true
+  validate_feature_maps: true
+  required_files:
+    - "metadata.json"
+    - "test_split_features.npy"
+    - "test_split_metadata.csv"
+    - "train_val_split_0_features.npy"
+    - "train_val_split_0_metadata.csv"
+    - "train_val_split_1_features.npy"
+    - "train_val_split_1_metadata.csv"
+    - "train_val_split_2_features.npy"
+    - "train_val_split_2_metadata.csv"
+    - "train_val_split_3_features.npy"
+    - "train_val_split_3_metadata.csv"
+    - "train_val_split_4_features.npy"
+    - "train_val_split_4_metadata.csv"
+
+# Expected Raw Dimensions Before PCA (DINOv2 Giant - 16x16 PATCHES)
+expected_raw_dimensions:
+  dinov2_vitg14:
+    feature_maps_per_slice: 256          # 16×16 patches
+    feature_dim_per_patch: 1536          # Giant model dimension (vs 1024 for Large)
+    
+    standard_slicing:
+      sagittal_slices: 30              # X axis
+      coronal_slices: 38               # Y axis  
+      axial_slices: 22                 # Z axis
+      total_slices: 90                 # 30+38+22
+    
+    adaptive_25d_slicing:
+      sagittal_groups: 10              # 30/3 groups
+      coronal_groups: 12               # (38-2)/3 = 12 groups
+      axial_groups: 7                  # (22-1)/3 = 7 groups
+      total_groups: 29                 # 10+12+7
+
+    final_raw_dimensions:
+      pooling_without_25d: 393216      # 256 × 1536 (~393K)
+      pooling_with_25d: 393216         # 256 × 1536 (~393K)
+
+# Final Output Dimensions After Classical PCA
+expected_final_dimensions:
+  after_pca_32: 32                     # Fixed 32 components
+  after_pca_256: 256                   # Fixed 256 components  
+  after_pca_95: "Variable"             # Depends on 95% variance threshold
+  after_pca_995: "Variable"            # Depends on 99.5% variance threshold (higher)
+
+# Memory Usage Estimates (DINOv2 Giant + 461 subjects + Pooling Only)
+memory_estimates:
+  max_subject_memory:
+    pooling_without_25d: "1.5 MB"     # Single subject in memory (Giant: 1536D)
+    pooling_with_25d: "1.5 MB"        # Single subject in memory (Giant: 1536D)
+  
+  batch_memory_pca:
+    pooling_461_subjects: "0.7 GB"    # 461 × 1.5MB for PCA fitting (manageable)
+  
+  total_storage_after_pca:
+    all_variants_all_modes: "15-25 MB" # 2 variants × 4 PCA modes
+
+# Notes
+notes:
+  model_upgrade: "DINOv2 Giant (vitg14) with 1536D features vs Large (vitl14) 1024D"
+  focus: "Pooling methods only - most memory efficient and promising approach"
+  pca_modes: "4 PCA modes: 32D, 256D, 95% variance, 99.5% variance"
+  folder_structure: "PCA_95/ for 95% variance, PCA_995/ for 99.5% variance"
+  total_configurations: 8             # 2 variants × 4 PCA modes
+  key_innovation: "Giant model evaluation with extended PCA variance analysis"
+  compatibility: "Fully compatible with existing Linear Probing pipeline"
+  comparison_baseline: "Can compare with Large model results on same pooling methods"
+  memory_advantage: "Pooling keeps memory requirements low even with Giant model"
+
+# Performance Expectations (Giant Model)
+performance:
+  estimated_runtime: "3-5 hours for all 8 configurations"
+  peak_memory_usage: "< 5 GB RAM (pooling methods are memory efficient)"
+  storage_requirements: "< 50 MB total"
+  bottleneck: "Giant model inference (slower than Large)"
+  pca_advantage: "Classical PCA still fast with pooling dimensions"
+  pca_subjects: "All 461 subjects from 5 train/val folds used for PCA fitting"
+  giant_benefits: "Higher capacity features, potentially better downstream performance"
+
+# Expected Comparisons
+comparisons:
+  giant_vs_large: "Compare Giant vs Large on same pooling methods"
+  pca_variance_analysis: "95% vs 99.5% variance retention impact"
+  method_25d_giant: "2.5D method effectiveness with Giant features"
+  optimal_pca_mode: "Identify best PCA dimensionality for Giant model"

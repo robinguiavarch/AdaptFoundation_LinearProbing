@@ -1,0 +1,45 @@
+# Configuration for Volume Preprocessing Tests
+# ============================================
+
+# Dataset Configuration
+dataset:
+  name: "HCP_OFC"
+  data_path: "crops/2mm/S.Or."
+  subject_idx: 0  # Index of subject to test (0 = first subject)
+
+# Camera Configuration
+camera:
+  position: [80, 80, 80]  # Camera position (x, y, z)
+  target: null             # null = use volume center
+  up_vector: [0, 0, 1]     # Up direction
+
+# Rendering Configuration
+rendering:
+  method: "scatter"        # scatter, voxels, surface, wireframe
+  point_size: 3            # Size for scatter rendering
+
+# Alpha Configuration
+alpha:
+  type: "constant"         # constant, gradient, adaptive
+  value: 0.6               # Value for constant type
+  range: [0.2, 0.8]        # [min, max] for gradient type
+  steps: 256               # Number of steps for gradient
+
+# Colormap Configuration
+colormap:
+  type: "depth"            # depth, orientation, standard
+  name: "viridis"          # viridis, turbo, inferno, plasma, blue
+  
+# Lighting Configuration
+lighting:
+  shade: true
+  eye_dome_lighting: true
+  ambient: 0.2
+  diffuse: 0.7
+  specular: 0.3
+
+# Output Configuration
+output:
+  resolution: [224, 224]
+  filename: "test_preprocess.png"
+  save_path: "preprocess_outputs"

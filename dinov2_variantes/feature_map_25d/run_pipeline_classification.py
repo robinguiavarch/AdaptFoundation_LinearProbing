@@ -1,8 +1,8 @@
 """
-Classification pipeline for Feature Maps and 2.5D variants.
+Classification pipeline for DINOv2 Giant pooling variants with CV investigation.
 
-This script runs linear probing classification on feature maps and 2.5D extracted features
-using logistic regression with proper cross-validation on pre-stratified splits.
+This script runs linear probing classification on Giant model pooling features
+with detailed cross-validation analysis to investigate Test vs CV score discrepancy.
 """
 
 import argparse
@@ -24,31 +24,35 @@ from sklearn.metrics import roc_auc_score
 import sklearn.metrics
 
 
-class FeatureMapsLinearProber:
+class GiantPoolingLinearProber:
     """
-    Linear probing classifier for Feature Maps and 2.5D variants evaluation.
+    Linear probing classifier for DINOv2 Giant pooling variants with CV investigation.
     
-    Evaluates logistic regression performance on all variant/PCA combinations
-    from the feature_extraction_variantes directory structure.
+    Evaluates logistic regression performance on Giant model pooling features
+    with detailed fold-level analysis to investigate Test vs CV score patterns.
     
     Attributes:
-        features_base_path (Path): Path to feature_extraction_variantes directory
+        features_base_path (Path): Path to feature_extraction_variantes_giant directory
         random_state (int): Random state for reproducibility
         n_jobs (int): Number of parallel jobs for computation
+        investigation_config (Dict): Investigation configuration parameters
     """
     
-    def __init__(self, features_base_path: str, random_state: int = 42, n_jobs: int = -1):
+    def __init__(self, features_base_path: str, investigation_config: Dict = None, 
+                 random_state: int = 42, n_jobs: int = -1):
         """
-        Initialize the Feature Maps linear probing classifier.
+        Initialize the Giant pooling linear probing classifier.
         
         Args:
-            features_base_path (str): Path to feature_extraction_variantes directory
+            features_base_path (str): Path to feature_extraction_variantes_giant directory
+            investigation_config (Dict, optional): Investigation configuration. Defaults to None.
             random_state (int): Random state for reproducibility. Defaults to 42.
             n_jobs (int): Number of parallel jobs. Defaults to -1.
         """
         self.features_base_path = Path(features_base_path)
         self.random_state = random_state
         self.n_jobs = n_jobs
+        self.investigation_config = investigation_config or {}
         
         if not self.features_base_path.exists():
             raise FileNotFoundError(f"Features directory not found: {self.features_base_path}")
@@ -142,18 +146,112 @@ class FeatureMapsLinearProber:
         
         return model, param_grid
     
+    def _extract_cv_detailed_analysis(self, cv_results_df: pd.DataFrame, 
+                                     best_idx: int, test_roc_auc: float, 
+                                     cv_score: float) -> Dict:
+        """
+        Extract detailed cross-validation analysis from GridSearchCV results.
+        
+        Args:
+            cv_results_df (pd.DataFrame): Complete cv_results_ from GridSearchCV
+            best_idx (int): Index of best parameter combination
+            test_roc_auc (float): Test set ROC-AUC score
+            cv_score (float): Cross-validation ROC-AUC score
+        
+        Returns:
+            Dict: Detailed CV analysis including fold scores and diagnostics
+        """
+        fold_test_scores = []
+        fold_train_scores = []
+        
+        # Extract scores for each fold
+        for fold_id in range(5):
+            test_key = f'split{fold_id}_test_score'
+            train_key = f'split{fold_id}_train_score'
+            
+            if test_key in cv_results_df.columns:
+                fold_test_scores.append(float(cv_results_df.iloc[best_idx][test_key]))
+            if train_key in cv_results_df.columns:
+                fold_train_scores.append(float(cv_results_df.iloc[best_idx][train_key]))
+        
+        # Compute analysis metrics
+        fold_overfitting_gaps = [train - test for train, test in zip(fold_train_scores, fold_test_scores)]
+        mean_cv_score = np.mean(fold_test_scores)
+        problematic_threshold = self.investigation_config.get('outlier_detection_threshold', 0.05)
+        
+        cv_detailed_analysis = {
+            'fold_test_scores': fold_test_scores,
+            'fold_train_scores': fold_train_scores,
+            'fold_overfitting_gaps': fold_overfitting_gaps,
+            'worst_fold_id': int(np.argmin(fold_test_scores)),
+            'best_fold_id': int(np.argmax(fold_test_scores)),
+            'fold_score_range': float(max(fold_test_scores) - min(fold_test_scores)),
+            'fold_score_std': float(np.std(fold_test_scores)),
+            'fold_variance': float(np.var(fold_test_scores)),
+            'test_vs_cv_gap': float(test_roc_auc - cv_score),
+            'problematic_folds': [i for i, score in enumerate(fold_test_scores) 
+                                 if score < (mean_cv_score - problematic_threshold)],
+            'mean_overfitting_gap': float(np.mean(fold_overfitting_gaps)),
+            'max_overfitting_gap': float(max(fold_overfitting_gaps))
+        }
+        
+        return cv_detailed_analysis
+    
+    def _save_cv_results_detailed(self, variant_name: str, pca_mode: str, 
+                                 cv_results_df: pd.DataFrame, clf: GridSearchCV) -> None:
+        """
+        Save complete cv_results_ for detailed investigation.
+        
+        Args:
+            variant_name (str): Name of the variant
+            pca_mode (str): PCA mode identifier
+            cv_results_df (pd.DataFrame): Complete cv_results_ DataFrame
+            clf (GridSearchCV): Fitted GridSearchCV object
+        """
+        if not self.investigation_config.get('save_cv_results', False):
+            return
+        
+        output_dir = self.features_base_path / variant_name / f"PCA_{pca_mode}"
+        
+        # Save cv_results_ complete as CSV
+        cv_results_file = output_dir / "cv_results_complete.csv"
+        cv_results_df.to_csv(cv_results_file, index=False)
+        
+        # Save cv_results_ complete as JSON
+        cv_results_json_file = output_dir / "cv_results_complete.json"
+        cv_results_dict = cv_results_df.to_dict('records')
+        with open(cv_results_json_file, 'w') as f:
+            json.dump(cv_results_dict, f, indent=2, default=str)
+        
+        # Investigation metadata
+        investigation_metadata = {
+            'total_parameter_combinations': len(cv_results_df),
+            'best_params_index': int(clf.best_index_),
+            'best_score': float(clf.best_score_),
+            'cv_methodology': 'LeaveOneGroupOut (5 folds)',
+            'scoring_metric': 'roc_auc_ovr_weighted',
+            'hyperparameter_grid_size': {
+                'l1_ratio_values': len(clf.param_grid['l1_ratio']),
+                'C_values': len(clf.param_grid['C'])
+            }
+        }
+        
+        investigation_file = output_dir / "cv_investigation_metadata.json"
+        with open(investigation_file, 'w') as f:
+            json.dump(investigation_metadata, f, indent=2, default=str)
+    
     def train_variant_classifier(self, variant_name: str, pca_mode: str, 
                                 classifier_config: Dict) -> Dict:
         """
         Train logistic regression classifier on a specific variant/PCA combination.
         
         Args:
-            variant_name (str): Variant name (e.g., 'concat_patches_without_25d')
-            pca_mode (str): PCA mode ('32', '256', '95')
+            variant_name (str): Variant name (e.g., 'pooling_spatial_without_25d')
+            pca_mode (str): PCA mode ('32', '256', '95', '995')
             classifier_config (Dict): Classifier configuration parameters
         
         Returns:
-            Dict: Complete training results with metrics and diagnostics
+            Dict: Complete training results with metrics, diagnostics, and investigation
         """
         variant_path = self.features_base_path / variant_name / f"PCA_{pca_mode}"
         
@@ -184,6 +282,13 @@ class FeatureMapsLinearProber:
         clf.fit(X_train_val, y_train_val)
         gridsearch_time = time.time() - start_gridsearch
         
+        # Extract cv_results_ for investigation
+        cv_results_df = pd.DataFrame(clf.cv_results_)
+        best_idx = clf.best_index_
+        
+        # Save detailed cv_results_ if investigation enabled
+        self._save_cv_results_detailed(variant_name, pca_mode, cv_results_df, clf)
+        
         start_test = time.time()
         best_model = clf.best_estimator_
         best_model.fit(X_train_val, y_train_val)
@@ -195,9 +300,6 @@ class FeatureMapsLinearProber:
         test_accuracy = np.mean(y_test == y_test_pred)
         test_time = time.time() - start_test
         
-        cv_results_df = pd.DataFrame(clf.cv_results_)
-        best_idx = clf.best_index_
-        
         best_train_score = cv_results_df.iloc[best_idx]['mean_train_score']
         best_val_score = cv_results_df.iloc[best_idx]['mean_test_score']
         overfitting_gap = best_train_score - best_val_score
@@ -208,6 +310,11 @@ class FeatureMapsLinearProber:
             max_iter = best_model.max_iter
             actual_iter = best_model.n_iter_[0] if len(best_model.n_iter_) > 0 else 0
             convergence_warning = actual_iter >= max_iter
+        
+        # Generate detailed CV investigation analysis
+        cv_detailed_analysis = self._extract_cv_detailed_analysis(
+            cv_results_df, best_idx, test_roc_auc_weighted, clf.best_score_
+        )
         
         results = {
             'variant_name': variant_name,
@@ -227,6 +334,7 @@ class FeatureMapsLinearProber:
                 'overfitting_gap': overfitting_gap,
                 'cv_stability': cv_stability
             },
+            'cv_detailed_analysis': cv_detailed_analysis,
             'diagnostics': {
                 'convergence_warning': convergence_warning,
                 'overfitting_gap': overfitting_gap,
@@ -275,6 +383,68 @@ class FeatureMapsLinearProber:
         
         return combinations
     
+    def _generate_investigation_summary(self, all_results: Dict) -> Dict:
+        """
+        Generate comprehensive investigation summary from all results.
+        
+        Args:
+            all_results (Dict): Complete results from all variant/PCA combinations
+        
+        Returns:
+            Dict: Investigation summary with global patterns and analysis
+        """
+        investigation_summary = {
+            'test_vs_cv_analysis': {},
+            'fold_performance_analysis': {},
+            'global_patterns': {}
+        }
+        
+        gaps = []
+        fold_variances = []
+        problematic_configs = []
+        
+        for variant_name, variant_results in all_results.items():
+            for pca_mode, result in variant_results.items():
+                config_key = f"{variant_name}_{pca_mode.replace('PCA_', '')}"
+                
+                if 'cv_detailed_analysis' in result:
+                    cv_analysis = result['cv_detailed_analysis']
+                    test_score = result['test_metrics']['roc_auc_weighted']
+                    cv_score = result['best_cv_score']
+                    gap = cv_analysis['test_vs_cv_gap']
+                    
+                    investigation_summary['test_vs_cv_analysis'][config_key] = {
+                        'test_score': test_score,
+                        'cv_score': cv_score,
+                        'gap': gap,
+                        'problematic_folds': cv_analysis['problematic_folds'],
+                        'worst_fold_score': min(cv_analysis['fold_test_scores']),
+                        'fold_variance': cv_analysis['fold_variance']
+                    }
+                    
+                    gaps.append(gap)
+                    fold_variances.append(cv_analysis['fold_variance'])
+                    
+                    if len(cv_analysis['problematic_folds']) > 0:
+                        problematic_configs.append(config_key)
+        
+        # Global patterns analysis
+        if gaps:
+            investigation_summary['global_patterns'] = {
+                'mean_test_cv_gap': float(np.mean(gaps)),
+                'std_test_cv_gap': float(np.std(gaps)),
+                'max_test_cv_gap': float(max(gaps)),
+                'min_test_cv_gap': float(min(gaps)),
+                'mean_fold_variance': float(np.mean(fold_variances)),
+                'configs_with_large_gaps': [config for config, analysis in investigation_summary['test_vs_cv_analysis'].items() 
+                                          if analysis['gap'] > 0.05],
+                'problematic_configs': problematic_configs,
+                'most_stable_config': min(investigation_summary['test_vs_cv_analysis'].items(), 
+                                        key=lambda x: x[1]['fold_variance'])[0] if investigation_summary['test_vs_cv_analysis'] else None
+            }
+        
+        return investigation_summary
+    
     def run_all_combinations(self, classifier_config: Dict, output_config: Dict) -> Dict:
         """
         Run classification on all available variant/PCA combinations.
@@ -284,7 +454,7 @@ class FeatureMapsLinearProber:
             output_config (Dict): Output configuration for saving results
         
         Returns:
-            Dict: Results for all evaluated combinations
+            Dict: Results for all evaluated combinations with investigation analysis
         """
         combinations = self.get_available_combinations()
         
@@ -309,8 +479,10 @@ class FeatureMapsLinearProber:
                 
                 cv_score = result['best_cv_score']
                 test_score = result['test_metrics']['roc_auc_weighted']
-                gap = result['cv_metrics']['overfitting_gap']
-                print(f"  CV: {cv_score:.4f}, Test: {test_score:.4f}, Gap: {gap:.4f}")
+                gap = result['cv_detailed_analysis']['test_vs_cv_gap']
+                problematic_folds = len(result['cv_detailed_analysis']['problematic_folds'])
+                
+                print(f"  CV: {cv_score:.4f}, Test: {test_score:.4f}, Gap: {gap:.4f}, Problematic folds: {problematic_folds}")
                 
             except Exception as e:
                 print(f"  Error: {e}")
@@ -341,23 +513,28 @@ class FeatureMapsLinearProber:
     
     def _save_consolidated_results(self, all_results: Dict, total_time: float) -> None:
         """
-        Save consolidated results to main directory.
+        Save consolidated results with investigation analysis to main directory.
         
         Args:
             all_results (Dict): All classification results
             total_time (float): Total execution time
         """
-        consolidated_file = self.features_base_path / "feature_maps_classification_results.json"
+        consolidated_file = self.features_base_path / "giant_pooling_classification_results.json"
+        
+        # Generate investigation summary
+        investigation_summary = self._generate_investigation_summary(all_results)
         
         summary = {
             'experiment_info': {
-                'pipeline': 'Feature Maps and 2.5D Classification',
-                'model': 'DINOv2 Large (vitl14)',
+                'pipeline': 'DINOv2 Giant Pooling Classification with CV Investigation',
+                'model': 'DINOv2 Giant (vitg14)',
                 'classifier': 'Logistic Regression',
                 'total_runtime': total_time,
-                'timestamp': time.strftime('%Y-%m-%d %H:%M:%S')
+                'timestamp': time.strftime('%Y-%m-%d %H:%M:%S'),
+                'investigation_enabled': self.investigation_config.get('enabled', False)
             },
-            'results': all_results
+            'results': all_results,
+            'investigation_analysis': investigation_summary
         }
         
         with open(consolidated_file, 'w') as f:
@@ -380,24 +557,24 @@ def load_yaml_config(config_path: str) -> Dict[str, Any]:
 
 def main():
     """
-    Main entry point for Feature Maps and 2.5D classification pipeline.
+    Main entry point for DINOv2 Giant pooling classification pipeline with investigation.
     """
     parser = argparse.ArgumentParser(
-        description="Feature Maps and 2.5D Classification Pipeline"
+        description="DINOv2 Giant Pooling Classification Pipeline with CV Investigation"
     )
     
     parser.add_argument(
         "--config",
         type=str,
-        default="dinov2_variantes/feature_map_25d/classification_featuremaps.yaml",
+        default="dinov2_variantes/feature_map_25d/classification_giant_pooling.yaml",
         help="Path to YAML configuration file"
     )
     
     parser.add_argument(
         "--features-path",
         type=str,
-        default="feature_extraction_variantes",
-        help="Path to feature_extraction_variantes directory"
+        default="feature_extraction_variantes_giant",
+        help="Path to feature_extraction_variantes_giant directory"
     )
     
     args = parser.parse_args()
@@ -414,13 +591,15 @@ def main():
         print(f"Features directory not found: {features_path}")
         sys.exit(1)
     
-    print("Feature Maps and 2.5D Classification Pipeline")
+    print("DINOv2 Giant Pooling Classification Pipeline with CV Investigation")
     print(f"Features path: {features_path}")
     print(f"Configuration: {config_path}")
+    print(f"Investigation enabled: {config.get('investigation', {}).get('enabled', False)}")
     
     try:
-        prober = FeatureMapsLinearProber(
+        prober = GiantPoolingLinearProber(
             str(features_path),
+            investigation_config=config.get('investigation', {}),
             random_state=config.get('random_state', 42),
             n_jobs=config.get('n_jobs', -1)
         )
@@ -431,13 +610,14 @@ def main():
         )
         
         if results:
-            print("Results Summary:")
+            print("\nResults Summary:")
             for variant_name, variant_results in results.items():
                 print(f"{variant_name}:")
                 for pca_mode, result in variant_results.items():
                     cv_score = result['best_cv_score']
                     test_score = result['test_metrics']['roc_auc_weighted']
-                    print(f"  {pca_mode}: CV={cv_score:.4f}, Test={test_score:.4f}")
+                    gap = result['cv_detailed_analysis']['test_vs_cv_gap']
+                    print(f"  {pca_mode}: CV={cv_score:.4f}, Test={test_score:.4f}, Gap={gap:.4f}")
         
     except Exception as e:
         print(f"Pipeline failed: {e}")

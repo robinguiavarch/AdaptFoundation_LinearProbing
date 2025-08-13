@@ -1,0 +1,36 @@
+# Scatter Depth Configuration
+# ===========================
+
+dataset:
+  name: "HCP_OFC"
+  data_path: "crops/2mm/S.Or."
+  subject_idx: 0
+
+camera:
+  position: [80, 80, 80]
+  target: null
+  up_vector: [0, 0, 1]
+
+rendering:
+  method: "scatter"
+  point_size: 2
+
+alpha:
+  type: "adaptive"         # Alpha based on Z_camera depth
+  range: [0.3, 0.9]        # Near objects more opaque, far objects transparent
+
+colormap:
+  type: "depth"            # Color based on Z_camera depth
+  name: "turbo"            # High contrast for depth perception
+  
+lighting:
+  shade: true
+  eye_dome_lighting: true
+  ambient: 0.2
+  diffuse: 0.7
+  specular: 0.3
+
+output:
+  resolution: [224, 224]
+  filename: "scatter_depth_test.png"
+  save_path: "preprocess_outputs"

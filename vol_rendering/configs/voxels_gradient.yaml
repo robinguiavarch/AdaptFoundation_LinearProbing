@@ -1,0 +1,37 @@
+# Voxels Gradient Configuration
+# =============================
+
+dataset:
+  name: "HCP_OFC"
+  data_path: "crops/2mm/S.Or."
+  subject_idx: 0
+
+camera:
+  position: [80, 80, 80]
+  target: null
+  up_vector: [0, 0, 1]
+
+rendering:
+  method: "voxels"
+  point_size: 2  # Not used for voxels
+
+alpha:
+  type: "gradient"         # Linear gradient alpha
+  range: [0.15, 0.8]       # Low to high transparency
+  steps: 256               # Smooth gradient
+
+colormap:
+  type: "standard"         # Standard colormap
+  name: "viridis"          # Scientific colormap
+  
+lighting:
+  shade: true
+  eye_dome_lighting: true
+  ambient: 0.2
+  diffuse: 0.7
+  specular: 0.3
+
+output:
+  resolution: [224, 224]
+  filename: "voxels_gradient_test.png"
+  save_path: "preprocess_outputs"

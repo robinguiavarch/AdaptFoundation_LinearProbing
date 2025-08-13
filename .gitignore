@@ -37,8 +37,10 @@ ENV/
 feature_extracted/
 feature_extracted_concat/
 feature_extracted_sam3d/
+feature_extracted_fip_dinov2/
 ckpt/
 feature_extraction_variantes/
+feature_extraction_variantes_giant/
 feature_extraction_density/
 density/unlabeled_skeletons_128.npy
 dinov2_variantes/method_25d_cls/method_25d_cls_features/

@@ -2,92 +2,96 @@
 #SBATCH --job-name=test_pointm2ae
 #SBATCH --output=logs/test_pointm2ae_%j.out
 #SBATCH --error=logs/test_pointm2ae_%j.err
-#SBATCH --partition=P100
+#SBATCH --partition=A100
 #SBATCH --gres=gpu:1
-#SBATCH --cpus-per-task=4
-#SBATCH --mem=10G
-#SBATCH --time=00:45:00  # Plus de temps pour installations
+#SBATCH --cpus-per-task=6
+#SBATCH --mem=12G
+#SBATCH --time=01:30:00
 
+echo "========== Point-M2AE GPU TEST =========="
+echo "Node: $(hostname)   Date: $(date)"
 echo "=========================================="
-echo "TEST Point-M2AE Feature Extractor"
-echo "=========================================="
-echo "Job started at: $(date)"
-echo "Node: $(hostname)"
-echo "Working dir: $(pwd)"
 
-# Step 1. Export CUDA 12.2 manually
-CUDA_DIR="/usr/local/cuda-12.2"
+#################### 1. CUDA 12.2 ##############################################
+export CUDA_DIR="/usr/local/cuda-12.2"
 export PATH="$CUDA_DIR/bin:$PATH"
 export LD_LIBRARY_PATH="$CUDA_DIR/lib64:$LD_LIBRARY_PATH"
-export CUDA_HOME="$CUDA_DIR"
-echo "✅ CUDA 12.2 paths exported"
+nvcc --version || { echo "nvcc not found !!!"; exit 1; }
+################################################################################
 
-# Step 2. Check nvcc and GPU
-nvcc --version || { echo "❌ nvcc not found"; exit 1; }
-nvidia-smi
-
-# Step 3. Activer conda adaptfoundation
+#################### 2. Conda ###################################################
 eval "$(conda shell.bash hook)"
-conda activate adaptfoundation
-echo "✅ Conda environment activé"
+conda activate adaptfoundation || { echo "conda env !!!!"; exit 1; }
 
-# Step 4. Aller dans le dossier racine du test
-cd ~/adaptfoundation_linearprobing/point_m2ae/
+echo "—— Conda debug ————————————————"
+echo "   • which python  : $(which python)"
+echo "   • python -V     : $(python -V)"
+python - <<'PY'
+import torch, sys, os
+print(f"   • torch.__version__ : {torch.__version__}")
+print(f"   • torch.version.cuda: {torch.version.cuda}")
+print(f"   • sys.path[0]       : {sys.path[0]}")
+print(f"   • torch.cuda.is_available(): {torch.cuda.is_available()}")
+PY
+echo "———————————————————————————————"
 
-# Step 5. Installer extensions GPU (dans l'ordre)
-echo "🔧 Installation extensions GPU..."
+# — chemin libs PyTorch —
+TORCH_LIB="$CONDA_PREFIX/lib/python$(python - <<'PY'
+import sys; print(f"{sys.version_info[0]}.{sys.version_info[1]}")
+PY
+)/site-packages/torch/lib"
 
-# 5.1. Chamfer Distance
-echo "📦 Vérification chamfer..."
-python -c "import chamfer" 2>/dev/null
-if [ $? -ne 0 ]; then
-    echo "⚠️ Installation chamfer_dist..."
-    cd ./Point-M2AE/extensions/chamfer_dist
-    python setup.py install || { echo "❌ Échec chamfer_dist"; exit 1; }
-    cd ../../../
-    echo "✅ chamfer_dist installé"
-else
-    echo "✅ chamfer déjà installé"
-fi
+export LD_LIBRARY_PATH="$TORCH_LIB:$CONDA_PREFIX/lib:$LD_LIBRARY_PATH"
+echo "🔗 LD_LIBRARY_PATH += $TORCH_LIB"
 
-# 5.2. PointNet++
-echo "📦 Vérification pointnet2_ops..."
-python -c "import pointnet2_ops" 2>/dev/null
-if [ $? -ne 0 ]; then
-    echo "⚠️ Installation PointNet++..."
-    pip install "git+https://github.com/erikwijmans/Pointnet2_PyTorch.git#egg=pointnet2_ops&subdirectory=pointnet2_ops_lib" || { echo "❌ Échec PointNet++"; exit 1; }
-    echo "✅ PointNet++ installé"
-else
-    echo "✅ pointnet2_ops déjà installé"
-fi
+# Petit contrôle que les .so existent vraiment
+echo "—— Contenu de torch/lib —————————"
+ls -1 "$TORCH_LIB" | head
+echo "———————————————————————————————"
+################################################################################
 
-# 5.3. KNN-CUDA  
-echo "📦 Vérification knn_cuda..."
-python -c "import knn_cuda" 2>/dev/null
-if [ $? -ne 0 ]; then
-    echo "⚠️ Installation KNN-CUDA..."
-    pip install --upgrade https://github.com/unlimblue/KNN_CUDA/releases/download/0.2/KNN_CUDA-0.2-py3.10-linux-x86_64.whl || { echo "❌ Échec KNN-CUDA"; exit 1; }
-    echo "✅ KNN-CUDA installé"
-else
-    echo "✅ knn_cuda déjà installé"
-fi
+#################### 3. Projet & PYTHONPATH ####################################
+cd ~/adaptfoundation_linearprobing/point_m2ae || exit 1
+export PYTHONPATH="$(pwd)/Point-M2AE:$(pwd):$PYTHONPATH"
+################################################################################
 
-# Step 6. Test final imports
-echo "🧪 Test imports Point-M2AE..."
-python -c "
-try:
-    import chamfer
-    import pointnet2_ops  
-    import knn_cuda
-    print('✅ Toutes les extensions GPU disponibles')
-except ImportError as e:
-    print(f'❌ Import manquant: {e}')
-    exit(1)
-"
+#################### 4. Extensions GPU #########################################
+python - <<'PY'
+import importlib, subprocess, os, sys, textwrap, shutil, pathlib
 
-# Step 7. Lancer le test principal
-echo "🚀 Lancement de test_model.py"
-export PYTHONPATH=$(pwd)/Point-M2AE:$PYTHONPATH
-python test_model.py || { echo "❌ test_model.py a échoué"; exit 1; }
+def ensure(mod, cmd):
+    try:
+        importlib.import_module(mod)
+        print(f"✅ {mod} OK")
+    except ImportError:
+        print(f"🚧 build {mod} …")
+        subprocess.check_call(cmd, shell=True, executable="/bin/bash")
+        importlib.import_module(mod)
+        print(f"✅ {mod} compiled")
 
-echo "✅ Test terminé à $(date)"
+# 4-1 : chamfer (déjà présent ? sinon compile)
+ensure(
+    "chamfer",
+    "cd Point-M2AE/extensions/chamfer_dist && python setup.py install && cd -"
+)
+
+# 4-2 : pointnet2_ops (FPS / ball query) – compile pour A100
+ensure(
+    "pointnet2_ops",
+    "git clone --depth 1 https://github.com/erikwijmans/Pointnet2_PyTorch.git /tmp/pn2 && "
+    "cd /tmp/pn2/pointnet2_ops_lib && python setup.py install && cd -"
+)
+
+# 4-3 : knn_cuda – compile depuis la source
+ensure(
+    "knn_cuda",
+    "git clone --depth 1 https://github.com/unlimblue/KNN_CUDA.git /tmp/knn && "
+    "cd /tmp/knn && sed -i 's/-std=c++11/-std=c++17/' setup.py && python setup.py install && cd -"
+)
+PY
+################################################################################
+
+#################### 5. Test Point-M2AE ########################################
+echo "🚀 running test_model.py"
+python test_model.py && echo "🎉  SUCCESS – features OK"
+################################################################################
