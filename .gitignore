@@ -49,6 +49,11 @@ point_m2ae/ckpt/
 point_m2ae/Point-M2AE/
 jobs/
 logs/
+crops/
+
+sam3d_variantes/turbo_with_density/flatten_baseline/
+sam3d_variantes/turbo_with_density/flatten_linear_weighting/
+sam3d_variantes/turbo_with_density/flatten_masking/
 
 # Backup environment files
 backup_env_*/
