@@ -1,0 +1,9 @@
+model,variant,config,aggregation_method,use_25d,pca_mode,classifier,best_params,test_roc_auc,cv_roc_auc,overfitting_gap,feature_dim,convergence_ok,cv_stability,strategy,task
+dinov2_vitg14,pooling_spatial_without_25d,pooling_standard,pooling,False,32,logistic,"{'C': 0.001, 'l1_ratio': 0.0}",0.4327009936766034,0.5758651911825124,0.15386872291333487,32,False,0.060406781813539416,lc_pooling,Right_PCS_binary
+dinov2_vitg14,pooling_spatial_without_25d,pooling_standard,pooling,False,256,logistic,"{'C': 1.0, 'l1_ratio': 1.0}",0.4598012646793134,0.5845915944154023,0.4154084055845977,256,False,0.05275535561682416,lc_pooling,Right_PCS_binary
+dinov2_vitg14,pooling_spatial_without_25d,pooling_standard,pooling,False,95,logistic,"{'C': 0.001, 'l1_ratio': 0.0}",0.43631436314363137,0.5668926820802698,0.2152136278492095,79,False,0.048566497109864326,lc_pooling,Right_PCS_binary
+dinov2_vitg14,pooling_spatial_without_25d,pooling_standard,pooling,False,99,logistic,"{'C': 0.001, 'l1_ratio': 0.0}",0.43812104787714545,0.5671622430475867,0.2730952234662538,206,False,0.05161636604085462,lc_pooling,Right_PCS_binary
+dinov2_vitg14,pooling_spatial_with_25d,pooling_25d,pooling,True,32,logistic,"{'C': 0.001, 'l1_ratio': 0.3}",0.5,0.5,0.0,32,False,0.0,lc_pooling,Right_PCS_binary
+dinov2_vitg14,pooling_spatial_with_25d,pooling_25d,pooling,True,256,logistic,"{'C': 0.001, 'l1_ratio': 0.3}",0.5,0.5,0.0,256,False,0.0,lc_pooling,Right_PCS_binary
+dinov2_vitg14,pooling_spatial_with_25d,pooling_25d,pooling,True,95,logistic,"{'C': 0.001, 'l1_ratio': 0.3}",0.5,0.5,0.0,137,False,0.0,lc_pooling,Right_PCS_binary
+dinov2_vitg14,pooling_spatial_with_25d,pooling_25d,pooling,True,99,logistic,"{'C': 0.001, 'l1_ratio': 0.3}",0.5,0.5,0.0,236,False,0.0,lc_pooling,Right_PCS_binary

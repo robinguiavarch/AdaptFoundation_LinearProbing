@@ -59,6 +59,8 @@ sam3d_variantes/turbo_with_density/flatten_baseline/
 sam3d_variantes/turbo_with_density/flatten_linear_weighting/
 sam3d_variantes/turbo_with_density/flatten_masking/
 
+density_ofc/
+
 # Backup environment files
 backup_env_*/
 
