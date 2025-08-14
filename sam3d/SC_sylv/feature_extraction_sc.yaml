@@ -1,0 +1,70 @@
+# SAM-Med3D Feature Extraction Configuration for S.C.-sylv Dataset
+# AdaptFoundation Project - Standard flatten aggregation for regression task
+
+# Model configuration
+model:
+  name: "sam_med3d_turbo"
+  type: "vit_b_ori"  # 768D internal, 384 output channels, 8³ grid
+  checkpoint_path: "ckpt/sam_med3d_turbo.pth"
+  
+# Processing configuration  
+processing:
+  input_size: [128, 128, 128]  # Mandatory for SAM-Med3D
+  batch_size: 8               # Optimized for GPU A100
+  device: "auto"              # auto-detect CUDA/CPU
+  
+# Data configuration - S.C.-sylv specific paths
+data:
+  dataset_path: "crops/2mm/S.C.-sylv."  # S.C.-sylv dataset path from project root
+  output_base_path: "feature_extraction_sam3d_sc"
+
+# Required aggregation configs for SAMMed3DFeatureExtractor compatibility
+aggregation_configs:
+  flatten:
+    description: "Standard flatten spatial features to 1D vector"
+    output_dim: 196608  # 384 * 8 * 8 * 8
+    pca_required: true
+    preserves_spatial: false
+    memory_efficient: false  # High memory usage due to full spatial preservation
+    recommended_for: "Maximum spatial information preservation for regression"
+    recommended_pca_dims: [32, 256, "95%", "99.5%"]
+
+# Default aggregation method
+default_config: "flatten"
+
+# Approach configuration - single flatten method
+approach:
+  name: "flatten"
+  description: "Standard SAM-Med3D flatten aggregation for S.C.-sylv regression"
+  expected_output_dim: 196608  # Fixed dimension
+  uses_density: false
+  task_type: "regression"
+
+# Hardware optimization
+hardware:
+  gpu_memory_gb: 40      # A100 GPU memory
+  cpu_cores: 32
+  max_parallel_workers: 4
+
+# Quality assurance
+validation:
+  check_input_size: true
+  validate_features: true
+  feature_range_check: true
+  
+# Dataset-specific information
+dataset_info:
+  name: "S.C.-sylv"
+  task: "regression"
+  hemisphere: "left"
+  subjects_total: 1114
+  subjects_labeled: 883
+  volume_dimensions: [38, 36, 49]
+  density_mean: 0.0193
+  splits: 5
+  
+# Compatibility settings
+compatibility:
+  sam3d_format: true            # Compatible with SAM-Med3D pipeline
+  pca_pipeline: true            # Compatible with PCA reduction scripts
+  regression_pipeline: true    # Compatible with linear probing regression scripts

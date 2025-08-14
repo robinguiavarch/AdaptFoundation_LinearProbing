@@ -1,0 +1,169 @@
+# Regression Configuration for SC_sylv 6D Regression with CV Investigation
+# ==========================================================================
+
+# Experiment Information
+experiment:
+  name: "SC_sylv 6D Regression with CV Investigation"
+  model: "SAM-Med3D turbo (vit_b_ori)"
+  task: "HCP SC_sylv Isomap 6D regression"
+  total_combinations: 4               # 1 variant × 4 PCA modes
+  investigation_focus: "Analyze Test vs CV R² score discrepancy for SC_sylv"
+  
+# Expected Variants (automatically detected)
+variants:
+  - flatten                          # SAM-Med3D flatten aggregation
+
+# Expected PCA Modes (automatically detected)
+pca_modes:
+  - "32"                             # PCA 32D
+  - "256"                            # PCA 256D
+  - "95"                             # PCA 95% variance
+  - "99"                             # PCA 99% variance
+
+# Available Combinations
+available_combinations:
+  flatten: ["32", "256", "95", "99"]                               # 4 combinations
+  # Total: 4 combinations
+
+# Investigation Configuration
+investigation:
+  enabled: true                       # Enable detailed analysis
+  save_cv_results: true              # Save complete cv_results_
+  detailed_fold_analysis: true       # Per-fold analysis
+  test_vs_cv_comparison: true        # Compare Test vs CV scores
+  outlier_detection_threshold: 0.05  # Threshold for problematic folds
+
+# Regressor Configuration (ElasticNet Only)
+regressor_config:
+  elasticnet:
+    # Model parameters
+    max_iter: 10000                   # High limit for convergence
+    
+    # Hyperparameter grid for GridSearchCV (identical to tutor)
+    l1_ratio: [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]  # L1/L2 mix
+    alpha: [0.001, 0.01, 0.1, 1.0, 10.0, 100.0, 1000.0]                 # Regularization strength
+
+# Cross-Validation Configuration
+cross_validation:
+  method: "LeaveOneGroupOut"          # Respects pre-stratified splits
+  scoring: "r2"                       # R² for regression
+  return_train_score: true            # Required for investigation analysis
+  
+# Output Configuration
+output:
+  save_individual: true               # Save per-variant results
+  save_consolidated: true             # Save summary results
+  include_timing: true                # Track execution times
+  include_diagnostics: true           # Overfitting/convergence analysis
+  save_cv_results_detailed: true     # Save complete cv_results_
+  investigation_mode: true            # Enable investigation features
+
+# Processing Configuration
+processing:
+  random_state: 42                    # For reproducibility
+  n_jobs: -1                         # Use all available cores
+  verbose: true                      # Detailed progress output
+
+# Validation Configuration  
+validation:
+  check_required_files: true         # Verify files exist before running
+  skip_missing_gracefully: true      # Continue even if some combinations missing
+  required_files_per_combination:
+    - "train_val_split_0_features.npy"
+    - "train_val_split_0_metadata.csv"
+    - "train_val_split_1_features.npy" 
+    - "train_val_split_1_metadata.csv"
+    - "train_val_split_2_features.npy"
+    - "train_val_split_2_metadata.csv"
+    - "train_val_split_3_features.npy"
+    - "train_val_split_3_metadata.csv"
+    - "train_val_split_4_features.npy"
+    - "train_val_split_4_metadata.csv"
+    - "test_split_features.npy"
+    - "test_split_metadata.csv"
+
+# Expected Results Structure
+expected_results:
+  metrics:
+    primary: "r2"                     # Main comparison metric for regression
+    secondary: "mean_absolute_error"   # Additional metric
+    investigation_metrics:            # Investigation-specific metrics
+      - "fold_test_scores"
+      - "fold_train_scores" 
+      - "test_vs_cv_gap"
+      - "fold_variance"
+      - "problematic_folds"
+      - "dimension_wise_performance"
+    
+  diagnostics:
+    overfitting_analysis: true        # Train vs validation gap
+    convergence_check: true           # Check if optimization converged
+    cv_stability: true                # Cross-validation consistency
+    fold_level_analysis: true         # Per-fold performance analysis
+    dimension_level_analysis: true    # Per-dimension performance analysis
+    outlier_fold_detection: true      # Identify problematic folds
+    
+  comparisons:
+    pca_variance_analysis: "Compare 95% vs 99% variance retention"
+    dimensionality_analysis: "Compare 32D vs 256D vs adaptive dimensions"
+    test_vs_cv_investigation: "Analyze Test R² vs CV R² patterns"
+    dimension_difficulty: "Identify most/least predictable Isomap dimensions"
+    sam3d_performance: "Evaluate SAM-Med3D flatten aggregation effectiveness"
+
+# Performance Expectations
+performance:
+  estimated_runtime: "15-20 minutes"  # For 4 combinations × 6 dimensions with investigation
+  memory_usage: "< 8 GB"              # Features already PCA-reduced
+  bottleneck: "GridSearchCV"          # Hyperparameter optimization
+  
+# Success Criteria
+success_criteria:
+  - "4 combinations evaluated successfully"
+  - "R² scores computed for each combination and dimension"
+  - "Complete cv_results_ saved for each combination and dimension"
+  - "Fold-level analysis completed"
+  - "Test vs CV discrepancy investigated"
+  - "Convergence achieved for all models"
+  - "Investigation files generated"
+  - "6D regression results aggregated properly"
+
+# SC_sylv Dataset Specifics
+sc_dataset_info:
+  task_type: "Regression"             # 6D Isomap regression
+  subjects_total: 883                 # Labeled SC subjects
+  subjects_splits:
+    train_val_folds: 707              # Subjects across 5 train/val folds
+    test_split: 176                   # Subjects in test split
+  volume_shape: [38, 36, 49]          # SC specific dimensions
+  target_labels:
+    - "Isomap_central_left_dim1"
+    - "Isomap_central_left_dim2"
+    - "Isomap_central_left_dim3"
+    - "Isomap_central_left_dim4"
+    - "Isomap_central_left_dim5"
+    - "Isomap_central_left_dim6"
+  n_targets: 6                        # 6D regression targets
+  stratification: "Pre-stratified 5-fold CV preserved with LeaveOneGroupOut"
+  hemisphere: "Left"                  # Left hemisphere analysis
+  density_average: "1.93%"            # Average voxel density
+  evaluation_metric: "R² (regression)"
+
+# Notes
+notes:
+  focus: "SC_sylv 6D regression with comprehensive CV investigation"
+  innovation: "First systematic SAM-Med3D evaluation on SC_sylv with dimension-level analysis"
+  investigation: "Detailed analysis of Test vs CV R² phenomenon for regression"
+  stratification_critical: "Must preserve pre-stratified folds using LeaveOneGroupOut"
+  metric_adaptation: "R² for regression"
+  loader_specificity: "Uses SCDataLoader with 6D Isomap label parsing"
+  regression_specificity: "Separate ElasticNet training for each of 6 dimensions"
+  hyperparameter_grid: "Identical to tutor's grid (l1_ratio linspace + alpha powers of 10)"
+  sam3d_specificity: "SAM-Med3D flatten aggregation without spatial variants"
+  next_steps:
+    - "Analyze dimension-wise performance patterns"
+    - "Identify root cause of Test vs CV discrepancy for regression"
+    - "Evaluate SAM-Med3D flatten aggregation effectiveness on SC"
+    - "Evaluate optimal PCA variance threshold for SC_sylv"
+    - "Identify most/least predictable Isomap dimensions"
+    - "Compare SAM-Med3D vs DINOv2 performance on SC_sylv"
+    - "Generate comprehensive regression investigation report"

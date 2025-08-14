@@ -1,0 +1,129 @@
+# PCA Dimensionality Reduction Configuration for S.C.-sylv Dataset
+# AdaptFoundation Project - PCA reduction for SAM-Med3D features from S.C.-sylv dataset
+# =================================================================================
+
+# Configuration to Apply PCA (single flatten approach)
+configurations:
+  - flatten  # Standard flatten aggregation from feature extraction
+
+# PCA Reduction Modes - 4 modes for comprehensive analysis
+pca_modes:
+  # Fixed component modes
+  - mode: "fixed"
+    n_components: 32
+    description: "PCA 32D (Champollion V1 comparison baseline)"
+    
+  - mode: "fixed"
+    n_components: 256
+    description: "PCA 256D (High dimensionality baseline)"
+    
+  # Variance-based modes
+  - mode: "variance"
+    variance_threshold: 0.95
+    description: "PCA 95% variance (standard preservation)"
+    
+  - mode: "variance"
+    variance_threshold: 0.995
+    description: "PCA 99.5% variance (high preservation)"
+
+# Data Configuration - S.C.-sylv specific paths
+data:
+  features_base_path: "feature_extraction_sam3d_sc"  # S.C.-sylv features directory
+  
+# Processing Configuration
+processing:
+  sequential_configs: true       # Process single flatten configuration
+  skip_existing: false          # Re-process even if PCA files exist
+  detailed_logging: true        # Detailed progress output
+  
+# Validation and Quality Control
+validation:
+  check_feature_files: true     # Verify source feature files exist
+  validate_dimensions: true     # Check expected input/output dimensions
+  save_metadata: true          # Save detailed PCA metadata
+  
+# Output Configuration
+output:
+  save_individual: true        # Save PCA files in individual directories
+  save_summary: true          # Save processing summary
+  preserve_structure: true    # Maintain flatten/PCA_{mode} structure
+
+# Advanced Configuration
+advanced:
+  # Memory optimization for S.C.-sylv dataset (883 subjects)
+  batch_processing: true       # Process in batches for memory efficiency
+  cleanup_intermediate: false  # Keep intermediate files for analysis
+  
+  # S.C.-sylv specific settings
+  handle_fixed_dimensions: true    # S.C.-sylv has fixed 196608D input
+  preserve_metadata: true         # Keep S.C.-sylv dataset information
+
+# Expected Input Dimensions - S.C.-sylv specific
+expected_input_dimensions:
+  flatten: 196608  # Standard SAM-Med3D flatten: 384 * 8^3
+
+# PCA Requirements for S.C.-sylv
+pca_requirements:
+  flatten:
+    pca_required: true
+    reason: "196608D too high-dimensional for regression"
+    recommended_modes: ["32", "256", "95%", "99.5%"]
+    priority: "MANDATORY - Dimensionality reduction for regression"
+    input_dimension: 196608
+    fixed_dimension: true
+
+# Dataset Strategy Notes
+dataset_strategy:
+  target_task: "S.C.-sylv regression"
+  baseline_approach: "Standard SAM-Med3D flatten aggregation"
+  dimensionality_reduction: "All modes → 32D, 256D, 95%, 99.5% for regression pipeline"
+  subjects: "883 labeled subjects from 1114 total"
+  evaluation_metric: "R² for regression"
+  
+# Processing Order
+processing_order:
+  - flatten  # Single configuration to process
+
+# S.C.-sylv Dataset Information
+dataset_info:
+  name: "S.C.-sylv"
+  full_name: "Sulcus Central - Sillon Sylvien"
+  task_type: "regression"
+  hemisphere: "left"
+  volume_dimensions: [38, 36, 49]
+  subjects_labeled: 883
+  subjects_total: 1114
+  density_mean: 0.0193
+  label_distribution: "continuous_6D"
+
+# Expected Output Structure
+output_structure:
+  base_path: "feature_extraction_sam3d_sc/flatten/"
+  subdirectories:
+    - "PCA_32/"     # 32 components
+    - "PCA_256/"    # 256 components  
+    - "PCA_95/"     # 95% variance
+    - "PCA_995/"    # 99.5% variance
+  files_per_directory:
+    - "test_split_features.npy"
+    - "test_split_metadata.csv"
+    - "train_val_split_0_features.npy"
+    - "train_val_split_0_metadata.csv"
+    - "train_val_split_1_features.npy"
+    - "train_val_split_1_metadata.csv"
+    - "train_val_split_2_features.npy"
+    - "train_val_split_2_metadata.csv"
+    - "train_val_split_3_features.npy"
+    - "train_val_split_3_metadata.csv"
+    - "train_val_split_4_features.npy"
+    - "train_val_split_4_metadata.csv"
+    - "pca_metadata.json"
+
+# Notes for S.C.-sylv PCA Strategy
+notes:
+  standard_sam3d: "Standard SAM-Med3D flatten without density optimization"
+  fixed_dimensions: "All features have consistent 196608D input dimension"
+  four_pca_modes: "Comprehensive dimensionality reduction for regression analysis"
+  memory_efficient: "883 subjects manageable for all PCA modes"
+  evaluation_ready: "Results ready for linear probing regression"
+  comparison_baseline: "Establishes baseline for other datasets (F.I.P., LARGE_CINGULATE)"

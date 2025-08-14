@@ -1,0 +1,159 @@
+# Classification Configuration for LARGE_CINGULATE Binary Classification with CV Investigation
+# ========================================================================================
+
+# Experiment Information
+experiment:
+  name: "LARGE_CINGULATE Binary Classification with CV Investigation"
+  model: "SAM-Med3D turbo (vit_b_ori)"
+  task: "HCP LARGE_CINGULATE Right_PCS binary classification"
+  total_combinations: 4               # 1 variant × 4 PCA modes
+  investigation_focus: "Analyze Test vs CV score discrepancy for LARGE_CINGULATE"
+  
+# Expected Variants (automatically detected)
+variants:
+  - flatten                          # SAM-Med3D flatten aggregation
+
+# Expected PCA Modes (automatically detected)
+pca_modes:
+  - "32"                             # PCA 32D
+  - "256"                            # PCA 256D
+  - "95"                             # PCA 95% variance
+  - "99"                             # PCA 99% variance
+
+# Available Combinations
+available_combinations:
+  flatten: ["32", "256", "95", "99"]                               # 4 combinations
+  # Total: 4 combinations
+
+# Investigation Configuration
+investigation:
+  enabled: true                       # Enable detailed analysis
+  save_cv_results: true              # Save complete cv_results_
+  detailed_fold_analysis: true       # Per-fold analysis
+  test_vs_cv_comparison: true        # Compare Test vs CV scores
+  outlier_detection_threshold: 0.05  # Threshold for problematic folds
+
+# Classifier Configuration (Logistic Regression Only)
+classifier_config:
+  logistic:
+    # Model parameters
+    solver: "saga"                    # Supports elasticnet penalty
+    penalty: "elasticnet"             # L1 + L2 regularization
+    max_iter: 20000                   # High limit for convergence
+    
+    # Hyperparameter grid for GridSearchCV
+    l1_ratio: [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]  # L1/L2 mix
+    C: [0.001, 0.01, 0.1, 1.0, 10.0, 100.0, 1000.0]                     # Regularization strength
+
+# Cross-Validation Configuration
+cross_validation:
+  method: "LeaveOneGroupOut"          # Respects pre-stratified splits
+  scoring: "roc_auc"                  # Binary ROC-AUC
+  return_train_score: true            # Required for investigation analysis
+  
+# Output Configuration
+output:
+  save_individual: true               # Save per-variant results
+  save_consolidated: true             # Save summary results
+  include_timing: true                # Track execution times
+  include_diagnostics: true           # Overfitting/convergence analysis
+  save_cv_results_detailed: true     # Save complete cv_results_
+  investigation_mode: true            # Enable investigation features
+
+# Processing Configuration
+processing:
+  random_state: 42                    # For reproducibility
+  n_jobs: -1                         # Use all available cores
+  verbose: true                      # Detailed progress output
+
+# Validation Configuration  
+validation:
+  check_required_files: true         # Verify files exist before running
+  skip_missing_gracefully: true      # Continue even if some combinations missing
+  required_files_per_combination:
+    - "train_val_split_0_features.npy"
+    - "train_val_split_0_metadata.csv"
+    - "train_val_split_1_features.npy" 
+    - "train_val_split_1_metadata.csv"
+    - "train_val_split_2_features.npy"
+    - "train_val_split_2_metadata.csv"
+    - "train_val_split_3_features.npy"
+    - "train_val_split_3_metadata.csv"
+    - "train_val_split_4_features.npy"
+    - "train_val_split_4_metadata.csv"
+    - "test_split_features.npy"
+    - "test_split_metadata.csv"
+
+# Expected Results Structure
+expected_results:
+  metrics:
+    primary: "roc_auc"                # Main comparison metric for binary classification
+    secondary: "accuracy"             # Additional metric
+    investigation_metrics:            # Investigation-specific metrics
+      - "fold_test_scores"
+      - "fold_train_scores" 
+      - "test_vs_cv_gap"
+      - "fold_variance"
+      - "problematic_folds"
+    
+  diagnostics:
+    overfitting_analysis: true        # Train vs validation gap
+    convergence_check: true           # Check if optimization converged
+    cv_stability: true                # Cross-validation consistency
+    fold_level_analysis: true         # Per-fold performance analysis
+    outlier_fold_detection: true      # Identify problematic folds
+    
+  comparisons:
+    pca_variance_analysis: "Compare 95% vs 99% variance retention"
+    dimensionality_analysis: "Compare 32D vs 256D vs adaptive dimensions"
+    test_vs_cv_investigation: "Analyze Test score vs CV score patterns"
+    sam3d_performance: "Evaluate SAM-Med3D flatten aggregation effectiveness"
+
+# Performance Expectations
+performance:
+  estimated_runtime: "6-10 minutes"   # For 4 combinations with investigation
+  memory_usage: "< 8 GB"              # Features already PCA-reduced
+  bottleneck: "GridSearchCV"          # Hyperparameter optimization
+  
+# Success Criteria
+success_criteria:
+  - "4 combinations evaluated successfully"
+  - "ROC-AUC scores computed for each combination"
+  - "Complete cv_results_ saved for each combination"
+  - "Fold-level analysis completed"
+  - "Test vs CV discrepancy investigated"
+  - "Convergence achieved for all models"
+  - "Investigation files generated"
+
+# LARGE_CINGULATE Dataset Specifics
+lc_dataset_info:
+  task_type: "Binary classification"    # Right_PCS (absent/present → 0/1)
+  subjects_total: 341                   # Labeled LC subjects
+  subjects_splits:
+    train_val_folds: 273                # Subjects across 5 train/val folds
+    test_split: 68                      # Subjects in test split
+  volume_shape: [18, 73, 57]           # LC specific dimensions
+  class_distribution:
+    absent: "TBD"                       # Class 0 (Right_PCS = absent)
+    present: "TBD"                      # Class 1 (Right_PCS = present)
+  stratification: "Pre-stratified 5-fold CV preserved with LeaveOneGroupOut"
+  hemisphere: "Right"                   # Right hemisphere analysis
+  density_average: "2.17%"             # Average voxel density
+  evaluation_metric: "ROC-AUC (binary classification)"
+
+# Notes
+notes:
+  focus: "LARGE_CINGULATE binary classification with comprehensive CV investigation"
+  innovation: "First systematic SAM-Med3D evaluation on LARGE_CINGULATE with fold-level analysis"
+  investigation: "Detailed analysis of Test vs CV score phenomenon for LARGE_CINGULATE"
+  stratification_critical: "Must preserve pre-stratified folds using LeaveOneGroupOut"
+  metric_adaptation: "Binary ROC-AUC for Right_PCS classification"
+  sam3d_specificity: "SAM-Med3D flatten aggregation without spatial variants"
+  loader_specificity: "Uses LCDataLoader with long_name mapping and absent/present conversion"
+  next_steps:
+    - "Analyze fold-level performance patterns"
+    - "Identify root cause of Test vs CV discrepancy"
+    - "Evaluate SAM-Med3D flatten aggregation effectiveness on LC"
+    - "Evaluate optimal PCA variance threshold for LARGE_CINGULATE"
+    - "Compare SAM-Med3D vs DINOv2 performance on LARGE_CINGULATE"
+    - "Generate comprehensive investigation report"
