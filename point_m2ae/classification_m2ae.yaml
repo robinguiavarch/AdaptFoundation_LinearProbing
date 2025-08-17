@@ -1,0 +1,205 @@
+# Classification Configuration for Point-M2AE Features with CV Investigation
+# AdaptFoundation Project - Phase 4: Linear Probing Classification with Investigation
+# =====================================================================================
+
+# Point-M2AE Model to Evaluate
+models:
+  - point_m2ae_encoder    # Point-M2AE hierarchical encoder features
+
+# Feature Approach Configurations to Evaluate
+configurations:
+  - feat_mean             # Spatial mean aggregation (384D → PCA + raw)
+  - feat_mean_max         # Concatenated mean+max aggregation (768D → PCA + raw)
+
+# Classifiers to Evaluate (Focused on Logistic Regression)
+classifiers:
+  - logistic             # Primary focus for linear probing evaluation
+
+# Classification Modes (PCA + Raw Features)
+classification_modes:
+  - PCA_32               # PCA 32D (Champollion V1 comparison)
+  - PCA_256              # PCA 256D (Champollion V0 comparison)
+  - raw_features         # Raw features: 384D (feat_mean) / 768D (feat_mean_max)
+
+# Investigation Configuration (Same as SAM-Med3D)
+investigation:
+  enabled: true                       # Enable detailed CV analysis
+  save_cv_results: true              # Save complete cv_results_
+  detailed_fold_analysis: true       # Per-fold analysis
+  test_vs_cv_comparison: true        # Compare Test vs CV scores
+  outlier_detection_threshold: 0.05  # Threshold for problematic folds
+  approaches_comparison: true        # Compare feature approaches stability
+  dimensionality_analysis: true      # Analyze PCA vs raw performance
+  aggregation_effectiveness: true    # Analyze feat_mean vs feat_mean_max
+
+# Execution Configuration
+execution:
+  parallel_models: false          # Single Point-M2AE model processing
+  parallel_configs: false         # Sequential for memory stability
+  focus_mode: false               # Run all 6 combinations with investigation
+  
+  # Priority combination for testing
+  focus_combinations:
+    model: "point_m2ae_encoder"
+    config: "feat_mean"            # Start with mean aggregation
+    classifier: "logistic"
+    mode: "PCA_32"
+
+# Configuration Paths (Simplified vs SAM-Med3D)
+paths:
+  input_base_path: "feature_extraction_point_m2ae"    # Where to READ features from
+  output_base_path: "point_m2ae"                      # Where to WRITE results to
+
+# Output Configuration (Uses output_base_path)
+output:
+  base_path: "point_m2ae"          # Results directory
+  save_consolidated: true         # Save consolidated results per approach
+  save_individual: true          # Save per-config-mode results
+  save_cv_results_detailed: true # Save complete cv_results_
+  investigation_mode: true       # Enable investigation features
+  
+# Validation and Quality Control
+validation:
+  check_pca_availability: true    # Verify PCA files exist before running
+  check_feature_files: true      # Verify feature files exist
+  skip_existing: false           # Re-run even if results exist
+  validate_m2ae_structure: true  # Ensure feat_{approach}/{mode} structure
+  skip_missing_gracefully: true  # Continue even if some combinations missing
+  
+# Classifier Parameters (Optimized for Point-M2AE Features with Investigation)
+classifier_params:
+  logistic:
+    max_iter: 20000              # High iteration limit for various dimensionalities
+    solver: 'saga'               # Best for elasticnet penalty
+    penalty: 'elasticnet'        # L1 + L2 regularization
+    n_jobs: -1                   # Use all available cores
+    random_state: 42
+    # GridSearchCV parameter grid
+    C_values: [0.001, 0.01, 0.1, 1.0, 10.0, 100.0, 1000.0]
+    l1_ratio_values: [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+
+# Cross-Validation Configuration
+cross_validation:
+  method: "LeaveOneGroupOut"          # Respects pre-stratified splits
+  scoring: "roc_auc_ovr_weighted"     # Multi-class ROC-AUC
+  return_train_score: true            # Required for investigation analysis
+
+# Reporting Configuration
+reporting:
+  verbose: true                   # Detailed progress output
+  save_timing: true              # Track execution times per approach
+  save_diagnostics: true        # Include overfitting/convergence diagnostics
+  compare_approaches: true       # Generate approach comparison analysis
+  include_investigation: true    # Include fold-level investigation results
+
+# Expected Processing Plan (Point-M2AE Specific)
+processing_plan:
+  total_combinations: 6           # 1 model × 2 approaches × 1 classifier × 3 modes
+  estimated_time: "30-45 minutes" # Reduced vs SAM-Med3D due to fewer combinations
+  purpose: "Point-M2AE feature aggregation effectiveness evaluation with CV investigation"
+  investigation_focus: "Analyze Test vs CV score discrepancy + raw vs PCA performance"
+  
+# Point-M2AE Feature Evaluation Strategy (Adapted from density_evaluation)
+feature_evaluation:
+  baseline_control: "feat_mean serves as baseline aggregation approach"
+  concatenation_hypothesis: "feat_mean_max should improve performance through richer feature representation"
+  dimensionality_hypothesis: "Raw features (384D/768D) may outperform PCA due to reasonable dimensionality"
+  comparison_metrics: ["roc_auc_weighted", "overfitting_gap", "cv_stability", "dimensionality_efficiency"]
+  investigation_hypothesis: "Determine if aggregation approaches affect fold stability differently"
+  expected_phenomenon: "Test ROC-AUC > CV ROC-AUC phenomenon - similar to SAM-Med3D"
+  
+# Expected Results Structure (Point-M2AE Simplified)
+results_structure:
+  input_features: "feature_extraction_point_m2ae/feat_{approach}/{mode}/"
+  per_approach_files: "point_m2ae/feat_{approach}/{mode}/classification_results.json"
+  consolidated_files: "point_m2ae/classification_results_point_m2ae.json"
+  investigation_files:
+    cv_results_complete: "point_m2ae/feat_{approach}/{mode}/cv_results_complete.csv"
+    cv_investigation: "point_m2ae/feat_{approach}/{mode}/cv_investigation_metadata.json"
+
+# Expected Investigation Results (Same as SAM-Med3D structure)
+expected_investigation:
+  metrics:
+    primary: "roc_auc_weighted"       # Main comparison metric
+    secondary: "accuracy"             # Additional metric
+    investigation_metrics:            # Investigation-specific metrics
+      - "fold_test_scores"
+      - "fold_train_scores"
+      - "test_vs_cv_gap"
+      - "fold_variance"
+      - "problematic_folds"
+      - "feature_approach_stability"
+    
+  diagnostics:
+    overfitting_analysis: true        # Train vs validation gap
+    convergence_check: true           # Check if optimization converged
+    cv_stability: true                # Cross-validation consistency
+    fold_level_analysis: true         # Per-fold performance analysis
+    outlier_fold_detection: true      # Identify problematic folds
+    approach_comparison: true         # Compare feat_mean vs feat_mean_max
+    dimensionality_analysis: true     # Compare PCA vs raw features
+    
+  comparisons:
+    feature_approaches: "Compare feat_mean vs feat_mean_max aggregation effectiveness"
+    test_vs_cv_investigation: "Analyze Test score > CV score phenomenon"
+    dimensionality_comparison: "Assess PCA_32 vs PCA_256 vs raw_features performance"
+    aggregation_effectiveness: "Evaluate mean vs mean+max concatenation benefits"
+
+# Advanced Configuration
+advanced:
+  memory_optimization: true       # Enable memory optimizations
+  checkpoint_frequency: 2         # Save progress every 2 tasks (per approach)
+  handle_raw_features: true       # Support raw feature mode (384D/768D)
+  investigation_memory_limit: "16GB"  # Memory limit for investigation analysis
+  
+# Data Requirements Validation (Point-M2AE Specific)
+data_requirements:
+  input_path: "feature_extraction_point_m2ae"  # Where features are read from
+  point_m2ae_encoder:
+    feat_mean:
+      raw_features: "384D Point-M2AE spatial mean aggregation"
+      pca_modes_required: ["PCA_32", "PCA_256"]
+      expected_samples: "461 train/val + 116 test"
+      
+    feat_mean_max:
+      raw_features: "768D Point-M2AE concatenated [mean, max] aggregation"
+      pca_modes_required: ["PCA_32", "PCA_256"]
+      expected_samples: "461 train/val + 116 test"
+      special_feature: "Richer representation through concatenation"
+      investigation_focus: "Effectiveness of concatenated aggregation on CV stability"
+
+# Performance Expectations (Point-M2AE Specific)
+performance:
+  estimated_runtime: "30-45 minutes"  # For 6 combinations with investigation
+  memory_usage: "< 16 GB"             # Reasonable feature dimensions
+  bottleneck: "GridSearchCV with investigation analysis"
+  phenomenon_magnitude: "Test-CV gap similar to SAM-Med3D"
+  raw_features_advantage: "384D/768D reasonable for direct classification"
+  
+# Success Criteria (Point-M2AE Adapted)
+success_criteria:
+  - "6 combinations evaluated successfully"
+  - "Complete cv_results_ saved for each combination"
+  - "Fold-level analysis completed for all approaches and modes"
+  - "Test vs CV discrepancy investigated across feature approaches"
+  - "Raw vs PCA performance comparison available"
+  - "Convergence achieved for all evaluated models"
+  - "Investigation files generated for all combinations"
+  - "Feature approach stability comparison available"
+
+# Notes for Point-M2AE Classification Strategy
+notes:
+  methodology: "Linear probing evaluation of Point-M2AE feature aggregation effectiveness with CV investigation"
+  paths_separation: "Features read from feature_extraction_point_m2ae/, results saved to point_m2ae/"
+  comparison_focus: "feat_mean vs feat_mean_max + PCA vs raw features comparison"
+  hypothesis_testing: "Test whether concatenated aggregation improves classification AND CV stability"
+  dimensionality_advantage: "Point-M2AE features (384D/768D) more reasonable than SAM-Med3D (196608D)"
+  expected_ranking: "Hypothesized performance: feat_mean_max ≥ feat_mean, raw_features competitive with PCA"
+  investigation_priority: "Test vs CV gap analysis + aggregation approach effectiveness"
+  statistical_validation: "5-fold CV with pre-stratified splits for robust evaluation"
+  next_steps:
+    - "Analyze fold performance patterns across aggregation approaches"
+    - "Identify optimal dimensionality for Point-M2AE features"
+    - "Evaluate concatenation effectiveness vs simple mean"
+    - "Compare Point-M2AE vs SAM-Med3D investigation patterns"
+    - "Assess raw features viability for direct classification"
