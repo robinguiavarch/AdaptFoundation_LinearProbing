@@ -1,7 +1,7 @@
 """
-Analysis script for SC_sylv SAM-Med3D flatten regression results.
+Analysis script for F.I.P. SAM-Med3D flatten classification results.
 
-This script analyzes the 4 combinations from feature_extraction_sam3d_sc directory
+This script analyzes the 4 combinations from feature_extraction_sam3d_fip directory
 and generates comparative tables and CSV files.
 """
 
@@ -18,23 +18,23 @@ from typing import Dict, List, Tuple
 sys.path.append(str(Path(__file__).parent.parent))
 
 
-class SCSAMMed3DAnalyzer:
+class FIPSAMMed3DAnalyzer:
     """
-    Analyzer for SC_sylv SAM-Med3D flatten regression results.
+    Analyzer for F.I.P. SAM-Med3D flatten classification results.
     
     Processes results from all 4 combinations (1 variant × 4 PCA modes)
     and generates comparative analysis tables and CSV files.
     
     Attributes:
-        features_base_path (Path): Path to feature_extraction_sam3d_sc directory
+        features_base_path (Path): Path to feature_extraction_sam3d_fip directory
     """
     
     def __init__(self, features_base_path: str):
         """
-        Initialize the SC_sylv SAM-Med3D analyzer.
+        Initialize the F.I.P. SAM-Med3D analyzer.
         
         Args:
-            features_base_path (str): Path to feature_extraction_sam3d_sc directory
+            features_base_path (str): Path to feature_extraction_sam3d_fip directory
         """
         self.features_base_path = Path(features_base_path)
         
@@ -43,7 +43,7 @@ class SCSAMMed3DAnalyzer:
     
     def collect_all_results(self) -> pd.DataFrame:
         """
-        Collect all regression results from individual JSON files.
+        Collect all classification results from individual JSON files.
         
         Returns:
             pd.DataFrame: Complete dataset with all experimental results
@@ -55,14 +55,14 @@ class SCSAMMed3DAnalyzer:
         
         for variant in variants:
             for pca_mode in pca_modes:
-                result_file = self.features_base_path / variant / f"PCA_{pca_mode}" / "regression_results.json"
+                result_file = self.features_base_path / variant / f"PCA_{pca_mode}" / "classification_results.json"
                 
                 if result_file.exists():
                     try:
                         with open(result_file, 'r') as f:
                             data = json.load(f)
                         
-                        if 'aggregated_metrics' in data:
+                        if 'test_metrics' in data:
                             result_data = data
                         else:
                             continue
@@ -70,15 +70,13 @@ class SCSAMMed3DAnalyzer:
                         aggregation_method = 'flatten'
                         use_25d = False
                         
-                        test_r2 = result_data['aggregated_metrics']['mean_test_r2']
-                        cv_r2 = result_data['aggregated_metrics']['mean_cv_r2']
-                        overfitting_gap = result_data['aggregated_metrics']['mean_test_cv_gap']
+                        test_roc_auc = result_data['test_metrics']['roc_auc']
+                        cv_roc_auc = result_data['best_cv_score']
+                        overfitting_gap = result_data['cv_metrics']['overfitting_gap']
                         feature_dim = result_data['data_info']['feature_dimensionality']
-                        
-                        # Calculate best params from first dimension as representative
-                        first_dim_result = result_data['results_per_dimension']['dim_0']
-                        best_params = str(first_dim_result['best_params'])
-                        cv_stability = first_dim_result['cv_metrics'].get('cv_stability', None)
+                        convergence_warning = result_data['diagnostics']['convergence_warning']
+                        best_params = str(result_data['best_params'])
+                        cv_stability = result_data['cv_metrics'].get('cv_stability', None)
                         
                         parsed_result = {
                             'model': 'sam_med3d_turbo',
@@ -87,16 +85,16 @@ class SCSAMMed3DAnalyzer:
                             'aggregation_method': aggregation_method,
                             'use_25d': use_25d,
                             'pca_mode': pca_mode,
-                            'classifier': 'elasticnet',
+                            'classifier': 'logistic',
                             'best_params': best_params,
-                            'test_r2': test_r2,
-                            'cv_r2': cv_r2,
+                            'test_roc_auc': test_roc_auc,
+                            'cv_roc_auc': cv_roc_auc,
                             'overfitting_gap': overfitting_gap,
                             'feature_dim': feature_dim,
+                            'convergence_ok': not convergence_warning,
                             'cv_stability': cv_stability,
-                            'strategy': 'sc_flatten',
-                            'task': 'Isomap_6D_regression',
-                            'metric_type': 'r2'
+                            'strategy': 'fip_flatten',
+                            'task': 'Right_FIP_binary'
                         }
                         
                         all_results.append(parsed_result)
@@ -121,7 +119,7 @@ class SCSAMMed3DAnalyzer:
     
     def create_complete_table(self, df: pd.DataFrame, metric_type: str = "test") -> plt.Figure:
         """
-        Create styled table for complete SC_sylv SAM-Med3D configurations ranking.
+        Create styled table for complete F.I.P. SAM-Med3D configurations ranking.
         
         Args:
             df (pd.DataFrame): Dataset to visualize
@@ -132,12 +130,12 @@ class SCSAMMed3DAnalyzer:
         """
         if df.empty:
             fig, ax = plt.subplots(figsize=(12, 6))
-            ax.text(0.5, 0.5, 'No SC_sylv SAM-Med3D Data Available', ha='center', va='center', fontsize=16)
-            ax.set_title(f'SC_sylv SAM-Med3D Flatten - ElasticNet Regression ({metric_type.upper()})')
+            ax.text(0.5, 0.5, 'No F.I.P. SAM-Med3D Data Available', ha='center', va='center', fontsize=16)
+            ax.set_title(f'F.I.P. SAM-Med3D Flatten - Logistic Regression ({metric_type.upper()})')
             ax.axis('off')
             return fig
         
-        sort_column = 'test_r2' if metric_type == "test" else 'cv_r2'
+        sort_column = 'test_roc_auc' if metric_type == "test" else 'cv_roc_auc'
         df_sorted = df.sort_values(sort_column, ascending=False).reset_index(drop=True)
         
         table_data = []
@@ -152,8 +150,8 @@ class SCSAMMed3DAnalyzer:
                 pca_clean = f"{row['pca_mode']}D"
             
             gap = f"{row['overfitting_gap']:.3f}" if pd.notna(row['overfitting_gap']) else 'N/A'
-            cv_r2 = f"{row['cv_r2']:.4f}"
-            test_r2 = f"{row['test_r2']:.4f}"
+            cv_roc_auc = f"{row['cv_roc_auc']:.4f}"
+            test_roc_auc = f"{row['test_roc_auc']:.4f}"
             feature_dim = f"{int(row['feature_dim'])}D" if pd.notna(row['feature_dim']) else 'N/A'
             
             table_data.append([
@@ -163,14 +161,14 @@ class SCSAMMed3DAnalyzer:
                 pca_clean,
                 feature_dim,
                 gap,
-                cv_r2,
-                test_r2
+                cv_roc_auc,
+                test_roc_auc
             ])
         
         fig, ax = plt.subplots(figsize=(18, 10))
         ax.axis('off')
         
-        columns = ['Rank', 'Model', 'Configuration', 'PCA', 'Feature Dim', 'Overfitting Gap', 'CV R²', 'Test R²']
+        columns = ['Rank', 'Model', 'Configuration', 'PCA', 'Feature Dim', 'Overfitting Gap', 'CV ROC-AUC', 'Test ROC-AUC']
         
         table = ax.table(
             cellText=table_data,
@@ -235,11 +233,11 @@ class SCSAMMed3DAnalyzer:
                 cell.set_edgecolor('#CCCCCC')
                 cell.set_linewidth(0.5)
         
-        metric_display = "Test R²" if metric_type == "test" else "CV R²"
+        metric_display = "Test ROC-AUC" if metric_type == "test" else "CV ROC-AUC"
         n_configs = len(df_sorted)
         pca_modes_str = ", ".join(sorted(df['pca_mode'].unique()))
         
-        ax.set_title(f'SC_sylv SAM-Med3D Flatten - ElasticNet Regression ({n_configs} Configurations)\n'
+        ax.set_title(f'F.I.P. SAM-Med3D Flatten - Logistic Regression ({n_configs} Configurations)\n'
                     f'PCA Modes: {pca_modes_str} - Ranked by {metric_display}', 
                     fontsize=16, fontweight='bold', pad=30)
         
@@ -251,7 +249,7 @@ class SCSAMMed3DAnalyzer:
     
     def run_analysis(self) -> Tuple[pd.DataFrame, List[plt.Figure]]:
         """
-        Execute complete SC_sylv SAM-Med3D analysis workflow.
+        Execute complete F.I.P. SAM-Med3D analysis workflow.
         
         Returns:
             Tuple containing:
@@ -274,23 +272,23 @@ class SCSAMMed3DAnalyzer:
 
 def main():
     """
-    Main entry point for SC_sylv SAM-Med3D flatten analysis script.
+    Main entry point for F.I.P. SAM-Med3D flatten analysis script.
     """
     parser = argparse.ArgumentParser(
-        description="Run analysis of SC_sylv SAM-Med3D flatten regression results"
+        description="Run analysis of F.I.P. SAM-Med3D flatten classification results"
     )
     
     parser.add_argument(
         "--features-path",
         type=str,
-        default="feature_extraction_sam3d_sc",
-        help="Path to feature_extraction_sam3d_sc directory"
+        default="feature_extraction_sam3d_fip",
+        help="Path to feature_extraction_sam3d_fip directory"
     )
     
     parser.add_argument(
         "--output-dir",
         type=str,
-        default="analysis_results_sc_sam3d",
+        default="analysis_results_fip_sam3d",
         help="Directory to save analysis results"
     )
     
@@ -304,23 +302,23 @@ def main():
     output_dir = Path(args.output_dir)
     output_dir.mkdir(exist_ok=True)
     
-    print("SC_sylv SAM-Med3D Flatten Analysis")
+    print("F.I.P. SAM-Med3D Flatten Analysis")
     print(f"Features path: {features_path}")
     print(f"Output directory: {output_dir}")
     
-    analyzer = SCSAMMed3DAnalyzer(str(features_path))
+    analyzer = FIPSAMMed3DAnalyzer(str(features_path))
     
-    print("\nExecuting SC_sylv SAM-Med3D analysis workflow...")
+    print("\nExecuting F.I.P. SAM-Med3D analysis workflow...")
     df_all, figures = analyzer.run_analysis()
     
     if not df_all.empty:
-        output_file_elasticnet = output_dir / "analysis_results_sc_sam3d_elasticnet.csv"
-        df_all.to_csv(output_file_elasticnet, index=False)
-        print(f"Saved elasticnet results: {output_file_elasticnet}")
+        output_file_logistic = output_dir / "analysis_results_fip_sam3d_logistic.csv"
+        df_all.to_csv(output_file_logistic, index=False)
+        print(f"Saved logistic results: {output_file_logistic}")
     
     figure_names = [
-        "complete_sc_sam3d_table_test",
-        "complete_sc_sam3d_table_cv"
+        "complete_fip_sam3d_table_test",
+        "complete_fip_sam3d_table_cv"
     ]
     
     for i, fig in enumerate(figures):
@@ -331,30 +329,30 @@ def main():
             print(f"Saved visualization: {output_file}")
     
     if not df_all.empty:
-        print(f"\nSC_sylv SAM-Med3D Flatten Analysis Summary:")
+        print(f"\nF.I.P. SAM-Med3D Flatten Analysis Summary:")
         print(f"Total experimental results: {len(df_all)}")
         print(f"Variants tested: {df_all['variant'].nunique()}")
         print(f"PCA modes tested: {df_all['pca_mode'].nunique()}")
         print(f"Configurations: {df_all['config'].unique().tolist()}")
         
-        best_result_test = df_all.loc[df_all['test_r2'].idxmax()]
-        print(f"\nTop performing configuration (Test R²):")
+        best_result_test = df_all.loc[df_all['test_roc_auc'].idxmax()]
+        print(f"\nTop performing configuration (Test ROC-AUC):")
         print(f"Variant: {best_result_test['variant']}")
         print(f"PCA Mode: {best_result_test['pca_mode']}")
-        print(f"Test R²: {best_result_test['test_r2']:.4f}")
-        print(f"CV R²: {best_result_test['cv_r2']:.4f}")
+        print(f"Test ROC-AUC: {best_result_test['test_roc_auc']:.4f}")
+        print(f"CV ROC-AUC: {best_result_test['cv_roc_auc']:.4f}")
         print(f"Overfitting Gap: {best_result_test['overfitting_gap']:.4f}")
         
-        best_result_cv = df_all.loc[df_all['cv_r2'].idxmax()]
-        print(f"\nTop performing configuration (CV R²):")
+        best_result_cv = df_all.loc[df_all['cv_roc_auc'].idxmax()]
+        print(f"\nTop performing configuration (CV ROC-AUC):")
         print(f"Variant: {best_result_cv['variant']}")
         print(f"PCA Mode: {best_result_cv['pca_mode']}")
-        print(f"Test R²: {best_result_cv['test_r2']:.4f}")
-        print(f"CV R²: {best_result_cv['cv_r2']:.4f}")
+        print(f"Test ROC-AUC: {best_result_cv['test_roc_auc']:.4f}")
+        print(f"CV ROC-AUC: {best_result_cv['cv_roc_auc']:.4f}")
         print(f"Overfitting Gap: {best_result_cv['overfitting_gap']:.4f}")
     
-    print(f"\nSC_sylv SAM-Med3D Flatten analysis completed successfully!")
-    print(f"Tables saved as: complete_sc_sam3d_table_test.png & complete_sc_sam3d_table_cv.png")
+    print(f"\nF.I.P. SAM-Med3D Flatten analysis completed successfully!")
+    print(f"Tables saved as: complete_fip_sam3d_table_test.png & complete_fip_sam3d_table_cv.png")
     print(f"Results saved in: {output_dir}")
 
 

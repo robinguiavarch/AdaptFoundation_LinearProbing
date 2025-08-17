@@ -1,0 +1,5 @@
+model,variant,config,aggregation_method,use_25d,pca_mode,classifier,best_params,test_roc_auc,cv_roc_auc,overfitting_gap,feature_dim,convergence_ok,cv_stability,strategy,task
+sam_med3d_turbo,flatten,flatten,flatten,False,32,logistic,"{'C': 0.01, 'l1_ratio': 0.3}",0.5772357723577235,0.5943346862736764,0.014921550635228265,32,False,0.0997997269463863,lc_flatten,Right_PCS_binary
+sam_med3d_turbo,flatten,flatten,flatten,False,256,logistic,"{'C': 0.01, 'l1_ratio': 0.3}",0.5772357723577236,0.5929515615481604,0.016388607298420288,256,False,0.10035814265878347,lc_flatten,Right_PCS_binary
+sam_med3d_turbo,flatten,flatten,flatten,False,95,logistic,"{'C': 0.01, 'l1_ratio': 0.3}",0.5772357723577236,0.5929515615481604,0.016388607298420288,233,False,0.10035814265878347,lc_flatten,Right_PCS_binary
+sam_med3d_turbo,flatten,flatten,flatten,False,995,logistic,"{'C': 0.01, 'l1_ratio': 0.3}",0.5772357723577236,0.5929515615481604,0.016388607298420288,268,False,0.10035814265878347,lc_flatten,Right_PCS_binary

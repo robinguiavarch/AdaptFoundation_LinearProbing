@@ -286,7 +286,7 @@ class FIPLinearProber:
         
         start_test = time.time()
         best_model = clf.best_estimator_
-        best_model.fit(X_train_val, y_train_val)
+        
         y_test_pred = best_model.predict(X_test)
         y_test_proba = best_model.predict_proba(X_test)
         

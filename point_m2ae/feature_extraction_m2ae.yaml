@@ -1,0 +1,51 @@
+# Point-M2AE Feature Extraction Configuration
+# AdaptFoundation Project - Hierarchical point cloud feature extraction
+
+# Model configuration
+model:
+  name: "point_m2ae_encoder"
+  type: "hierarchical_encoder"
+  checkpoint_path: "point_m2ae/ckpt/pre-train.pth"
+
+# Point-M2AE processing configuration
+processing:
+  # Model architecture (from test_model.py Cfg class)
+  encoder_depths: [5, 5, 5]
+  encoder_dims: [96, 192, 384]
+  group_sizes: [16, 16, 16]
+  num_groups: [256, 128, 32]
+  local_radius: [0.32, 0.64, 1.28]
+  drop_path_rate: 0.1
+  num_heads: 6
+  
+  # Runtime configuration
+  batch_size: 1
+  device: "cuda"
+
+# Data configuration  
+data:
+  dataset_path: "crops/2mm/S.Or."
+  output_base_path: "feature_extraction_point_m2ae"
+
+# Feature aggregation approaches
+feature_approaches:
+  feat_mean:
+    description: "Spatial mean aggregation of final tokens"
+    expected_output_dim: 384
+    
+  feat_mean_max:
+    description: "Concatenation of mean and max spatial aggregation"
+    expected_output_dim: 768
+
+# Default approach
+default_approach: "feat_mean_max"
+
+# Hardware configuration
+hardware:
+  gpu_memory_gb: 40
+  cpu_cores: 32
+
+# Validation settings
+validation:
+  check_input_size: true
+  validate_features: true

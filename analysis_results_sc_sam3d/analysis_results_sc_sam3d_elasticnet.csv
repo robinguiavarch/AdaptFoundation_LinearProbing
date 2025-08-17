@@ -1,0 +1,5 @@
+model,variant,config,aggregation_method,use_25d,pca_mode,classifier,best_params,test_r2,cv_r2,overfitting_gap,feature_dim,cv_stability,strategy,task,metric_type
+sam_med3d_turbo,flatten,flatten,flatten,False,32,elasticnet,"{'alpha': 0.1, 'l1_ratio': 0.1}",0.3967334433375751,0.3591110024823129,0.03762244085526218,32,0.052901738832329626,sc_flatten,Isomap_6D_regression,r2
+sam_med3d_turbo,flatten,flatten,flatten,False,256,elasticnet,"{'alpha': 1.0, 'l1_ratio': 0.0}",0.4378441761053526,0.39803937133079087,0.03980480477456167,256,0.028081749801493392,sc_flatten,Isomap_6D_regression,r2
+sam_med3d_turbo,flatten,flatten,flatten,False,95,elasticnet,"{'alpha': 0.1, 'l1_ratio': 0.5}",0.440962917886365,0.39659534664694723,0.04436757123941774,534,0.046894758119212614,sc_flatten,Isomap_6D_regression,r2
+sam_med3d_turbo,flatten,flatten,flatten,False,995,elasticnet,"{'alpha': 0.1, 'l1_ratio': 0.5}",0.44385400994959606,0.3956378189574681,0.048216190992128045,682,0.05200577675355541,sc_flatten,Isomap_6D_regression,r2
