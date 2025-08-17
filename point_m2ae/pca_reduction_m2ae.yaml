@@ -1,0 +1,76 @@
+# PCA Dimensionality Reduction Configuration for Point-M2AE Features
+# AdaptFoundation Project - Point-M2AE PCA Pipeline
+# =================================================================
+
+# Point-M2AE Approaches to Process
+approaches:
+  - feat_mean          # 384D -> PCA 32D, 256D
+  - feat_mean_max      # 768D -> PCA 32D, 256D
+
+# PCA Reduction Modes
+pca_modes:
+  # Champollion comparison modes
+  - n_components: 32
+    description: "PCA 32D (Champollion V1 comparison baseline)"
+    
+  - n_components: 256
+    description: "PCA 256D (Champollion V0 comparison baseline)"
+
+# Data Configuration
+data:
+  features_base_path: "feature_extraction_point_m2ae"
+  
+# Processing Configuration
+processing:
+  sequential_approaches: true    # Process approaches sequentially
+  skip_existing: false          # Re-process even if PCA files exist
+  detailed_logging: true        # Detailed progress output
+  
+# Validation and Quality Control
+validation:
+  check_feature_files: true     # Verify source feature files exist
+  validate_dimensions: true     # Check expected input/output dimensions
+  save_metadata: true          # Save detailed PCA metadata
+  
+# Output Configuration
+output:
+  save_individual: true        # Save PCA files in individual directories
+  save_summary: true          # Save processing summary
+  preserve_approach_structure: true  # Maintain feat_{approach}/PCA_{components} structure
+
+# Expected Input Dimensions
+expected_input_dimensions:
+  feat_mean: 384                # Spatial mean aggregation
+  feat_mean_max: 768            # Concatenation [mean, max]
+
+# PCA Requirements by Approach
+pca_requirements:
+  feat_mean:
+    pca_required: true
+    reason: "384D suitable for PCA reduction for comparison studies"
+    recommended_modes: ["32", "256"]
+    priority: "Standard processing"
+    
+  feat_mean_max:
+    pca_required: true  
+    reason: "768D benefits from PCA reduction for downstream classification"
+    recommended_modes: ["32", "256"]
+    priority: "Standard processing"
+
+# Processing Strategy
+strategy:
+  approach_comparison: "Both approaches reduced to same target dimensions for fair comparison"
+  target_dimensions: "32D and 256D for Champollion comparison studies"
+  training_strategy: "PCA fitted on all 5 training folds for robust transformation"
+  
+# Processing Order
+processing_order:
+  - feat_mean          # Process mean approach first
+  - feat_mean_max      # Process concatenated approach second
+
+# Notes for Point-M2AE PCA Strategy
+notes:
+  dimensions: "Point-M2AE features already reasonably sized (384D, 768D) vs SAM-Med3D (196608D)"
+  pca_purpose: "PCA primarily for standardized comparison with Champollion baselines"
+  robustness: "PCA fitted on concatenated training data (461 subjects) for stability"
+  compatibility: "Output format compatible with existing classification pipelines"

@@ -23,50 +23,49 @@ import torch
 from typing import Dict
 
 from data.loaders import HCPOFCDataLoader
-from point_m2ae.feature_extraction_core_m2ae import PointM2AEFeatureExtractor, PointM2AEConfig
+from point_m2ae.feature_extraction_core_m2ae import PointM2AEFeatureExtractor
 
 
 class PointM2AEFeatureDatasetSaver:
     """
     Feature dataset saver for Point-M2AE extraction pipeline.
     
-    Creates structure: feature_extraction_point_m2ae/point_m2ae_encoder/feat_{approach}/
+    Creates structure: feature_extraction_point_m2ae/feat_{approach}/
     """
     
-    def __init__(self, data_path: str, output_base_path: str, model_name: str):
+    def __init__(self, data_path: str, output_base_path: str):
         """
         Initialize Point-M2AE feature saver.
         
         Args:
             data_path (str): Path to HCP OFC dataset
             output_base_path (str): Base output directory
-            model_name (str): Model name for directory structure
         """
         self.data_path = data_path
         self.output_base_path = Path(output_base_path)
-        self.model_name = model_name
         
-        self.model_output_path = self.output_base_path / model_name
-        self.model_output_path.mkdir(parents=True, exist_ok=True)
+        # Create base output directory (no model subdirectory)
+        self.output_base_path.mkdir(parents=True, exist_ok=True)
         
         self.data_loader = HCPOFCDataLoader(data_path)
     
-    def save_feature_approach(self, approach_name: str, checkpoint_path: Path) -> None:
+    def save_feature_approach(self, approach_name: str, checkpoint_path: Path, config: Dict) -> None:
         """
         Extract and save features for specific approach.
         
         Args:
             approach_name (str): Feature approach ('feat_mean' or 'feat_mean_max')
             checkpoint_path (Path): Path to Point-M2AE checkpoint
+            config (Dict): Full configuration dictionary
         """
         print(f"Processing approach: {approach_name}")
         
-        approach_dir = self.model_output_path / approach_name
+        # Create approach directory directly under output_base_path
+        approach_dir = self.output_base_path / approach_name
         approach_dir.mkdir(exist_ok=True)
         
-        # Initialize extractor
-        cfg = PointM2AEConfig()
-        extractor = PointM2AEFeatureExtractor(approach_name, checkpoint_path, cfg)
+        # Initialize extractor with config from YAML
+        extractor = PointM2AEFeatureExtractor(approach_name, checkpoint_path, config)
         
         # Process all splits
         split_names = [
@@ -191,8 +190,7 @@ def run_batch_extraction(config_path: str) -> None:
     # Initialize saver
     saver = PointM2AEFeatureDatasetSaver(
         data_path=config['data']['dataset_path'],
-        output_base_path=config['data']['output_base_path'],
-        model_name=config['model']['name']
+        output_base_path=config['data']['output_base_path']
     )
     
     # Process approaches
@@ -205,7 +203,7 @@ def run_batch_extraction(config_path: str) -> None:
         print(f"\n--- APPROACH {i}/{len(approaches)} ---")
         
         try:
-            saver.save_feature_approach(approach_name, checkpoint_path)
+            saver.save_feature_approach(approach_name, checkpoint_path, config)
         except Exception as e:
             print(f"ERROR processing {approach_name}: {e}")
             continue
@@ -241,14 +239,13 @@ def run_single_approach(config_path: str, approach_name: str) -> None:
     
     saver = PointM2AEFeatureDatasetSaver(
         data_path=config['data']['dataset_path'],
-        output_base_path=config['data']['output_base_path'],
-        model_name=config['model']['name']
+        output_base_path=config['data']['output_base_path']
     )
     
     checkpoint_path = Path(config['model']['checkpoint_path'])
     
     try:
-        saver.save_feature_approach(approach_name, checkpoint_path)
+        saver.save_feature_approach(approach_name, checkpoint_path, config)
         print(f"Single approach extraction completed")
     except Exception as e:
         print(f"ERROR: {e}")
