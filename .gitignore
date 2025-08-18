@@ -63,6 +63,7 @@ feature_extraction_sam3d_fip/
 feature_extraction_sam3d_lc/
 feature_extraction_sam3d_sc/
 
+feature_extraction_point_m2ae/
 
 feature_extraction_sam3d_fip/
 
@@ -107,3 +108,4 @@ coverage.xml
 
 .mypy_cache/backup_env_*/
 all_packages_with_source.txt
+feature_extraction_point_m2ae/

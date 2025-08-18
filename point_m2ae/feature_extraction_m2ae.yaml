@@ -1,4 +1,4 @@
-# Point-M2AE Feature Extraction Configuration
+# Point-M2AE Feature Extraction Configuration - CORRECTED
 # AdaptFoundation Project - Hierarchical point cloud feature extraction
 
 # Model configuration
@@ -7,13 +7,13 @@ model:
   type: "hierarchical_encoder"
   checkpoint_path: "point_m2ae/ckpt/pre-train.pth"
 
-# Point-M2AE processing configuration
+# Point-M2AE processing configuration - CORRECTED TO MATCH OFFICIAL
 processing:
-  # Model architecture (from test_model.py Cfg class)
+  # Model architecture (CORRECTED to match official Point-M2AE config)
   encoder_depths: [5, 5, 5]
   encoder_dims: [96, 192, 384]
-  group_sizes: [16, 16, 16]
-  num_groups: [256, 128, 32]
+  group_sizes: [16, 8, 8]        
+  num_groups: [512, 256, 64]     
   local_radius: [0.32, 0.64, 1.28]
   drop_path_rate: 0.1
   num_heads: 6
@@ -49,3 +49,9 @@ hardware:
 validation:
   check_input_size: true
   validate_features: true
+
+# Configuration Notes
+notes:
+  changes_made: "Corrected group_sizes and num_groups to match official Point-M2AE configuration"
+  official_config: "group_sizes: [16, 8, 8], num_groups: [512, 256, 64]"
+  previous_config: "group_sizes: [16, 16, 16], num_groups: [256, 128, 32]"

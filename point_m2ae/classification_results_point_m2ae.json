@@ -1,0 +1,717 @@
+{
+  "experiment_info": {
+    "pipeline": "Point-M2AE Classification with CV Investigation",
+    "model": "point_m2ae_encoder",
+    "investigation_enabled": true,
+    "total_runtime": 0,
+    "timestamp": "2025-08-17 20:05:55"
+  },
+  "investigation_analysis": {
+    "feat_mean_PCA_32": {
+      "approach": "feat_mean",
+      "mode": "PCA_32",
+      "test_score": 0.558826961992227,
+      "cv_score": 0.5591090040369249,
+      "test_vs_cv_gap": -0.0002820420446978389,
+      "problematic_folds": [
+        0
+      ],
+      "fold_variance": 0.001515445125740042,
+      "feature_stability_score": 0.9610712814783219,
+      "approach_type": "feat_mean",
+      "dimensionality": 32,
+      "is_raw_features": false
+    },
+    "feat_mean_PCA_256": {
+      "approach": "feat_mean",
+      "mode": "PCA_256",
+      "test_score": 0.5985155149227089,
+      "cv_score": 0.6240009738273041,
+      "test_vs_cv_gap": -0.025485458904595193,
+      "problematic_folds": [],
+      "fold_variance": 0.00033233608228781103,
+      "feature_stability_score": 0.9817699127185904,
+      "approach_type": "feat_mean",
+      "dimensionality": 256,
+      "is_raw_features": false
+    },
+    "feat_mean_raw_features": {
+      "approach": "feat_mean",
+      "mode": "raw_features",
+      "test_score": 0.6056811257208523,
+      "cv_score": 0.6259477897808615,
+      "test_vs_cv_gap": -0.02026666406000921,
+      "problematic_folds": [],
+      "fold_variance": 0.00036512797341928195,
+      "feature_stability_score": 0.9808916779015194,
+      "approach_type": "feat_mean",
+      "dimensionality": 384,
+      "is_raw_features": true
+    },
+    "feat_mean_max_PCA_32": {
+      "approach": "feat_mean_max",
+      "mode": "PCA_32",
+      "test_score": 0.5340251646414828,
+      "cv_score": 0.5672375411238615,
+      "test_vs_cv_gap": -0.033212376482378736,
+      "problematic_folds": [
+        0,
+        2
+      ],
+      "fold_variance": 0.0025447431224142193,
+      "feature_stability_score": 0.9495545530061016,
+      "approach_type": "feat_mean_max",
+      "dimensionality": 32,
+      "is_raw_features": false
+    },
+    "feat_mean_max_PCA_256": {
+      "approach": "feat_mean_max",
+      "mode": "PCA_256",
+      "test_score": 0.6192767471340598,
+      "cv_score": 0.5853361401592068,
+      "test_vs_cv_gap": 0.033940606974853016,
+      "problematic_folds": [],
+      "fold_variance": 0.0007492967498134376,
+      "feature_stability_score": 0.97262671466898,
+      "approach_type": "feat_mean_max",
+      "dimensionality": 256,
+      "is_raw_features": false
+    },
+    "feat_mean_max_raw_features": {
+      "approach": "feat_mean_max",
+      "mode": "raw_features",
+      "test_score": 0.6168438523947101,
+      "cv_score": 0.5898699135155547,
+      "test_vs_cv_gap": 0.026973938879155335,
+      "problematic_folds": [],
+      "fold_variance": 0.0007217736824067975,
+      "feature_stability_score": 0.9731341539793217,
+      "approach_type": "feat_mean_max",
+      "dimensionality": 768,
+      "is_raw_features": true
+    }
+  },
+  "results": {
+    "feat_mean": {
+      "PCA_32": {
+        "logistic": {
+          "approach_name": "feat_mean",
+          "mode": "PCA_32",
+          "classifier_type": "logistic",
+          "best_params": {
+            "C": 1.0,
+            "l1_ratio": 0.6
+          },
+          "best_cv_score": 0.5591090040369249,
+          "test_metrics": {
+            "roc_auc_weighted": 0.558826961992227,
+            "accuracy": 0.43103448275862066,
+            "n_test_samples": 116
+          },
+          "cv_metrics": {
+            "roc_auc_weighted": 0.5591090040369249,
+            "mean_train_score": 0.7423710817739632,
+            "mean_val_score": 0.5591090040369249,
+            "overfitting_gap": 0.1832620777370383,
+            "cv_stability": 0.038928718521678084
+          },
+          "cv_detailed_analysis": {
+            "fold_test_scores": [
+              0.5044399727163198,
+              0.592621125717451,
+              0.5644459671113744,
+              0.6077119854053359,
+              0.5263259692341434
+            ],
+            "fold_train_scores": [
+              0.7482884555228801,
+              0.7346824873814142,
+              0.7369892260958842,
+              0.7411582916685561,
+              0.7507369482010811
+            ],
+            "fold_overfitting_gaps": [
+              0.24384848280656035,
+              0.14206136166396321,
+              0.17254325898450984,
+              0.13344630626322018,
+              0.22441097896693762
+            ],
+            "worst_fold_id": 0,
+            "best_fold_id": 3,
+            "fold_score_range": 0.10327201268901609,
+            "fold_score_std": 0.038928718521678084,
+            "fold_variance": 0.001515445125740042,
+            "test_vs_cv_gap": -0.0002820420446978389,
+            "problematic_folds": [
+              0
+            ],
+            "mean_overfitting_gap": 0.18326207773703823,
+            "max_overfitting_gap": 0.24384848280656035,
+            "feature_approach_analysis": {
+              "approach_name": "feat_mean",
+              "mode": "PCA_32",
+              "dimensionality": 32,
+              "stability_score": 0.9610712814783219,
+              "is_concatenated_approach": false,
+              "is_raw_features": false,
+              "approach_effectiveness": "improved",
+              "dimensionality_efficiency": "pca_reduced"
+            }
+          },
+          "diagnostics": {
+            "convergence_warning": "False",
+            "overfitting_gap": 0.1832620777370383,
+            "overfitting_severity": "high",
+            "cv_stability": 0.038928718521678084
+          },
+          "data_info": {
+            "train_val_shape": [
+              461,
+              32
+            ],
+            "test_shape": [
+              116,
+              32
+            ],
+            "n_classes": 4,
+            "n_cv_splits": 5,
+            "feature_dimensionality": 32
+          },
+          "timing": {
+            "load_time": 0.026810646057128906,
+            "gridsearch_time": 6.4347968101501465,
+            "test_eval_time": 0.08121943473815918,
+            "total_time": 6.542826890945435
+          },
+          "cv_results_summary": {
+            "best_index": "39",
+            "n_combinations_tested": 77
+          },
+          "task_metadata": {
+            "model": "point_m2ae_encoder",
+            "approach": "feat_mean",
+            "classifier": "logistic",
+            "mode": "PCA_32",
+            "total_pipeline_time": 6.569870710372925
+          }
+        }
+      },
+      "PCA_256": {
+        "logistic": {
+          "approach_name": "feat_mean",
+          "mode": "PCA_256",
+          "classifier_type": "logistic",
+          "best_params": {
+            "C": 1.0,
+            "l1_ratio": 0.1
+          },
+          "best_cv_score": 0.6240009738273041,
+          "test_metrics": {
+            "roc_auc_weighted": 0.5985155149227089,
+            "accuracy": 0.4827586206896552,
+            "n_test_samples": 116
+          },
+          "cv_metrics": {
+            "roc_auc_weighted": 0.6240009738273041,
+            "mean_train_score": 0.9981084493662985,
+            "mean_val_score": 0.6240009738273041,
+            "overfitting_gap": 0.37410747553899437,
+            "cv_stability": 0.01823008728140957
+          },
+          "cv_detailed_analysis": {
+            "fold_test_scores": [
+              0.6157516827093187,
+              0.6394006477699514,
+              0.6346365432080947,
+              0.6384017121768614,
+              0.591814283272295
+            ],
+            "fold_train_scores": [
+              0.9986444029785898,
+              0.9976554741996629,
+              0.9971207588265113,
+              0.99811725460852,
+              0.9990043562182086
+            ],
+            "fold_overfitting_gaps": [
+              0.3828927202692711,
+              0.3582548264297115,
+              0.3624842156184166,
+              0.3597155424316586,
+              0.4071900729459136
+            ],
+            "worst_fold_id": 4,
+            "best_fold_id": 1,
+            "fold_score_range": 0.04758636449765641,
+            "fold_score_std": 0.01823008728140957,
+            "fold_variance": 0.00033233608228781103,
+            "test_vs_cv_gap": -0.025485458904595193,
+            "problematic_folds": [],
+            "mean_overfitting_gap": 0.37410747553899426,
+            "max_overfitting_gap": 0.4071900729459136,
+            "feature_approach_analysis": {
+              "approach_name": "feat_mean",
+              "mode": "PCA_256",
+              "dimensionality": 256,
+              "stability_score": 0.9817699127185904,
+              "is_concatenated_approach": false,
+              "is_raw_features": false,
+              "approach_effectiveness": "improved",
+              "dimensionality_efficiency": "pca_reduced"
+            }
+          },
+          "diagnostics": {
+            "convergence_warning": "False",
+            "overfitting_gap": 0.37410747553899437,
+            "overfitting_severity": "high",
+            "cv_stability": 0.01823008728140957
+          },
+          "data_info": {
+            "train_val_shape": [
+              461,
+              256
+            ],
+            "test_shape": [
+              116,
+              256
+            ],
+            "n_classes": 4,
+            "n_cv_splits": 5,
+            "feature_dimensionality": 256
+          },
+          "timing": {
+            "load_time": 0.028912782669067383,
+            "gridsearch_time": 154.57229566574097,
+            "test_eval_time": 1.937368631362915,
+            "total_time": 156.53857707977295
+          },
+          "cv_results_summary": {
+            "best_index": "34",
+            "n_combinations_tested": 77
+          },
+          "task_metadata": {
+            "model": "point_m2ae_encoder",
+            "approach": "feat_mean",
+            "classifier": "logistic",
+            "mode": "PCA_256",
+            "total_pipeline_time": 156.56596326828003
+          }
+        }
+      },
+      "raw_features": {
+        "logistic": {
+          "approach_name": "feat_mean",
+          "mode": "raw_features",
+          "classifier_type": "logistic",
+          "best_params": {
+            "C": 1.0,
+            "l1_ratio": 0.3
+          },
+          "best_cv_score": 0.6259477897808615,
+          "test_metrics": {
+            "roc_auc_weighted": 0.6056811257208523,
+            "accuracy": 0.47413793103448276,
+            "n_test_samples": 116
+          },
+          "cv_metrics": {
+            "roc_auc_weighted": 0.6259477897808615,
+            "mean_train_score": 0.9938424534738122,
+            "mean_val_score": 0.6259477897808615,
+            "overfitting_gap": 0.36789466369295065,
+            "cv_stability": 0.0191083220984806
+          },
+          "cv_detailed_analysis": {
+            "fold_test_scores": [
+              0.6081105362512936,
+              0.6400500998692661,
+              0.6408472051772925,
+              0.6429960841506744,
+              0.5977350234557808
+            ],
+            "fold_train_scores": [
+              0.9937240520627953,
+              0.9925810604725084,
+              0.9924204526166636,
+              0.9941902267094342,
+              0.9962964755076593
+            ],
+            "fold_overfitting_gaps": [
+              0.3856135158115017,
+              0.3525309606032423,
+              0.351573247439371,
+              0.3511941425587598,
+              0.39856145205187854
+            ],
+            "worst_fold_id": 4,
+            "best_fold_id": 3,
+            "fold_score_range": 0.04526106069489366,
+            "fold_score_std": 0.0191083220984806,
+            "fold_variance": 0.00036512797341928195,
+            "test_vs_cv_gap": -0.02026666406000921,
+            "problematic_folds": [],
+            "mean_overfitting_gap": 0.3678946636929507,
+            "max_overfitting_gap": 0.39856145205187854,
+            "feature_approach_analysis": {
+              "approach_name": "feat_mean",
+              "mode": "raw_features",
+              "dimensionality": 384,
+              "stability_score": 0.9808916779015194,
+              "is_concatenated_approach": false,
+              "is_raw_features": true,
+              "approach_effectiveness": "improved",
+              "dimensionality_efficiency": "high"
+            }
+          },
+          "diagnostics": {
+            "convergence_warning": "False",
+            "overfitting_gap": 0.36789466369295065,
+            "overfitting_severity": "high",
+            "cv_stability": 0.0191083220984806
+          },
+          "data_info": {
+            "train_val_shape": [
+              461,
+              384
+            ],
+            "test_shape": [
+              116,
+              384
+            ],
+            "n_classes": 4,
+            "n_cv_splits": 5,
+            "feature_dimensionality": 384
+          },
+          "timing": {
+            "load_time": 0.042035579681396484,
+            "gridsearch_time": 745.8629722595215,
+            "test_eval_time": 21.598220348358154,
+            "total_time": 767.503228187561
+          },
+          "cv_results_summary": {
+            "best_index": "36",
+            "n_combinations_tested": 77
+          },
+          "task_metadata": {
+            "model": "point_m2ae_encoder",
+            "approach": "feat_mean",
+            "classifier": "logistic",
+            "mode": "raw_features",
+            "total_pipeline_time": 767.5349562168121
+          }
+        }
+      }
+    },
+    "feat_mean_max": {
+      "PCA_32": {
+        "logistic": {
+          "approach_name": "feat_mean_max",
+          "mode": "PCA_32",
+          "classifier_type": "logistic",
+          "best_params": {
+            "C": 0.001,
+            "l1_ratio": 0.0
+          },
+          "best_cv_score": 0.5672375411238615,
+          "test_metrics": {
+            "roc_auc_weighted": 0.5340251646414828,
+            "accuracy": 0.47413793103448276,
+            "n_test_samples": 116
+          },
+          "cv_metrics": {
+            "roc_auc_weighted": 0.5672375411238615,
+            "mean_train_score": 0.7196375084161712,
+            "mean_val_score": 0.5672375411238615,
+            "overfitting_gap": 0.15239996729230976,
+            "cv_stability": 0.05044544699389846
+          },
+          "cv_detailed_analysis": {
+            "fold_test_scores": [
+              0.5052032374032391,
+              0.6185673697125231,
+              0.5107530432575516,
+              0.620744736197384,
+              0.5809193190486096
+            ],
+            "fold_train_scores": [
+              0.7257052617409232,
+              0.711389377355882,
+              0.7303870669157486,
+              0.7150721921983645,
+              0.7156336438699378
+            ],
+            "fold_overfitting_gaps": [
+              0.22050202433768407,
+              0.0928220076433589,
+              0.21963402365819706,
+              0.09432745600098047,
+              0.13471432482132817
+            ],
+            "worst_fold_id": 0,
+            "best_fold_id": 3,
+            "fold_score_range": 0.11554149879414488,
+            "fold_score_std": 0.05044544699389846,
+            "fold_variance": 0.0025447431224142193,
+            "test_vs_cv_gap": -0.033212376482378736,
+            "problematic_folds": [
+              0,
+              2
+            ],
+            "mean_overfitting_gap": 0.15239996729230973,
+            "max_overfitting_gap": 0.22050202433768407,
+            "feature_approach_analysis": {
+              "approach_name": "feat_mean_max",
+              "mode": "PCA_32",
+              "dimensionality": 32,
+              "stability_score": 0.9495545530061016,
+              "is_concatenated_approach": true,
+              "is_raw_features": false,
+              "approach_effectiveness": "neutral",
+              "dimensionality_efficiency": "pca_reduced"
+            }
+          },
+          "diagnostics": {
+            "convergence_warning": "False",
+            "overfitting_gap": 0.15239996729230976,
+            "overfitting_severity": "high",
+            "cv_stability": 0.05044544699389846
+          },
+          "data_info": {
+            "train_val_shape": [
+              461,
+              32
+            ],
+            "test_shape": [
+              116,
+              32
+            ],
+            "n_classes": 4,
+            "n_cv_splits": 5,
+            "feature_dimensionality": 32
+          },
+          "timing": {
+            "load_time": 0.026029586791992188,
+            "gridsearch_time": 5.288638353347778,
+            "test_eval_time": 0.04932856559753418,
+            "total_time": 5.363996505737305
+          },
+          "cv_results_summary": {
+            "best_index": "0",
+            "n_combinations_tested": 77
+          },
+          "task_metadata": {
+            "model": "point_m2ae_encoder",
+            "approach": "feat_mean_max",
+            "classifier": "logistic",
+            "mode": "PCA_32",
+            "total_pipeline_time": 5.386173725128174
+          }
+        }
+      },
+      "PCA_256": {
+        "logistic": {
+          "approach_name": "feat_mean_max",
+          "mode": "PCA_256",
+          "classifier_type": "logistic",
+          "best_params": {
+            "C": 0.01,
+            "l1_ratio": 0.0
+          },
+          "best_cv_score": 0.5853361401592068,
+          "test_metrics": {
+            "roc_auc_weighted": 0.6192767471340598,
+            "accuracy": 0.49137931034482757,
+            "n_test_samples": 116
+          },
+          "cv_metrics": {
+            "roc_auc_weighted": 0.5853361401592068,
+            "mean_train_score": 0.9902241858175718,
+            "mean_val_score": 0.5853361401592068,
+            "overfitting_gap": 0.404888045658365,
+            "cv_stability": 0.027373285331020052
+          },
+          "cv_detailed_analysis": {
+            "fold_test_scores": [
+              0.5697375568434149,
+              0.5929764522616696,
+              0.5711110698994619,
+              0.6351343389965323,
+              0.5577212827949551
+            ],
+            "fold_train_scores": [
+              0.9916820645108927,
+              0.9883969061194474,
+              0.9877164934649567,
+              0.9913632954144894,
+              0.9919621695780725
+            ],
+            "fold_overfitting_gaps": [
+              0.4219445076674778,
+              0.3954204538577778,
+              0.4166054235654948,
+              0.35622895641795715,
+              0.43424088678311734
+            ],
+            "worst_fold_id": 4,
+            "best_fold_id": 3,
+            "fold_score_range": 0.07741305620157712,
+            "fold_score_std": 0.027373285331020052,
+            "fold_variance": 0.0007492967498134376,
+            "test_vs_cv_gap": 0.033940606974853016,
+            "problematic_folds": [],
+            "mean_overfitting_gap": 0.40488804565836495,
+            "max_overfitting_gap": 0.43424088678311734,
+            "feature_approach_analysis": {
+              "approach_name": "feat_mean_max",
+              "mode": "PCA_256",
+              "dimensionality": 256,
+              "stability_score": 0.97262671466898,
+              "is_concatenated_approach": true,
+              "is_raw_features": false,
+              "approach_effectiveness": "improved",
+              "dimensionality_efficiency": "pca_reduced"
+            }
+          },
+          "diagnostics": {
+            "convergence_warning": "False",
+            "overfitting_gap": 0.404888045658365,
+            "overfitting_severity": "high",
+            "cv_stability": 0.027373285331020052
+          },
+          "data_info": {
+            "train_val_shape": [
+              461,
+              256
+            ],
+            "test_shape": [
+              116,
+              256
+            ],
+            "n_classes": 4,
+            "n_cv_splits": 5,
+            "feature_dimensionality": 256
+          },
+          "timing": {
+            "load_time": 0.03519868850708008,
+            "gridsearch_time": 147.5362946987152,
+            "test_eval_time": 0.5866193771362305,
+            "total_time": 148.15811276435852
+          },
+          "cv_results_summary": {
+            "best_index": "11",
+            "n_combinations_tested": 77
+          },
+          "task_metadata": {
+            "model": "point_m2ae_encoder",
+            "approach": "feat_mean_max",
+            "classifier": "logistic",
+            "mode": "PCA_256",
+            "total_pipeline_time": 148.18770933151245
+          }
+        }
+      },
+      "raw_features": {
+        "logistic": {
+          "approach_name": "feat_mean_max",
+          "mode": "raw_features",
+          "classifier_type": "logistic",
+          "best_params": {
+            "C": 0.01,
+            "l1_ratio": 0.0
+          },
+          "best_cv_score": 0.5898699135155547,
+          "test_metrics": {
+            "roc_auc_weighted": 0.6168438523947101,
+            "accuracy": 0.4396551724137931,
+            "n_test_samples": 116
+          },
+          "cv_metrics": {
+            "roc_auc_weighted": 0.5898699135155547,
+            "mean_train_score": 0.9974404036930083,
+            "mean_val_score": 0.5898699135155547,
+            "overfitting_gap": 0.4075704901774536,
+            "cv_stability": 0.026865846020678326
+          },
+          "cv_detailed_analysis": {
+            "fold_test_scores": [
+              0.5803290345374996,
+              0.5996886015343622,
+              0.5630372543347957,
+              0.6374173092177277,
+              0.5688773679533883
+            ],
+            "fold_train_scores": [
+              0.9983206036579414,
+              0.9965141161968838,
+              0.9966200140856469,
+              0.9977701385824443,
+              0.9979771459421253
+            ],
+            "fold_overfitting_gaps": [
+              0.4179915691204418,
+              0.3968255146625216,
+              0.43358275975085125,
+              0.3603528293647167,
+              0.429099777988737
+            ],
+            "worst_fold_id": 2,
+            "best_fold_id": 3,
+            "fold_score_range": 0.07438005488293198,
+            "fold_score_std": 0.026865846020678326,
+            "fold_variance": 0.0007217736824067975,
+            "test_vs_cv_gap": 0.026973938879155335,
+            "problematic_folds": [],
+            "mean_overfitting_gap": 0.40757049017745367,
+            "max_overfitting_gap": 0.43358275975085125,
+            "feature_approach_analysis": {
+              "approach_name": "feat_mean_max",
+              "mode": "raw_features",
+              "dimensionality": 768,
+              "stability_score": 0.9731341539793217,
+              "is_concatenated_approach": true,
+              "is_raw_features": true,
+              "approach_effectiveness": "improved",
+              "dimensionality_efficiency": "high"
+            }
+          },
+          "diagnostics": {
+            "convergence_warning": "False",
+            "overfitting_gap": 0.4075704901774536,
+            "overfitting_severity": "high",
+            "cv_stability": 0.026865846020678326
+          },
+          "data_info": {
+            "train_val_shape": [
+              461,
+              768
+            ],
+            "test_shape": [
+              116,
+              768
+            ],
+            "n_classes": 4,
+            "n_cv_splits": 5,
+            "feature_dimensionality": 768
+          },
+          "timing": {
+            "load_time": 0.05237221717834473,
+            "gridsearch_time": 1183.7221519947052,
+            "test_eval_time": 2.6923987865448,
+            "total_time": 1186.4669229984283
+          },
+          "cv_results_summary": {
+            "best_index": "11",
+            "n_combinations_tested": 77
+          },
+          "task_metadata": {
+            "model": "point_m2ae_encoder",
+            "approach": "feat_mean_max",
+            "classifier": "logistic",
+            "mode": "raw_features",
+            "total_pipeline_time": 1186.4906141757965
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "total_parameter_combinations": 77,
+  "best_params_index": 11,
+  "best_score": 0.5853361401592068,
+  "cv_methodology": "LeaveOneGroupOut (5 folds)",
+  "scoring_metric": "roc_auc_ovr_weighted",
+  "hyperparameter_grid_size": {
+    "l1_ratio_values": 11,
+    "C_values": 7
+  },
+  "feature_approach_info": {
+    "approach_name": "feat_mean_max",
+    "mode": "PCA_256",
+    "feature_dimensionality": 256,
+    "is_baseline_mean": false,
+    "is_concatenated": true,
+    "is_raw_features": false,
+    "is_pca_reduced": true
+  }
+}

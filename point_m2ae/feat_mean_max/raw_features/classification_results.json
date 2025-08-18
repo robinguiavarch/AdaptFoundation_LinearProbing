@@ -1,0 +1,104 @@
+{
+  "feat_mean_max": {
+    "logistic": {
+      "approach_name": "feat_mean_max",
+      "mode": "raw_features",
+      "classifier_type": "logistic",
+      "best_params": {
+        "C": 0.01,
+        "l1_ratio": 0.0
+      },
+      "best_cv_score": 0.5898699135155547,
+      "test_metrics": {
+        "roc_auc_weighted": 0.6168438523947101,
+        "accuracy": 0.4396551724137931,
+        "n_test_samples": 116
+      },
+      "cv_metrics": {
+        "roc_auc_weighted": 0.5898699135155547,
+        "mean_train_score": 0.9974404036930083,
+        "mean_val_score": 0.5898699135155547,
+        "overfitting_gap": 0.4075704901774536,
+        "cv_stability": 0.026865846020678326
+      },
+      "cv_detailed_analysis": {
+        "fold_test_scores": [
+          0.5803290345374996,
+          0.5996886015343622,
+          0.5630372543347957,
+          0.6374173092177277,
+          0.5688773679533883
+        ],
+        "fold_train_scores": [
+          0.9983206036579414,
+          0.9965141161968838,
+          0.9966200140856469,
+          0.9977701385824443,
+          0.9979771459421253
+        ],
+        "fold_overfitting_gaps": [
+          0.4179915691204418,
+          0.3968255146625216,
+          0.43358275975085125,
+          0.3603528293647167,
+          0.429099777988737
+        ],
+        "worst_fold_id": 2,
+        "best_fold_id": 3,
+        "fold_score_range": 0.07438005488293198,
+        "fold_score_std": 0.026865846020678326,
+        "fold_variance": 0.0007217736824067975,
+        "test_vs_cv_gap": 0.026973938879155335,
+        "problematic_folds": [],
+        "mean_overfitting_gap": 0.40757049017745367,
+        "max_overfitting_gap": 0.43358275975085125,
+        "feature_approach_analysis": {
+          "approach_name": "feat_mean_max",
+          "mode": "raw_features",
+          "dimensionality": 768,
+          "stability_score": 0.9731341539793217,
+          "is_concatenated_approach": true,
+          "is_raw_features": true,
+          "approach_effectiveness": "improved",
+          "dimensionality_efficiency": "high"
+        }
+      },
+      "diagnostics": {
+        "convergence_warning": "False",
+        "overfitting_gap": 0.4075704901774536,
+        "overfitting_severity": "high",
+        "cv_stability": 0.026865846020678326
+      },
+      "data_info": {
+        "train_val_shape": [
+          461,
+          768
+        ],
+        "test_shape": [
+          116,
+          768
+        ],
+        "n_classes": 4,
+        "n_cv_splits": 5,
+        "feature_dimensionality": 768
+      },
+      "timing": {
+        "load_time": 0.05237221717834473,
+        "gridsearch_time": 1183.7221519947052,
+        "test_eval_time": 2.6923987865448,
+        "total_time": 1186.4669229984283
+      },
+      "cv_results_summary": {
+        "best_index": "11",
+        "n_combinations_tested": 77
+      },
+      "task_metadata": {
+        "model": "point_m2ae_encoder",
+        "approach": "feat_mean_max",
+        "classifier": "logistic",
+        "mode": "raw_features",
+        "total_pipeline_time": 1186.4906141757965
+      }
+    }
+  }
+}

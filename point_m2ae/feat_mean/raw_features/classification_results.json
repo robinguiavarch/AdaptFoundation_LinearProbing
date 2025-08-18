@@ -1,0 +1,104 @@
+{
+  "feat_mean": {
+    "logistic": {
+      "approach_name": "feat_mean",
+      "mode": "raw_features",
+      "classifier_type": "logistic",
+      "best_params": {
+        "C": 1.0,
+        "l1_ratio": 0.3
+      },
+      "best_cv_score": 0.6259477897808615,
+      "test_metrics": {
+        "roc_auc_weighted": 0.6056811257208523,
+        "accuracy": 0.47413793103448276,
+        "n_test_samples": 116
+      },
+      "cv_metrics": {
+        "roc_auc_weighted": 0.6259477897808615,
+        "mean_train_score": 0.9938424534738122,
+        "mean_val_score": 0.6259477897808615,
+        "overfitting_gap": 0.36789466369295065,
+        "cv_stability": 0.0191083220984806
+      },
+      "cv_detailed_analysis": {
+        "fold_test_scores": [
+          0.6081105362512936,
+          0.6400500998692661,
+          0.6408472051772925,
+          0.6429960841506744,
+          0.5977350234557808
+        ],
+        "fold_train_scores": [
+          0.9937240520627953,
+          0.9925810604725084,
+          0.9924204526166636,
+          0.9941902267094342,
+          0.9962964755076593
+        ],
+        "fold_overfitting_gaps": [
+          0.3856135158115017,
+          0.3525309606032423,
+          0.351573247439371,
+          0.3511941425587598,
+          0.39856145205187854
+        ],
+        "worst_fold_id": 4,
+        "best_fold_id": 3,
+        "fold_score_range": 0.04526106069489366,
+        "fold_score_std": 0.0191083220984806,
+        "fold_variance": 0.00036512797341928195,
+        "test_vs_cv_gap": -0.02026666406000921,
+        "problematic_folds": [],
+        "mean_overfitting_gap": 0.3678946636929507,
+        "max_overfitting_gap": 0.39856145205187854,
+        "feature_approach_analysis": {
+          "approach_name": "feat_mean",
+          "mode": "raw_features",
+          "dimensionality": 384,
+          "stability_score": 0.9808916779015194,
+          "is_concatenated_approach": false,
+          "is_raw_features": true,
+          "approach_effectiveness": "improved",
+          "dimensionality_efficiency": "high"
+        }
+      },
+      "diagnostics": {
+        "convergence_warning": "False",
+        "overfitting_gap": 0.36789466369295065,
+        "overfitting_severity": "high",
+        "cv_stability": 0.0191083220984806
+      },
+      "data_info": {
+        "train_val_shape": [
+          461,
+          384
+        ],
+        "test_shape": [
+          116,
+          384
+        ],
+        "n_classes": 4,
+        "n_cv_splits": 5,
+        "feature_dimensionality": 384
+      },
+      "timing": {
+        "load_time": 0.042035579681396484,
+        "gridsearch_time": 745.8629722595215,
+        "test_eval_time": 21.598220348358154,
+        "total_time": 767.503228187561
+      },
+      "cv_results_summary": {
+        "best_index": "36",
+        "n_combinations_tested": 77
+      },
+      "task_metadata": {
+        "model": "point_m2ae_encoder",
+        "approach": "feat_mean",
+        "classifier": "logistic",
+        "mode": "raw_features",
+        "total_pipeline_time": 767.5349562168121
+      }
+    }
+  }
+}

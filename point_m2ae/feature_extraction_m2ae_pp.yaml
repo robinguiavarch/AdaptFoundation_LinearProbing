@@ -1,0 +1,80 @@
+# Point-M2AE Feature Extraction Configuration with Optimized Preprocessing
+# AdaptFoundation Project - Hierarchical point cloud feature extraction
+
+# Model configuration
+model:
+  name: "point_m2ae_encoder"
+  type: "hierarchical_encoder"
+  checkpoint_path: "point_m2ae/ckpt/pre-train.pth"
+
+# Point-M2AE processing configuration - CORRECTED TO MATCH OFFICIAL
+processing:
+  # Model architecture (CORRECTED to match official Point-M2AE config)
+  encoder_depths: [5, 5, 5]
+  encoder_dims: [96, 192, 384]
+  group_sizes: [16, 8, 8]        # Progressive reduction
+  num_groups: [512, 256, 64]     # Official values
+  local_radius: [0.32, 0.64, 1.28]
+  drop_path_rate: 0.1
+  num_heads: 6
+  
+  # Runtime configuration
+  batch_size: 1
+  device: "cuda"
+
+# Preprocessing configuration
+preprocessing:
+  versions:
+    v1:
+      name: "fixed_normalization"
+      description: "Fixed normalization preserving anatomical position"
+      input_features: 3
+    v2:
+      name: "topological_features" 
+      description: "Fixed normalization with 4 topological features"
+      input_features: 7
+  
+  # Parameters for topological features (v2)
+  topological_params:
+    neighbor_radius: 1
+    density_window: 2
+    continuity_directions: ["x", "y", "z"]
+    centrality_method: "chebyshev"
+
+# Data configuration  
+data:
+  dataset_path: "crops/2mm/S.Or."
+  output_base_path: "feature_extraction_point_m2ae_pp"
+
+# Feature aggregation approaches - SIMPLIFIED
+feature_approaches:
+  feat_mean_max:
+    description: "Concatenation of mean and max spatial aggregation"
+    expected_output_dim: 768
+    preprocessing_versions: ["v1", "v2"]
+
+# Default approach
+default_approach: "feat_mean_max"
+
+# Hardware configuration
+hardware:
+  gpu_memory_gb: 40
+  cpu_cores: 32
+
+# Validation settings
+validation:
+  check_input_size: true
+  validate_features: true
+  validate_preprocessing: true
+  expected_preprocessing_outputs:
+    v1: 3
+    v2: 7
+  expected_centrality_range: [0.0, 1.0]
+  expected_final_dim: 768
+
+# Configuration notes
+notes:
+  preprocessing_v1: "Fixed normalization by grid dimensions [29,37,21] - preserves anatomical position"
+  preprocessing_v2: "v1 + 4 topological features: neighbors, density_gradient, continuity, centrality"
+  centrality_method: "Chebyshev distance for optimal grid-based centrality scoring"
+  approach_focus: "feat_mean_max only - captures both mean and max spatial information"
