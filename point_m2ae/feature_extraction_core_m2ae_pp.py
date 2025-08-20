@@ -69,8 +69,8 @@ class PointM2AEFeatureExtractor(torch.nn.Module):
         """
         super().__init__()
         
-        if approach not in ['feat_mean_max']:
-            raise ValueError("approach must be 'feat_mean_max'")
+        if approach not in ['feat_mean']:
+            raise ValueError("approach must be 'feat_mean'")
         
         if preprocessing_version not in ['v1', 'v2']:
             raise ValueError("preprocessing_version must be 'v1' or 'v2'")
@@ -386,10 +386,8 @@ class PointM2AEFeatureExtractor(torch.nn.Module):
         # Encoder forward
         x_vis = self.encoder(neighborhoods, centers, idxs, eval=True)
         
-        # Apply aggregation (feat_mean_max only)
-        feat_mean = x_vis.mean(1)
-        feat_max = x_vis.max(1).values
-        return torch.cat([feat_mean, feat_max], dim=1)
+        # Apply aggregation (feat_mean only)
+        return x_vis.mean(1)
     
     def extract_features_batch(self, volumes: torch.Tensor) -> torch.Tensor:
         """
@@ -415,6 +413,6 @@ class PointM2AEFeatureExtractor(torch.nn.Module):
         Get output feature dimension.
         
         Returns:
-            int: Feature dimension (768 for feat_mean_max)
+            int: Feature dimension (384 for feat_mean)
         """
-        return 768
+        return 384

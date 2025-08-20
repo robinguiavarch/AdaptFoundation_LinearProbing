@@ -1,0 +1,20 @@
+{
+  "total_parameter_combinations": 77,
+  "best_params_index": 30,
+  "best_score": 0.6089953122415203,
+  "cv_methodology": "LeaveOneGroupOut (5 folds)",
+  "scoring_metric": "roc_auc_ovr_weighted",
+  "hyperparameter_grid_size": {
+    "l1_ratio_values": 11,
+    "C_values": 7
+  },
+  "preprocessing_approach_info": {
+    "approach_name": "feat_mean_v1",
+    "mode": "PCA_256",
+    "feature_dimensionality": 256,
+    "is_preprocessing_v1": true,
+    "preprocessing_type": "fixed_normalization_anatomical_preservation",
+    "is_raw_features": false,
+    "is_pca_reduced": true
+  }
+}

@@ -1,0 +1,375 @@
+{
+  "experiment_info": {
+    "pipeline": "Point-M2AE Classification with Preprocessing and CV Investigation",
+    "model": "point_m2ae_encoder",
+    "preprocessing_version": "v1_fixed_normalization",
+    "investigation_enabled": true,
+    "total_runtime": 0,
+    "timestamp": "2025-08-18 15:10:17"
+  },
+  "preprocessing_investigation_analysis": {
+    "feat_mean_v1_PCA_32": {
+      "approach": "feat_mean_v1",
+      "mode": "PCA_32",
+      "test_score": 0.5717239251215555,
+      "cv_score": 0.5990496617970441,
+      "test_vs_cv_gap": -0.027325736675488654,
+      "problematic_folds": [
+        4
+      ],
+      "fold_variance": 0.00141000244902965,
+      "preprocessing_stability_score": 0.9624500006786998,
+      "preprocessing_effectiveness": "improved",
+      "anatomical_preservation": "enabled",
+      "dimensionality": 32,
+      "is_raw_features": false
+    },
+    "feat_mean_v1_PCA_256": {
+      "approach": "feat_mean_v1",
+      "mode": "PCA_256",
+      "test_score": 0.5658447972529155,
+      "cv_score": 0.6089953122415203,
+      "test_vs_cv_gap": -0.04315051498860478,
+      "problematic_folds": [
+        4
+      ],
+      "fold_variance": 0.0015668468081181247,
+      "preprocessing_stability_score": 0.9604165841782429,
+      "preprocessing_effectiveness": "improved",
+      "anatomical_preservation": "enabled",
+      "dimensionality": 256,
+      "is_raw_features": false
+    },
+    "feat_mean_v1_raw_features": {
+      "approach": "feat_mean_v1",
+      "mode": "raw_features",
+      "test_score": 0.5976403041777993,
+      "cv_score": 0.5951596351035555,
+      "test_vs_cv_gap": 0.002480669074243824,
+      "problematic_folds": [],
+      "fold_variance": 0.0007044550830931849,
+      "preprocessing_stability_score": 0.9734584272679032,
+      "preprocessing_effectiveness": "improved",
+      "anatomical_preservation": "enabled",
+      "dimensionality": 384,
+      "is_raw_features": true
+    }
+  },
+  "results": {
+    "feat_mean_v1": {
+      "PCA_32": {
+        "logistic": {
+          "approach_name": "feat_mean_v1",
+          "mode": "PCA_32",
+          "classifier_type": "logistic",
+          "best_params": {
+            "C": 0.1,
+            "l1_ratio": 0.9
+          },
+          "best_cv_score": 0.5990496617970441,
+          "test_metrics": {
+            "roc_auc_weighted": 0.5717239251215555,
+            "accuracy": 0.47413793103448276,
+            "n_test_samples": 116
+          },
+          "cv_metrics": {
+            "roc_auc_weighted": 0.5990496617970441,
+            "mean_train_score": 0.6777542331435823,
+            "mean_val_score": 0.5990496617970441,
+            "overfitting_gap": 0.07870457134653819,
+            "cv_stability": 0.037549999321300265
+          },
+          "cv_detailed_analysis": {
+            "fold_test_scores": [
+              0.5640178728323714,
+              0.6175706976149319,
+              0.6204665681271206,
+              0.6466417557667782,
+              0.5465514146440188
+            ],
+            "fold_train_scores": [
+              0.6853261723844273,
+              0.6745008593188033,
+              0.6717504953516742,
+              0.6611473855764246,
+              0.6960462530865819
+            ],
+            "fold_overfitting_gaps": [
+              0.12130829955205591,
+              0.05693016170387144,
+              0.05128392722455355,
+              0.014505629809646425,
+              0.14949483844256306
+            ],
+            "worst_fold_id": 4,
+            "best_fold_id": 3,
+            "fold_score_range": 0.10009034112275939,
+            "fold_score_std": 0.037549999321300265,
+            "fold_variance": 0.00141000244902965,
+            "test_vs_cv_gap": -0.027325736675488654,
+            "problematic_folds": [
+              4
+            ],
+            "mean_overfitting_gap": 0.07870457134653808,
+            "max_overfitting_gap": 0.14949483844256306,
+            "preprocessing_analysis": {
+              "approach_name": "feat_mean_v1",
+              "mode": "PCA_32",
+              "dimensionality": 32,
+              "stability_score": 0.9624500006786998,
+              "is_preprocessing_v1": true,
+              "is_raw_features": false,
+              "preprocessing_effectiveness": "improved",
+              "dimensionality_efficiency": "pca_reduced",
+              "anatomical_preservation": "enabled"
+            }
+          },
+          "diagnostics": {
+            "convergence_warning": "False",
+            "overfitting_gap": 0.07870457134653819,
+            "overfitting_severity": "medium",
+            "cv_stability": 0.037549999321300265
+          },
+          "data_info": {
+            "train_val_shape": [
+              461,
+              32
+            ],
+            "test_shape": [
+              116,
+              32
+            ],
+            "n_classes": 4,
+            "n_cv_splits": 5,
+            "feature_dimensionality": 32
+          },
+          "timing": {
+            "load_time": 0.027019977569580078,
+            "gridsearch_time": 6.966454267501831,
+            "test_eval_time": 0.17165589332580566,
+            "total_time": 7.165130138397217
+          },
+          "cv_results_summary": {
+            "best_index": "31",
+            "n_combinations_tested": 77
+          },
+          "task_metadata": {
+            "model": "point_m2ae_encoder",
+            "approach": "feat_mean_v1",
+            "classifier": "logistic",
+            "mode": "PCA_32",
+            "total_pipeline_time": 7.189718246459961
+          }
+        }
+      },
+      "PCA_256": {
+        "logistic": {
+          "approach_name": "feat_mean_v1",
+          "mode": "PCA_256",
+          "classifier_type": "logistic",
+          "best_params": {
+            "C": 0.1,
+            "l1_ratio": 0.8
+          },
+          "best_cv_score": 0.6089953122415203,
+          "test_metrics": {
+            "roc_auc_weighted": 0.5658447972529155,
+            "accuracy": 0.4827586206896552,
+            "n_test_samples": 116
+          },
+          "cv_metrics": {
+            "roc_auc_weighted": 0.6089953122415203,
+            "mean_train_score": 0.6959166496228144,
+            "mean_val_score": 0.6089953122415203,
+            "overfitting_gap": 0.08692133738129415,
+            "cv_stability": 0.03958341582175703
+          },
+          "cv_detailed_analysis": {
+            "fold_test_scores": [
+              0.5737520108449602,
+              0.6291344525029625,
+              0.6237772793773579,
+              0.6637824118401986,
+              0.5545304066421224
+            ],
+            "fold_train_scores": [
+              0.7034383500169278,
+              0.6925318199004672,
+              0.693990356407104,
+              0.6825108380946618,
+              0.7071118836949108
+            ],
+            "fold_overfitting_gaps": [
+              0.1296863391719676,
+              0.06339736739750468,
+              0.07021307702974611,
+              0.01872842625446325,
+              0.15258147705278846
+            ],
+            "worst_fold_id": 4,
+            "best_fold_id": 3,
+            "fold_score_range": 0.10925200519807621,
+            "fold_score_std": 0.03958341582175703,
+            "fold_variance": 0.0015668468081181247,
+            "test_vs_cv_gap": -0.04315051498860478,
+            "problematic_folds": [
+              4
+            ],
+            "mean_overfitting_gap": 0.08692133738129401,
+            "max_overfitting_gap": 0.15258147705278846,
+            "preprocessing_analysis": {
+              "approach_name": "feat_mean_v1",
+              "mode": "PCA_256",
+              "dimensionality": 256,
+              "stability_score": 0.9604165841782429,
+              "is_preprocessing_v1": true,
+              "is_raw_features": false,
+              "preprocessing_effectiveness": "improved",
+              "dimensionality_efficiency": "pca_reduced",
+              "anatomical_preservation": "enabled"
+            }
+          },
+          "diagnostics": {
+            "convergence_warning": "False",
+            "overfitting_gap": 0.08692133738129415,
+            "overfitting_severity": "medium",
+            "cv_stability": 0.03958341582175703
+          },
+          "data_info": {
+            "train_val_shape": [
+              461,
+              256
+            ],
+            "test_shape": [
+              116,
+              256
+            ],
+            "n_classes": 4,
+            "n_cv_splits": 5,
+            "feature_dimensionality": 256
+          },
+          "timing": {
+            "load_time": 0.038384437561035156,
+            "gridsearch_time": 156.44878935813904,
+            "test_eval_time": 0.4066660404205322,
+            "total_time": 156.8938398361206
+          },
+          "cv_results_summary": {
+            "best_index": "30",
+            "n_combinations_tested": 77
+          },
+          "task_metadata": {
+            "model": "point_m2ae_encoder",
+            "approach": "feat_mean_v1",
+            "classifier": "logistic",
+            "mode": "PCA_256",
+            "total_pipeline_time": 156.91686081886292
+          }
+        }
+      },
+      "raw_features": {
+        "logistic": {
+          "approach_name": "feat_mean_v1",
+          "mode": "raw_features",
+          "classifier_type": "logistic",
+          "best_params": {
+            "C": 0.1,
+            "l1_ratio": 0.0
+          },
+          "best_cv_score": 0.5951596351035555,
+          "test_metrics": {
+            "roc_auc_weighted": 0.5976403041777993,
+            "accuracy": 0.5,
+            "n_test_samples": 116
+          },
+          "cv_metrics": {
+            "roc_auc_weighted": 0.5951596351035555,
+            "mean_train_score": 0.9012719259345486,
+            "mean_val_score": 0.5951596351035555,
+            "overfitting_gap": 0.3061122908309931,
+            "cv_stability": 0.02654157273209681
+          },
+          "cv_detailed_analysis": {
+            "fold_test_scores": [
+              0.5661405727035834,
+              0.6293696300021603,
+              0.6073715548373283,
+              0.6110476891103065,
+              0.5618687288643985
+            ],
+            "fold_train_scores": [
+              0.8958777582416767,
+              0.896893027583728,
+              0.8990350782344627,
+              0.9069173119747114,
+              0.907636453638164
+            ],
+            "fold_overfitting_gaps": [
+              0.3297371855380933,
+              0.26752339758156773,
+              0.2916635233971344,
+              0.2958696228644049,
+              0.3457677247737655
+            ],
+            "worst_fold_id": 4,
+            "best_fold_id": 1,
+            "fold_score_range": 0.06750090113776175,
+            "fold_score_std": 0.02654157273209681,
+            "fold_variance": 0.0007044550830931849,
+            "test_vs_cv_gap": 0.002480669074243824,
+            "problematic_folds": [],
+            "mean_overfitting_gap": 0.3061122908309931,
+            "max_overfitting_gap": 0.3457677247737655,
+            "preprocessing_analysis": {
+              "approach_name": "feat_mean_v1",
+              "mode": "raw_features",
+              "dimensionality": 384,
+              "stability_score": 0.9734584272679032,
+              "is_preprocessing_v1": true,
+              "is_raw_features": true,
+              "preprocessing_effectiveness": "improved",
+              "dimensionality_efficiency": "high",
+              "anatomical_preservation": "enabled"
+            }
+          },
+          "diagnostics": {
+            "convergence_warning": "False",
+            "overfitting_gap": 0.3061122908309931,
+            "overfitting_severity": "high",
+            "cv_stability": 0.02654157273209681
+          },
+          "data_info": {
+            "train_val_shape": [
+              461,
+              384
+            ],
+            "test_shape": [
+              116,
+              384
+            ],
+            "n_classes": 4,
+            "n_cv_splits": 5,
+            "feature_dimensionality": 384
+          },
+          "timing": {
+            "load_time": 0.044055938720703125,
+            "gridsearch_time": 844.8713829517365,
+            "test_eval_time": 4.467334985733032,
+            "total_time": 849.3827738761902
+          },
+          "cv_results_summary": {
+            "best_index": "22",
+            "n_combinations_tested": 77
+          },
+          "task_metadata": {
+            "model": "point_m2ae_encoder",
+            "approach": "feat_mean_v1",
+            "classifier": "logistic",
+            "mode": "raw_features",
+            "total_pipeline_time": 849.4184787273407
+          }
+        }
+      }
+    }
+  }
+}

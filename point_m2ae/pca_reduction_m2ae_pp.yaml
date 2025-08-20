@@ -1,0 +1,71 @@
+# PCA Dimensionality Reduction Configuration for Point-M2AE Features with Preprocessing
+# AdaptFoundation Project - Point-M2AE PCA Pipeline with v1 preprocessing
+# ===================================================================================
+
+# Point-M2AE Approaches to Process with Preprocessing v1
+approaches:
+  - feat_mean_v1       # Preprocessing v1: 384D -> PCA 32D, 256D
+
+# PCA Reduction Modes
+pca_modes:
+  # Champollion comparison modes
+  - n_components: 32
+    description: "PCA 32D (Champollion V1 comparison baseline)"
+    
+  - n_components: 256
+    description: "PCA 256D (Champollion V0 comparison baseline)"
+
+# Data Configuration
+data:
+  features_base_path: "feature_extraction_point_m2ae_pp"
+  
+# Processing Configuration
+processing:
+  sequential_approaches: true    # Process approaches sequentially
+  skip_existing: false          # Re-process even if PCA files exist
+  detailed_logging: true        # Detailed progress output
+  
+# Validation and Quality Control
+validation:
+  check_feature_files: true     # Verify source feature files exist
+  validate_dimensions: true     # Check expected input/output dimensions
+  save_metadata: true          # Save detailed PCA metadata
+  
+# Output Configuration
+output:
+  save_individual: true        # Save PCA files in individual directories
+  save_summary: true          # Save processing summary
+  preserve_approach_structure: true  # Maintain feat_{approach}/PCA_{components} structure
+
+# Expected Input Dimensions for Preprocessing v1
+expected_input_dimensions:
+  feat_mean_v1: 384             # v1 preprocessing: spatial mean aggregation
+
+# PCA Requirements by Preprocessing Version
+pca_requirements:
+  feat_mean_v1:
+    pca_required: true
+    reason: "384D suitable for PCA reduction for comparison studies"
+    recommended_modes: ["32", "256"]
+    priority: "Standard processing"
+    preprocessing: "Fixed normalization preserving anatomical position"
+
+# Processing Strategy
+strategy:
+  approach_comparison: "Single preprocessing version with dimensionality reduction"
+  target_dimensions: "32D and 256D for Champollion comparison studies"
+  training_strategy: "PCA fitted on all 5 training folds for robust transformation"
+  preprocessing_focus: "v1 fixed normalization for anatomical position preservation"
+  
+# Processing Order
+processing_order:
+  - feat_mean_v1       # Process v1 preprocessing only
+
+# Notes for Point-M2AE PCA Strategy with Preprocessing v1
+notes:
+  dimensions: "Point-M2AE feat_mean features (384D) suitable for direct PCA application"
+  pca_purpose: "PCA primarily for standardized comparison with Champollion baselines"
+  robustness: "PCA fitted on concatenated training data for stability"
+  compatibility: "Output format compatible with existing classification pipelines"
+  preprocessing_v1: "Fixed normalization preserves anatomical position without destructive centering"
+  simplification: "Single preprocessing approach for focused validation"

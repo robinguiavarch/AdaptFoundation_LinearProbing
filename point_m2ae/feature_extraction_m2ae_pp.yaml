@@ -48,13 +48,13 @@ data:
 
 # Feature aggregation approaches - SIMPLIFIED
 feature_approaches:
-  feat_mean_max:
-    description: "Concatenation of mean and max spatial aggregation"
-    expected_output_dim: 768
+  feat_mean:
+    description: "Spatial mean aggregation of final tokens"
+    expected_output_dim: 384
     preprocessing_versions: ["v1", "v2"]
 
 # Default approach
-default_approach: "feat_mean_max"
+default_approach: "feat_mean"
 
 # Hardware configuration
 hardware:
@@ -70,11 +70,11 @@ validation:
     v1: 3
     v2: 7
   expected_centrality_range: [0.0, 1.0]
-  expected_final_dim: 768
+  expected_final_dim: 384
 
 # Configuration notes
 notes:
   preprocessing_v1: "Fixed normalization by grid dimensions [29,37,21] - preserves anatomical position"
   preprocessing_v2: "v1 + 4 topological features: neighbors, density_gradient, continuity, centrality"
   centrality_method: "Chebyshev distance for optimal grid-based centrality scoring"
-  approach_focus: "feat_mean_max only - captures both mean and max spatial information"
+  approach_focus: "feat_mean only - spatial mean aggregation for optimal performance"

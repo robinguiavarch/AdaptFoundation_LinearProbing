@@ -1,0 +1,107 @@
+{
+  "feat_mean_v1": {
+    "logistic": {
+      "approach_name": "feat_mean_v1",
+      "mode": "PCA_32",
+      "classifier_type": "logistic",
+      "best_params": {
+        "C": 0.1,
+        "l1_ratio": 0.9
+      },
+      "best_cv_score": 0.5990496617970441,
+      "test_metrics": {
+        "roc_auc_weighted": 0.5717239251215555,
+        "accuracy": 0.47413793103448276,
+        "n_test_samples": 116
+      },
+      "cv_metrics": {
+        "roc_auc_weighted": 0.5990496617970441,
+        "mean_train_score": 0.6777542331435823,
+        "mean_val_score": 0.5990496617970441,
+        "overfitting_gap": 0.07870457134653819,
+        "cv_stability": 0.037549999321300265
+      },
+      "cv_detailed_analysis": {
+        "fold_test_scores": [
+          0.5640178728323714,
+          0.6175706976149319,
+          0.6204665681271206,
+          0.6466417557667782,
+          0.5465514146440188
+        ],
+        "fold_train_scores": [
+          0.6853261723844273,
+          0.6745008593188033,
+          0.6717504953516742,
+          0.6611473855764246,
+          0.6960462530865819
+        ],
+        "fold_overfitting_gaps": [
+          0.12130829955205591,
+          0.05693016170387144,
+          0.05128392722455355,
+          0.014505629809646425,
+          0.14949483844256306
+        ],
+        "worst_fold_id": 4,
+        "best_fold_id": 3,
+        "fold_score_range": 0.10009034112275939,
+        "fold_score_std": 0.037549999321300265,
+        "fold_variance": 0.00141000244902965,
+        "test_vs_cv_gap": -0.027325736675488654,
+        "problematic_folds": [
+          4
+        ],
+        "mean_overfitting_gap": 0.07870457134653808,
+        "max_overfitting_gap": 0.14949483844256306,
+        "preprocessing_analysis": {
+          "approach_name": "feat_mean_v1",
+          "mode": "PCA_32",
+          "dimensionality": 32,
+          "stability_score": 0.9624500006786998,
+          "is_preprocessing_v1": true,
+          "is_raw_features": false,
+          "preprocessing_effectiveness": "improved",
+          "dimensionality_efficiency": "pca_reduced",
+          "anatomical_preservation": "enabled"
+        }
+      },
+      "diagnostics": {
+        "convergence_warning": "False",
+        "overfitting_gap": 0.07870457134653819,
+        "overfitting_severity": "medium",
+        "cv_stability": 0.037549999321300265
+      },
+      "data_info": {
+        "train_val_shape": [
+          461,
+          32
+        ],
+        "test_shape": [
+          116,
+          32
+        ],
+        "n_classes": 4,
+        "n_cv_splits": 5,
+        "feature_dimensionality": 32
+      },
+      "timing": {
+        "load_time": 0.027019977569580078,
+        "gridsearch_time": 6.966454267501831,
+        "test_eval_time": 0.17165589332580566,
+        "total_time": 7.165130138397217
+      },
+      "cv_results_summary": {
+        "best_index": "31",
+        "n_combinations_tested": 77
+      },
+      "task_metadata": {
+        "model": "point_m2ae_encoder",
+        "approach": "feat_mean_v1",
+        "classifier": "logistic",
+        "mode": "PCA_32",
+        "total_pipeline_time": 7.189718246459961
+      }
+    }
+  }
+}
