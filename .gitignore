@@ -49,11 +49,17 @@ feature_extraction_density/
 density/unlabeled_skeletons_128.npy
 dinov2_variantes/method_25d_cls/method_25d_cls_features/
 dinov2_variantes/density_guided/density_guided_features/
+
+
 point_m2ae/ckpt/
 point_m2ae/Point-M2AE/
 jobs/
 logs/
 crops/
+
+i2p_mae/I2P-MAE/
+
+
 
 sam3d_variantes/turbo_with_density/flatten_baseline/
 sam3d_variantes/turbo_with_density/flatten_linear_weighting/
@@ -65,6 +71,7 @@ feature_extraction_sam3d_sc/
 
 feature_extraction_point_m2ae/
 feature_extraction_point_m2ae_pp/
+feature_extraction_point_m2ae_cfgs/
 
 feature_extraction_sam3d_fip/
 

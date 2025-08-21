@@ -1,0 +1,175 @@
+# Classification Configuration for Point-M2AE 45 Configurations
+# AdaptFoundation Project - Linear probing classification on 45 configurations
+# ============================================================================
+
+# Point-M2AE Model to Evaluate
+models:
+  - point_m2ae_encoder
+
+# 45 Configuration Names (C1A1-C9A5, excluding C10A1-C10A5)
+configurations:
+  - C1A1    # Config C1 + Aggregation A1 (384D)
+  - C1A2    # Config C1 + Aggregation A2 (1536D)
+  - C1A3    # Config C1 + Aggregation A3 (576D)
+  - C1A4    # Config C1 + Aggregation A4 (384D)
+  - C1A5    # Config C1 + Aggregation A5 (384D)
+  - C2A1    # Config C2 + Aggregation A1 (384D)
+  - C2A2    # Config C2 + Aggregation A2 (1536D)
+  - C2A3    # Config C2 + Aggregation A3 (576D)
+  - C2A4    # Config C2 + Aggregation A4 (384D)
+  - C2A5    # Config C2 + Aggregation A5 (384D)
+  - C3A1    # Config C3 + Aggregation A1 (384D)
+  - C3A2    # Config C3 + Aggregation A2 (1536D)
+  - C3A3    # Config C3 + Aggregation A3 (576D)
+  - C3A4    # Config C3 + Aggregation A4 (384D)
+  - C3A5    # Config C3 + Aggregation A5 (384D)
+  - C4A1    # Config C4 + Aggregation A1 (384D)
+  - C4A2    # Config C4 + Aggregation A2 (1536D)
+  - C4A3    # Config C4 + Aggregation A3 (576D)
+  - C4A4    # Config C4 + Aggregation A4 (384D)
+  - C4A5    # Config C4 + Aggregation A5 (384D)
+  - C5A1    # Config C5 + Aggregation A1 (384D)
+  - C5A2    # Config C5 + Aggregation A2 (1536D)
+  - C5A3    # Config C5 + Aggregation A3 (576D)
+  - C5A4    # Config C5 + Aggregation A4 (384D)
+  - C5A5    # Config C5 + Aggregation A5 (384D)
+  - C6A1    # Config C6 + Aggregation A1 (384D)
+  - C6A2    # Config C6 + Aggregation A2 (1536D)
+  - C6A3    # Config C6 + Aggregation A3 (576D)
+  - C6A4    # Config C6 + Aggregation A4 (384D)
+  - C6A5    # Config C6 + Aggregation A5 (384D)
+  - C7A1    # Config C7 + Aggregation A1 (384D)
+  - C7A2    # Config C7 + Aggregation A2 (1536D)
+  - C7A3    # Config C7 + Aggregation A3 (576D)
+  - C7A4    # Config C7 + Aggregation A4 (384D)
+  - C7A5    # Config C7 + Aggregation A5 (384D)
+  - C8A1    # Config C8 + Aggregation A1 (384D)
+  - C8A2    # Config C8 + Aggregation A2 (1536D)
+  - C8A3    # Config C8 + Aggregation A3 (576D)
+  - C8A4    # Config C8 + Aggregation A4 (384D)
+  - C8A5    # Config C8 + Aggregation A5 (384D)
+  - C9A1    # Config C9 + Aggregation A1 (384D)
+  - C9A2    # Config C9 + Aggregation A2 (1536D)
+  - C9A3    # Config C9 + Aggregation A3 (576D)
+  - C9A4    # Config C9 + Aggregation A4 (384D)
+  - C9A5    # Config C9 + Aggregation A5 (384D)
+
+# Classifiers to Evaluate
+classifiers:
+  - logistic
+
+# Classification Modes
+classification_modes:
+  - raw_features
+
+# Investigation Configuration
+investigation:
+  enabled: true
+  save_cv_results: true
+  detailed_fold_analysis: true
+  outlier_detection_threshold: 0.05
+
+# Execution Configuration
+execution:
+  parallel_models: false
+  parallel_configs: false
+  focus_mode: false
+
+# Configuration Paths
+paths:
+  input_base_path: "feature_extraction_point_m2ae_cfgs"
+  output_base_path: "point_m2ae_cfgs"
+
+# Output Configuration
+output:
+  base_path: "point_m2ae_cfgs"
+  save_consolidated: true
+  save_individual: true
+  save_cv_results_detailed: true
+
+# Validation Configuration
+validation:
+  check_feature_files: true
+  skip_existing: false
+  skip_missing_gracefully: true
+
+# Classifier Parameters
+classifier_params:
+  logistic:
+    max_iter: 20000
+    solver: 'saga'
+    penalty: 'elasticnet'
+    n_jobs: -1
+    random_state: 42
+    C_values: [0.001, 0.01, 0.1, 1.0, 10.0, 100.0, 1000.0]
+    l1_ratio_values: [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+
+# Cross-Validation Configuration
+cross_validation:
+  method: "LeaveOneGroupOut"
+  scoring: "roc_auc_ovr_weighted"
+  return_train_score: true
+
+# Reporting Configuration
+reporting:
+  verbose: true
+  save_timing: true
+  save_diagnostics: true
+
+# Processing Plan
+processing_plan:
+  total_combinations: 45
+  estimated_time: "2-3 hours"
+  purpose: "Point-M2AE 45 configurations classification evaluation"
+
+# Expected Results Structure
+results_structure:
+  input_features: "feature_extraction_point_m2ae_cfgs/{config_name}/"
+  per_config_files: "point_m2ae_cfgs/{config_name}/raw_features/classification_results.json"
+  consolidated_files: "point_m2ae_cfgs/classification_results_point_m2ae_cfgs.json"
+
+# Expected Dimensions by Aggregation
+expected_dimensions:
+  A1: 384   # mean
+  A2: 1536  # mean+std+min+max
+  A3: 576   # multi-level
+  A4: 384   # adaptive
+  A5: 384   # attention
+
+# Data Requirements
+data_requirements:
+  input_path: "feature_extraction_point_m2ae_cfgs"
+  expected_samples: "461 train/val + 116 test"
+  feature_files_per_config:
+    - "test_split_features.npy"
+    - "test_split_metadata.csv"
+    - "train_val_split_0_features.npy"
+    - "train_val_split_0_metadata.csv"
+    - "train_val_split_1_features.npy"
+    - "train_val_split_1_metadata.csv"
+    - "train_val_split_2_features.npy"
+    - "train_val_split_2_metadata.csv"
+    - "train_val_split_3_features.npy"
+    - "train_val_split_3_metadata.csv"
+    - "train_val_split_4_features.npy"
+    - "train_val_split_4_metadata.csv"
+
+# Performance Expectations
+performance:
+  estimated_runtime: "2-3 hours"
+  memory_usage: "< 16 GB"
+  bottleneck: "GridSearchCV for 45 configurations"
+
+# Success Criteria
+success_criteria:
+  - "45 configurations evaluated successfully"
+  - "Individual results saved for each configuration"
+  - "Consolidated results file generated"
+  - "CV results saved for investigation"
+
+# Notes
+notes:
+  methodology: "Linear probing evaluation of 45 Point-M2AE configurations"
+  excluded_configs: "C10A1-C10A5 excluded due to extraction failures"
+  feature_types: "Raw features only, no PCA"
+  aggregation_types: "A1 (mean), A2 (statistics), A3 (multi-level), A4 (adaptive), A5 (attention)"

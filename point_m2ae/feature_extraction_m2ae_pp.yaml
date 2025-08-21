@@ -1,4 +1,4 @@
-# Point-M2AE Feature Extraction Configuration with Optimized Preprocessing
+# Point-M2AE Feature Extraction Configuration with Corrected Preprocessing
 # AdaptFoundation Project - Hierarchical point cloud feature extraction
 
 # Model configuration
@@ -7,13 +7,13 @@ model:
   type: "hierarchical_encoder"
   checkpoint_path: "point_m2ae/ckpt/pre-train.pth"
 
-# Point-M2AE processing configuration - CORRECTED TO MATCH OFFICIAL
+# Point-M2AE processing configuration
 processing:
-  # Model architecture (CORRECTED to match official Point-M2AE config)
+  # Model architecture (official Point-M2AE config)
   encoder_depths: [5, 5, 5]
   encoder_dims: [96, 192, 384]
-  group_sizes: [16, 8, 8]        # Progressive reduction
-  num_groups: [512, 256, 64]     # Official values
+  group_sizes: [16, 8, 8]
+  num_groups: [512, 256, 64]
   local_radius: [0.32, 0.64, 1.28]
   drop_path_rate: 0.1
   num_heads: 6
@@ -26,12 +26,12 @@ processing:
 preprocessing:
   versions:
     v1:
-      name: "fixed_normalization"
-      description: "Fixed normalization preserving anatomical position"
+      name: "fixed_normalization_corrected"
+      description: "Fixed normalization with grid center origin and [-1,1] range"
       input_features: 3
     v2:
-      name: "topological_features" 
-      description: "Fixed normalization with 4 topological features"
+      name: "topological_features_corrected" 
+      description: "Fixed normalization corrected + 4 topological features"
       input_features: 7
   
   # Parameters for topological features (v2)
@@ -46,7 +46,7 @@ data:
   dataset_path: "crops/2mm/S.Or."
   output_base_path: "feature_extraction_point_m2ae_pp"
 
-# Feature aggregation approaches - SIMPLIFIED
+# Feature aggregation approaches
 feature_approaches:
   feat_mean:
     description: "Spatial mean aggregation of final tokens"
@@ -74,7 +74,7 @@ validation:
 
 # Configuration notes
 notes:
-  preprocessing_v1: "Fixed normalization by grid dimensions [29,37,21] - preserves anatomical position"
-  preprocessing_v2: "v1 + 4 topological features: neighbors, density_gradient, continuity, centrality"
-  centrality_method: "Chebyshev distance for optimal grid-based centrality scoring"
-  approach_focus: "feat_mean only - spatial mean aggregation for optimal performance"
+  preprocessing_v1_corrected: "Grid center (15,19,11) as anatomical origin with [-1,1] normalization (CORRECTED)"
+  preprocessing_v2_corrected: "v1 corrected + 4 topological features with position in [-1,1] range"
+  anatomical_preservation: "Fixed anatomical reference preserves spatial relationships"
+  point_m2ae_compatibility: "[-1,1] distribution maintains pre-trained model compatibility"

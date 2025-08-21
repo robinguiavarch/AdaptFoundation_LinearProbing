@@ -84,10 +84,10 @@
         "feature_dimensionality": 384
       },
       "timing": {
-        "load_time": 0.044055938720703125,
-        "gridsearch_time": 844.8713829517365,
-        "test_eval_time": 4.467334985733032,
-        "total_time": 849.3827738761902
+        "load_time": 0.04638791084289551,
+        "gridsearch_time": 831.2261531352997,
+        "test_eval_time": 3.8480143547058105,
+        "total_time": 835.1205554008484
       },
       "cv_results_summary": {
         "best_index": "22",
@@ -98,7 +98,7 @@
         "approach": "feat_mean_v1",
         "classifier": "logistic",
         "mode": "raw_features",
-        "total_pipeline_time": 849.4184787273407
+        "total_pipeline_time": 835.1497864723206
       }
     }
   }

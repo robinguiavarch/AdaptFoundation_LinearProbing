@@ -1,0 +1,61 @@
+{
+  "C2A5": {
+    "logistic": {
+      "config_name": "C2A5",
+      "classifier_type": "logistic",
+      "best_params": {
+        "C": 0.001,
+        "l1_ratio": 0.0
+      },
+      "best_cv_score": 0.549183515706664,
+      "test_metrics": {
+        "roc_auc_weighted": 0.5498102839227839,
+        "accuracy": 0.46551724137931033,
+        "n_test_samples": 116
+      },
+      "cv_metrics": {
+        "roc_auc_weighted": 0.549183515706664,
+        "mean_train_score": 0.7380138123773872,
+        "mean_val_score": 0.549183515706664,
+        "overfitting_gap": 0.18883029667072315,
+        "cv_stability": 0.024126430001967996
+      },
+      "diagnostics": {
+        "convergence_warning": "False",
+        "overfitting_gap": 0.18883029667072315,
+        "overfitting_severity": "high",
+        "cv_stability": 0.024126430001967996
+      },
+      "data_info": {
+        "train_val_shape": [
+          461,
+          384
+        ],
+        "test_shape": [
+          116,
+          384
+        ],
+        "n_classes": 4,
+        "n_cv_splits": 5,
+        "feature_dimensionality": 384
+      },
+      "timing": {
+        "load_time": 0.021305561065673828,
+        "gridsearch_time": 261.5917754173279,
+        "test_eval_time": 0.13944530487060547,
+        "total_time": 261.75252628326416
+      },
+      "cv_results_summary": {
+        "best_index": "0",
+        "n_combinations_tested": 77
+      },
+      "task_metadata": {
+        "model": "point_m2ae_encoder",
+        "configuration": "C2A5",
+        "classifier": "logistic",
+        "mode": "raw_features",
+        "total_pipeline_time": 261.77607583999634
+      }
+    }
+  }
+}
